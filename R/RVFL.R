@@ -124,9 +124,11 @@ predict.RVFL <- function(object, ...) {
         newdata <- object$data$X
     }
     else {
-        if (dim(newdata)[2] != dim(object$data$X)[2]) {
+        if (dim(dots$newdata)[2] != dim(object$data$X)[2]) {
             stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
+        
+        newdata <- dots$newdata 
     }
     
     newH <- RFRVFL:::rvfl_forward(

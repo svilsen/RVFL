@@ -43,68 +43,6 @@ RFRVFL.default <- function(X, y, N_hidden, B, ...) {
     return(object)
 }
 
-#' @title Predicting targets of an RFRVFL object.
-#' 
-#' @param object An RFRVFL-object.
-#' @param ... Additional arguments.
-#' 
-#' @rdname predict
-#' @method predict RFRVFL
-#' @export
-predict.RFRVFL <- function(object, ...) {
-    dots <- list(...)
-   
-    if (is.null(dots$newdata)) {
-        newdata <- object$data$X
-    }
-    else {
-        if (dim(newdata)[2] != dim(object$data$X)[2]) {
-            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
-        }
-    }
-    
-    ##
-    B <- length(object$RVFLmodels)
-    newy <- vector("list", B)
-    for (b in seq_along(newy)) {
-        newy[[b]] <- predict(object$RVFLmodels[[b]], newdata = newdata)
-    }
-    
-    newy <- do.call("cbind", newy)
-    
-    ##
-    if (is.null(dots$type)) {
-        newy <- matrix(apply(newy, 1, mean), ncol = 1)
-        return(newy)
-    }
-    else {
-        type <- tolower(dots$type)
-        if (type %in% c("a", "all", "f", "full")) {
-            return(newy)
-        }
-        else if (type %in% c("sd", "standarddeviation")) {
-            newy <- matrix(apply(newy, 1, sd), ncol = 1)
-            return(newy)
-        }
-    }
-}
-
-#' @title Residuals of the RFRVFL object.
-#' 
-#' @param object An RFRVFL-object.
-#' @param ... Additional arguments.
-#' 
-#' @rdname residuals
-#' @method residuals RFRVFL
-#' @export
-residuals.RFRVFL <- function(object, ...) {
-    dots <- list(...)
-    newy <- predict(object)
-    
-    r <- newy - object$data$y
-    return(r)
-}
-
 #' @title Coefficients of the RFRVFL object.
 #' 
 #' @param object An RFRVFL-object.
@@ -141,3 +79,66 @@ coef.RFRVFL <- function(object, ...) {
     }
 }
 
+#' @title Predicting targets of an RFRVFL object.
+#' 
+#' @param object An RFRVFL-object.
+#' @param ... Additional arguments.
+#' 
+#' @rdname predict
+#' @method predict RFRVFL
+#' @export
+predict.RFRVFL <- function(object, ...) {
+    dots <- list(...)
+    
+    if (is.null(dots$newdata)) {
+        newdata <- object$data$X
+    }
+    else {
+        if (dim(dots$newdata)[2] != dim(object$data$X)[2]) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        }
+        
+        newdata <- dots$newdata 
+    }
+    
+    ##
+    B <- length(object$RVFLmodels)
+    newy <- vector("list", B)
+    for (b in seq_along(newy)) {
+        newy[[b]] <- RFRVFL:::predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
+    }
+    
+    newy <- do.call("cbind", newy)
+    
+    ##
+    if (is.null(dots$type)) {
+        newy <- matrix(apply(newy, 1, mean), ncol = 1)
+        return(newy)
+    }
+    else {
+        type <- tolower(dots$type)
+        if (type %in% c("a", "all", "f", "full")) {
+            return(newy)
+        }
+        else if (type %in% c("sd", "standarddeviation")) {
+            newy <- matrix(apply(newy, 1, sd), ncol = 1)
+            return(newy)
+        }
+    }
+}
+
+#' @title Residuals of the RFRVFL object.
+#' 
+#' @param object An RFRVFL-object.
+#' @param ... Additional arguments.
+#' 
+#' @rdname residuals
+#' @method residuals RFRVFL
+#' @export
+residuals.RFRVFL <- function(object, ...) {
+    dots <- list(...)
+    newy <- predict(object)
+    
+    r <- newy - object$data$y
+    return(r)
+}
