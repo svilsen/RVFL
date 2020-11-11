@@ -24,3 +24,10 @@ An RVFL-object containing the random and fitted weights of the RVFL-model.
 \description{
 Set-up and estimate weights of a random vector functional link neural network.
 }
+\examples{
+X <- matrix(rnorm(100), ncol = 5) 
+beta <- matrix(c(0.4, 1, 3, 0.2, 1.6), ncol = 1) 
+y <- X \%*\% beta + rnorm(20)
+N_hidden <- c(10, 2, 4)
+
+}

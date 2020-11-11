@@ -5,14 +5,19 @@
 \title{RVFL control function}
 \usage{
 control_RVFL(
+  hidden_bias = TRUE,
   activation = NULL,
   weight_method = "normal",
   weight_mean = 0,
   weight_sd = 1,
+  output_bias = TRUE,
+  combine_input = FALSE,
   trace = 0
 )
 }
 \arguments{
+\item{hidden_bias}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
+
 \item{activation}{A vector of activation functions.}
 
 \item{weight_method}{The method used for generating random weights.}

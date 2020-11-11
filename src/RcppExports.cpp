@@ -7,19 +7,20 @@
 using namespace Rcpp;
 
 // rvfl_forward
-arma::colvec rvfl_forward(const arma::mat& X, const std::vector<arma::mat>& W);
-RcppExport SEXP _RFRVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP) {
+arma::mat rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<bool>& bias);
+RcppExport SEXP _RFRVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP biasSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< const std::vector<arma::mat>& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(rvfl_forward(X, W));
+    Rcpp::traits::input_parameter< const std::vector<bool>& >::type bias(biasSEXP);
+    rcpp_result_gen = Rcpp::wrap(rvfl_forward(X, W, bias));
     return rcpp_result_gen;
 END_RCPP
 }
 // estimate_output_weights
-arma::mat estimate_output_weights(const arma::mat& O, const arma::colvec& y);
+Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y);
 RcppExport SEXP _RFRVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -32,7 +33,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RFRVFL_rvfl_forward", (DL_FUNC) &_RFRVFL_rvfl_forward, 2},
+    {"_RFRVFL_rvfl_forward", (DL_FUNC) &_RFRVFL_rvfl_forward, 3},
     {"_RFRVFL_estimate_output_weights", (DL_FUNC) &_RFRVFL_estimate_output_weights, 2},
     {NULL, NULL, 0}
 };
