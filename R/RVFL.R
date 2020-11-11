@@ -45,10 +45,7 @@ RVFL <- function(X, y, N_hidden, ...) {
 #' @rdname RVFL
 #' @method RVFL default
 #' 
-#' @examples X <- matrix(rnorm(100), ncol = 5) 
-#' beta <- matrix(c(0.4, 1, 3, 0.2, 1.6), ncol = 1) 
-#' y <- X %*% beta + rnorm(20)
-#' N_hidden <- c(10, 2, 4)
+#' @examples inst/examples/rvfl.R
 #' 
 #' @export
 RVFL.default <- function(X, y, N_hidden, ...) {
@@ -87,7 +84,7 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     }
     
     ## Values of last hidden layer
-    H <- RFRVFL:::rvfl_forward(X, W_hidden, hidden_bias)
+    H <- rvfl_forward(X, W_hidden, hidden_bias)
     
     ## Estimate parameters in output layer
     if (control$output_bias) {
@@ -99,14 +96,16 @@ RVFL.default <- function(X, y, N_hidden, ...) {
         O <- cbind(H, X)
     }
     
-    W_output <- RFRVFL:::estimate_output_weights(O, y)
+    W_output <- estimate_output_weights(O, y)
     
     ## Return object
     object <- list(
         data = list(X = X, y = y), 
         N_hidden = N_hidden, 
+        Bias = list(Hidden = hidden_bias, Output = control$output_bias),
         Weights = list(Hidden = W_hidden, Output = W_output$beta),
-        SE = list(Hidden = NA, Output = W_output$se)
+        SE = list(Hidden = NA, Output = W_output$se), 
+        Combined = control$combine_input
     )
     
     class(object) <- "RVFL"
@@ -123,6 +122,34 @@ RVFL.default <- function(X, y, N_hidden, ...) {
 #' @method predict RVFL
 #' @export
 predict.RVFL <- function(object, ...) {
-    return(NULL)
+    dots <- list(...)
+    
+    if (is.null(dots$newdata)) {
+        newdata <- object$data$X
+    }
+    else {
+        if (dim(newdata)[2] != dim(object$data$X)[2]) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        }
+    }
+    
+    newH <- RFRVFL:::rvfl_forward(
+        X = newdata, 
+        W = object$Weights$Hidden, 
+        bias = object$Bias$Hidden
+    )
+    
+    ## Estimate parameters in output layer
+    if (object$Bias$Output) {
+        newH <- cbind(1, newH)
+    }
+    
+    newO <- newH
+    if (object$Combined) {
+        newO <- cbind(newH, newdata)
+    }
+    
+    newy <- newO %*% object$Weights$Output
+    return(newy)
 }
 

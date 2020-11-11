@@ -1,9 +1,9 @@
 #include "RcppArmadillo.h"
 
 //[[Rcpp::depends(RcppArmadillo)]]
-
 //[[Rcpp::plugins(cpp11)]]
 
+// 
 arma::mat sigmoid(const arma::mat & x) {
     return 1.0 / (1.0 + arma::exp(-1.0 * x));
 }
@@ -13,6 +13,7 @@ arma::mat bind_cols(arma::mat A, arma::mat B){
     return M;
 }
 
+// 
 //[[Rcpp::export]]
 arma::mat rvfl_forward(arma::mat X, 
                        const std::vector<arma::mat> & W, 
