@@ -7,9 +7,6 @@
 control_RVFL(
   bias_hidden = TRUE,
   activation = NULL,
-  weight_method = "normal",
-  weight_mean = 0,
-  weight_sd = 1,
   bias_output = TRUE,
   combine_input = FALSE
 )
@@ -18,12 +15,6 @@ control_RVFL(
 \item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
 
 \item{activation}{A vector of activation functions (NOT IMPLEMENTED -- IN THIS VERSION ALL ACTIVATIONS ARE SIGMOID).}
-
-\item{weight_method}{The method used for generating random weights.}
-
-\item{weight_mean}{The mean of the randomly initialised weights.}
-
-\item{weight_sd}{The standard deviation of the randomly initialised weights.}
 
 \item{bias_output}{TRUE/FALSE: Should a bias be added to the output layer?}
 

@@ -53,7 +53,7 @@ RFRVFL.default <- function(X, y, N_hidden, B, ...) {
 #' @export
 predict.RFRVFL <- function(object, ...) {
     dots <- list(...)
-    
+   
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
     }
@@ -114,6 +114,8 @@ residuals.RFRVFL <- function(object, ...) {
 #' @method coef RFRVFL
 #' @export
 coef.RFRVFL <- function(object, ...) {
+    dots <- list(...)
+    
     B <- length(object$RVFLmodels)
     beta <- vector("list", B)
     for (b in seq_along(beta)) {

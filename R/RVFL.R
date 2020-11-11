@@ -8,19 +8,14 @@
 #' 
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param activation A vector of activation functions (NOT IMPLEMENTED -- IN THIS VERSION ALL ACTIVATIONS ARE SIGMOID).
-#' @param weight_method The method used for generating random weights.
-#' @param weight_mean The mean of the randomly initialised weights.
-#' @param weight_sd The standard deviation of the randomly initialised weights.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
 #' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output layer?
 #' 
 #' @return A list of control variables.
 #' @export
 control_RVFL <- function(bias_hidden = TRUE, activation = NULL, 
-                         weight_method = "normal", weight_mean = 0, weight_sd = 1, 
                          bias_output = TRUE, combine_input = FALSE) {
     return(list(bias_hidden = bias_hidden, activation = activation, 
-                weight_method = weight_method, weight_mean = weight_mean, weight_sd = weight_sd,
                 bias_output = bias_output, combine_input = combine_input))
 }
 
@@ -52,9 +47,6 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     dots <- list(...)
     control <- do.call(control_RVFL, dots)
     
-    rweights <- switch(control$weight_method, 
-                       "normal" = rnorm)
-    
     ## Checks
     if (length(N_hidden) < 1) {
         stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
@@ -82,7 +74,7 @@ RVFL.default <- function(X, y, N_hidden, ...) {
             nr_connections <- N_hidden[w] * (N_hidden[w - 1] + as.numeric(bias_hidden[w]))
         }
         
-        random_weights <- rweights(nr_connections, mean = control$weight_mean, sd = control$weight_sd)
+        random_weights <- runif(nr_connections, -1, 1)
         W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w])
     }
     
