@@ -6,23 +6,22 @@
 #' 
 #' @description A function used to create a control-object for the \link{RVFL} function.
 #' 
-#' @param hidden_bias A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
-#' @param activation A vector of activation functions.
+#' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
+#' @param activation A vector of activation functions (NOT IMPLEMENTED -- IN THIS VERSION ALL ACTIVATIONS ARE SIGMOID).
 #' @param weight_method The method used for generating random weights.
 #' @param weight_mean The mean of the randomly initialised weights.
 #' @param weight_sd The standard deviation of the randomly initialised weights.
-#' @param trace An integer passed to the optimiser. If set larger than 0, a trace of the optimisation iterations is shown every '\code{trace}' iterations. 
+#' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
+#' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output layer?
 #' 
 #' @return A list of control variables.
 #' @export
-control_RVFL <- function(hidden_bias = TRUE, activation = NULL, 
+control_RVFL <- function(bias_hidden = TRUE, activation = NULL, 
                          weight_method = "normal", weight_mean = 0, weight_sd = 1, 
-                         output_bias = TRUE, combine_input = FALSE,
-                         trace = 0) {
-    return(list(hidden_bias = hidden_bias, activation = activation, 
+                         bias_output = TRUE, combine_input = FALSE) {
+    return(list(bias_hidden = bias_hidden, activation = activation, 
                 weight_method = weight_method, weight_mean = weight_mean, weight_sd = weight_sd,
-                output_bias = output_bias, combine_input = combine_input,
-                trace = trace))
+                bias_output = bias_output, combine_input = combine_input))
 }
 
 
@@ -45,7 +44,7 @@ RVFL <- function(X, y, N_hidden, ...) {
 #' @rdname RVFL
 #' @method RVFL default
 #' 
-#' @examples inst/examples/rvfl.R
+#' @example inst/examples/rvfl_example.R
 #' 
 #' @export
 RVFL.default <- function(X, y, N_hidden, ...) {
@@ -57,14 +56,18 @@ RVFL.default <- function(X, y, N_hidden, ...) {
                        "normal" = rnorm)
     
     ## Checks
-    if (length(control$hidden_bias) == 1) {
-        hidden_bias <- rep(control$hidden_bias, length(N_hidden))
+    if (length(N_hidden) < 1) {
+        stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
     }
-    else if (length(control$hidden_bias) == length(N_hidden)) {
-        hidden_bias <- control$hidden_bias
+    
+    if (length(control$bias_hidden) == 1) {
+        bias_hidden <- rep(control$bias_hidden, length(N_hidden))
+    }
+    else if (length(control$bias_hidden) == length(N_hidden)) {
+        bias_hidden <- control$bias_hidden
     }
     else {
-        stop("The 'hidden_bias' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+        stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
     ## Initialisation
@@ -73,10 +76,10 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     W_hidden <- vector("list", length = length(N_hidden))
     for (w in seq_along(W_hidden)) {
         if (w == 1) {
-            nr_connections <- N_hidden[w] * (X_dim[2] + as.numeric(hidden_bias[w]))
+            nr_connections <- N_hidden[w] * (X_dim[2] + as.numeric(bias_hidden[w]))
         }
         else {
-            nr_connections <- N_hidden[w] * (N_hidden[w - 1] + as.numeric(hidden_bias[w]))
+            nr_connections <- N_hidden[w] * (N_hidden[w - 1] + as.numeric(bias_hidden[w]))
         }
         
         random_weights <- rweights(nr_connections, mean = control$weight_mean, sd = control$weight_sd)
@@ -84,10 +87,10 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     }
     
     ## Values of last hidden layer
-    H <- rvfl_forward(X, W_hidden, hidden_bias)
+    H <- rvfl_forward(X, W_hidden, bias_hidden)
     
     ## Estimate parameters in output layer
-    if (control$output_bias) {
+    if (control$bias_output) {
         H <- cbind(1, H)
     }
     
@@ -102,9 +105,10 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     object <- list(
         data = list(X = X, y = y), 
         N_hidden = N_hidden, 
-        Bias = list(Hidden = hidden_bias, Output = control$output_bias),
+        Bias = list(Hidden = bias_hidden, Output = control$bias_output),
         Weights = list(Hidden = W_hidden, Output = W_output$beta),
         SE = list(Hidden = NA, Output = W_output$se), 
+        Sigma = list(Hidden = NA, Output = W_output$sigma),
         Combined = control$combine_input
     )
     
@@ -151,5 +155,37 @@ predict.RVFL <- function(object, ...) {
     
     newy <- newO %*% object$Weights$Output
     return(newy)
+}
+
+#' @title Residuals of the RVFL object.
+#' 
+#' @param object An RVFL-object.
+#' @param ... Additional arguments.
+#' 
+#' @rdname residuals
+#' @method residuals RVFL
+#' @export
+residuals.RVFL <- function(object, ...) {
+    dots <- list(...)
+    newy <- predict.RVFL(object, newdata = NULL, ...)
+    
+    r <- newy - object$data$y
+    if (tolower(dots$type) %in% c("standard", "standardised", "rs")) {        
+        r <- r / object$Sigma$Output
+    }
+    
+    return(r)
+}
+
+#' @title Coefficients of the RVFL object.
+#' 
+#' @param object An RVFL-object.
+#' @param ... Additional arguments.
+#' 
+#' @rdname coef
+#' @method coef RVFL
+#' @export
+coef.RVFL <- function(object, ...) {
+    return(object$Weights$Output)
 }
 

@@ -54,6 +54,7 @@ Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y) 
     
     return Rcpp::List::create(
         Rcpp::Named("beta") = beta,
+        Rcpp::Named("sigma") = std::sqrt(sigma_squared),
         Rcpp::Named("se") = standard_error
     );
 }
