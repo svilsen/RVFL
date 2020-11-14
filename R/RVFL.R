@@ -131,7 +131,7 @@ predict.RVFL <- function(object, ...) {
         newdata <- dots$newdata 
     }
     
-    newH <- RFRVFL:::rvfl_forward(
+    newH <- rvfl_forward(
         X = newdata, 
         W = object$Weights$Hidden, 
         bias = object$Bias$Hidden
