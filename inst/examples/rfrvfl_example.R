@@ -7,4 +7,4 @@ y <- X %*% beta + rnorm(p)
 
 N_hidden <- c(10, 2, 4, 2)
 B <- 1000
-RVFL(X = X, y = y, N_hidden = N_hidden, B = B, combine_input = FALSE)
+RFRVFL(X = X, y = y, N_hidden = N_hidden, B = B, combine_input = FALSE)

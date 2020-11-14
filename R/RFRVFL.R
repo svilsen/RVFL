@@ -36,7 +36,8 @@ RFRVFL.default <- function(X, y, N_hidden, B, ...) {
     ##
     object <- list(
         data = list(X = X, y = y), 
-        RVFLmodels = objects
+        RVFLmodels = objects, 
+        weights = rep(1L / B, B)
     )  
     
     class(object) <- "RFRVFL"
@@ -141,4 +142,86 @@ residuals.RFRVFL <- function(object, ...) {
     
     r <- newy - object$data$y
     return(r)
+}
+
+
+#' @title Set ensemble weights for an RFRVFL-object.
+#' 
+#' @description Manually set ensemble weights for an RFRVFL-object.
+#' 
+#' @param object An RFRVFL-object.
+#' @param weights A vector of ensemble weights.
+#' 
+#' @return An RFRVFL-object.
+#' 
+#' @export
+set_weights <- function(object, weights = NULL) {
+    UseMethod("set_weights")
+}
+
+#' @title Set ensemble weights for an RFRVFL-object.
+#' 
+#' @param object An RFRVFL-object.
+#' @param weights A vector of ensemble weights.
+#' 
+#' @rdname set_weights
+#' @method set_weights RFRVFL
+#' @export
+set_weights.RFRVFL <- function(object, weights = NULL) {
+    if (is.null(weights)) {
+        warning("No weights defined, setting weights to uniform.")
+        return(object)
+    }
+    
+    if (length(weights) != length(object$weights)) {
+        stop("The number of supplied weights have to be equal to the number of bootstrap samples.")
+    }
+    
+    if (abs(sum(weights) - 1) > 1e-6) {
+        stop("The weights have to sum to 1.")
+    }
+    
+    if (any(weights > 1) || any(weights < 0)) {
+        stop("All weights have to be between 0 and 1.")
+    }
+    
+    object$weights <- weights
+    return(object)
+}
+
+
+#' @title Estimate ensemble weights for an RFRVFL-object.
+#' 
+#' @description Estimate ensemble weights for an RFRVFL-object.
+#' 
+#' @param object An RFRVFL-object.
+#' @param validation_X The validation feature set.
+#' @param validation_y The validation target set.
+#' 
+#' @return An RFRVFL-object.
+#' 
+#' @export
+estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
+    UseMethod("estimate_weights")
+}
+
+#' @title Estimate ensemble weights for an RFRVFL-object.
+#' 
+#' @param object An RFRVFL-object.
+#' @param validation_X The validation feature set.
+#' @param validation_y The validation target set.
+#' 
+#' @rdname estimate_weights
+#' @method estimate_weights RFRVFL
+#' @export
+estimate_weights.RFRVFL <- function(object, validation_X = NULL, validation_y = NULL) {
+    if (is.null(validation_X) || is.null(validation_y)) {
+        warning("The validation-set was not properly specified, therefore, the training is used for weight estimation. This is not ideal as it will lead to overestimation.")
+        
+        validation_X <- object$data$X
+        validation_y <- object$data$y
+    }
+    
+    
+    
 }
