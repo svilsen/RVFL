@@ -113,7 +113,8 @@ predict.RFRVFL <- function(object, ...) {
     
     ##
     if (is.null(dots$type)) {
-        newy <- matrix(apply(newy, 1, mean), ncol = 1)
+        W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
+        newy <- matrix(apply(newy * W, 1, sum), ncol = 1)
         return(newy)
     }
     else {
@@ -190,6 +191,17 @@ set_weights.RFRVFL <- function(object, weights = NULL) {
 }
 
 
+weight_estimation_function <- function(pars, y, y_hat) {
+    y_w <- y_hat %*% pars
+    e <- y - y_w
+    SSE <- c(t(e) %*% e)
+    return(SSE)
+}
+
+weight_estimation_bound <- function(pars, y, y_hat) {
+    return(sum(pars))
+}
+
 #' @title Estimate ensemble weights for an RFRVFL-object.
 #' 
 #' @description Estimate ensemble weights for an RFRVFL-object.
@@ -222,6 +234,22 @@ estimate_weights.RFRVFL <- function(object, validation_X = NULL, validation_y = 
         validation_y <- object$data$y
     }
     
+    B <- length(object$RVFLmodels)
+    y_hat <- predict(object, newdata = validation_X, type = "full")
     
+    w_0 <- runif(B) 
+    w_0 <- w_0 / sum(w_0)
+    w_hat <- Rsolnp::solnp(
+        pars = w_0, 
+        fun = weight_estimation_function, 
+        LB = rep(.Machine$double.eps, length(w_0)), 
+        UB = rep(1L - .Machine$double.eps, length(w_0)), 
+        eqfun = weight_estimation_bound,
+        eqB = 1L,
+        y = validation_y, y_hat = y_hat,
+        control = list(trace = FALSE, tol = 1e-16)
+    )
     
+    object$weights <- w_hat$pars
+    return(object)
 }

@@ -8,6 +8,8 @@
 #' 
 #' @importFrom Rcpp evalCpp
 #' 
+#' @importFrom Rsolnp solnp
+#' 
 #' @useDynLib RFRVFL
 #' 
 #' @name RFRVFL
