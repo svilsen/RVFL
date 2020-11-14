@@ -62,6 +62,10 @@ RVFL.default <- function(X, y, N_hidden, ...) {
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
     ## Initialisation
     X_dim <- dim(X)
     
