@@ -1,7 +1,7 @@
 
-#' @title Random forest random vector functional link
+#' @title Bagging random vector functional link
 #' 
-#' @description Set-up and estimate weights the ensemble random forest random vector functional link neural network.
+#' @description Set-up and estimate weights the ensemble random vector functional link neural network.
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
@@ -9,20 +9,20 @@
 #' @param B The number of bootstrap samples. 
 #' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @return An RFRVFL-object containing the random and fitted weights of all bootstrapped RVFL-model.
+#' @return An BRVFL-object containing the random and fitted weights of all bootstrapped RVFL-model.
 #' 
 #' @export
-RFRVFL <- function(X, y, N_hidden, B = NULL, ...) {
-    UseMethod("RFRVFL")
+BRVFL <- function(X, y, N_hidden, B = NULL, ...) {
+    UseMethod("BRVFL")
 }
 
-#' @rdname RFRVFL
-#' @method RFRVFL default
+#' @rdname BRVFL
+#' @method BRVFL default
 #' 
-#' @example inst/examples/rfrvfl_example.R
+#' @example inst/examples/brvfl_example.R
 #' 
 #' @export
-RFRVFL.default <- function(X, y, N_hidden, B, ...) {
+BRVFL.default <- function(X, y, N_hidden, B, ...) {
     ##
     objects <- vector("list", B)
     for (b in seq_len(B)) {
@@ -40,19 +40,19 @@ RFRVFL.default <- function(X, y, N_hidden, B, ...) {
         weights = rep(1L / B, B)
     )  
     
-    class(object) <- "RFRVFL"
+    class(object) <- "BRVFL"
     return(object)
 }
 
-#' @title Coefficients of the RFRVFL object.
+#' @title Coefficients of the BRVFL object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @rdname coef
-#' @method coef RFRVFL
+#' @method coef BRVFL
 #' @export
-coef.RFRVFL <- function(object, ...) {
+coef.BRVFL <- function(object, ...) {
     dots <- list(...)
     
     B <- length(object$RVFLmodels)
@@ -80,15 +80,15 @@ coef.RFRVFL <- function(object, ...) {
     }
 }
 
-#' @title Predicting targets of an RFRVFL object.
+#' @title Predicting targets of an BRVFL object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @rdname predict
-#' @method predict RFRVFL
+#' @method predict BRVFL
 #' @export
-predict.RFRVFL <- function(object, ...) {
+predict.BRVFL <- function(object, ...) {
     dots <- list(...)
     
     if (is.null(dots$newdata)) {
@@ -106,7 +106,7 @@ predict.RFRVFL <- function(object, ...) {
     B <- length(object$RVFLmodels)
     newy <- vector("list", B)
     for (b in seq_along(newy)) {
-        newy[[b]] <- RFRVFL:::predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
+        newy[[b]] <- BRVFL:::predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
     }
     
     newy <- do.call("cbind", newy)
@@ -129,15 +129,15 @@ predict.RFRVFL <- function(object, ...) {
     }
 }
 
-#' @title Residuals of the RFRVFL object.
+#' @title Residuals of the BRVFL object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @rdname residuals
-#' @method residuals RFRVFL
+#' @method residuals BRVFL
 #' @export
-residuals.RFRVFL <- function(object, ...) {
+residuals.BRVFL <- function(object, ...) {
     dots <- list(...)
     newy <- predict(object)
     
@@ -146,29 +146,29 @@ residuals.RFRVFL <- function(object, ...) {
 }
 
 
-#' @title Set ensemble weights for an RFRVFL-object.
+#' @title Set ensemble weights for an BRVFL-object.
 #' 
-#' @description Manually set ensemble weights for an RFRVFL-object.
+#' @description Manually set ensemble weights for an BRVFL-object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param weights A vector of ensemble weights.
 #' 
-#' @return An RFRVFL-object.
+#' @return An BRVFL-object.
 #' 
 #' @export
 set_weights <- function(object, weights = NULL) {
     UseMethod("set_weights")
 }
 
-#' @title Set ensemble weights for an RFRVFL-object.
+#' @title Set ensemble weights for an BRVFL-object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param weights A vector of ensemble weights.
 #' 
 #' @rdname set_weights
-#' @method set_weights RFRVFL
+#' @method set_weights BRVFL
 #' @export
-set_weights.RFRVFL <- function(object, weights = NULL) {
+set_weights.BRVFL <- function(object, weights = NULL) {
     if (is.null(weights)) {
         warning("No weights defined, setting weights to uniform.")
         return(object)
@@ -202,31 +202,31 @@ weight_estimation_bound <- function(pars, y, y_hat) {
     return(sum(pars))
 }
 
-#' @title Estimate ensemble weights for an RFRVFL-object.
+#' @title Estimate ensemble weights for an BRVFL-object.
 #' 
-#' @description Estimate ensemble weights for an RFRVFL-object.
+#' @description Estimate ensemble weights for an BRVFL-object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param validation_X The validation feature set.
 #' @param validation_y The validation target set.
 #' 
-#' @return An RFRVFL-object.
+#' @return An BRVFL-object.
 #' 
 #' @export
 estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
     UseMethod("estimate_weights")
 }
 
-#' @title Estimate ensemble weights for an RFRVFL-object.
+#' @title Estimate ensemble weights for an BRVFL-object.
 #' 
-#' @param object An RFRVFL-object.
+#' @param object An BRVFL-object.
 #' @param validation_X The validation feature set.
 #' @param validation_y The validation target set.
 #' 
 #' @rdname estimate_weights
-#' @method estimate_weights RFRVFL
+#' @method estimate_weights BRVFL
 #' @export
-estimate_weights.RFRVFL <- function(object, validation_X = NULL, validation_y = NULL) {
+estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = NULL) {
     if (is.null(validation_X) || is.null(validation_y)) {
         warning("The validation-set was not properly specified, therefore, the training is used for weight estimation. This is not ideal as it will lead to overestimation.")
         
