@@ -1,7 +1,7 @@
-N <- 1000
+N <- 200
 p <- 5
 
-X <- matrix(rnorm(N), ncol = p) 
+X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
 y <- X %*% beta + rnorm(p)
 

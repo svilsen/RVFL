@@ -7,4 +7,8 @@ y <- X %*% beta + rnorm(p)
 
 N_hidden <- c(10, 2, 4, 2)
 B <- 100
-BRVFL(X = X, y = y, N_hidden = N_hidden, B = B, combine_input = FALSE)
+mm <- BRVFL(X = X, y = y, N_hidden = N_hidden, B = B, combine_input = FALSE)
+
+w <- runif(B)
+w <- w / sum(w)
+set_weights(mm, weights = w)

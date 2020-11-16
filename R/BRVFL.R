@@ -1,3 +1,6 @@
+###############################################################################
+####################### An ensemble RVFL neural network #######################
+###############################################################################
 
 #' @title Bagging random vector functional link
 #' 
@@ -7,7 +10,9 @@
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param B The number of bootstrap samples. 
-#' @param ... Additional arguments passed to the \link{control_RVFL} function.
+#' @param ... Additional arguments. 
+#' 
+#' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
 #' @return An BRVFL-object containing the random and fitted weights of all bootstrapped RVFL-model.
 #' 
@@ -49,7 +54,9 @@ BRVFL.default <- function(X, y, N_hidden, B, ...) {
 #' @param object An BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @rdname coef
+#' @details The additional argument '\code{type}' can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
+#' 
+#' @rdname coef.BRVFL
 #' @method coef BRVFL
 #' @export
 coef.BRVFL <- function(object, ...) {
@@ -85,7 +92,13 @@ coef.BRVFL <- function(object, ...) {
 #' @param object An BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @rdname predict
+#' @details The additional argument '\code{newdata}' and '\code{type}' can be specified:
+#' \describe{
+#'   \item{\code{newdata}}{Expects a matrix the same number of features (columns) as in the original data.}
+#'   \item{\code{type}}{Takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
+#' }
+#'
+#' @rdname predict.BRVFL
 #' @method predict BRVFL
 #' @export
 predict.BRVFL <- function(object, ...) {
@@ -134,7 +147,9 @@ predict.BRVFL <- function(object, ...) {
 #' @param object An BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @rdname residuals
+#' @details No additional arguments are used in this instance.
+#' 
+#' @rdname residuals.BRVFL
 #' @method residuals BRVFL
 #' @export
 residuals.BRVFL <- function(object, ...) {
@@ -167,6 +182,9 @@ set_weights <- function(object, weights = NULL) {
 #' 
 #' @rdname set_weights
 #' @method set_weights BRVFL
+#' 
+#' @example inst/examples/sw_example.R
+#'
 #' @export
 set_weights.BRVFL <- function(object, weights = NULL) {
     if (is.null(weights)) {
@@ -220,12 +238,15 @@ estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
 #' @title Estimate ensemble weights for an BRVFL-object.
 #' 
 #' @param object An BRVFL-object.
-#' @param validation_X The validation feature set.
-#' @param validation_y The validation target set.
-#' @param trace Numeric passed to \link{solnp}. Default is set to 0.
+#' @param validation_X A matrix of observed features used to estimate the weights.
+#' @param validation_y A vector of observed targets used to estimate the weights.
+#' @param trace The trace of \link{solnp} are printed every 'trace' number of iteration (default 0). 
 #' 
 #' @rdname estimate_weights
 #' @method estimate_weights BRVFL
+#' 
+#' @example inst/examples/ew_example.R
+#'
 #' @export
 estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = NULL, trace = 0) {
     if (is.null(validation_X) || is.null(validation_y)) {
@@ -240,7 +261,7 @@ estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = N
     
     w_0 <- runif(B) 
     w_0 <- w_0 / sum(w_0)
-    w_hat <- Rsolnp::solnp(
+    w_hat <- solnp(
         pars = w_0, 
         fun = weight_estimation_function, 
         LB = rep(.Machine$double.eps, length(w_0)), 
@@ -254,3 +275,55 @@ estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = N
     object$weights <- w_hat$pars
     return(object)
 }
+
+#' @title Diagnostic-plots of an BRVFL-object.
+#' 
+#' @param object An BRVFL-object.
+#' @param ... Additional arguments.
+#' 
+#' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.  
+#' 
+#' @rdname plot.BRVFL
+#' @method plot BRVFL
+#'
+#' @export
+plot.BRVFL <- function(object, ...) {
+    dots <- list(...)
+    if (is.null(dots$testing_X) || is.null(dots$testing_y)) {
+        message("The testing-set was not properly specified, therefore, the training-set is used.")
+        
+        testing_X <- object$data$X
+        testing_y <- object$data$y
+    }
+    else {
+        testing_X <- dots$testing_X
+        testing_y <- dots$testing_y
+    }
+    
+    y_hat <- predict(object, newdata = testing_X)
+    
+    dev.hold()
+    plot(y_hat ~ testing_y, pch = 16, 
+         xlab = "Observed targets", ylab = "Predicted targets")
+    abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+    dev.flush()
+    
+    readline(prompt = "Press [ENTER] for next plot...")
+    dev.hold()
+    plot(I(y_hat - testing_y) ~ seq(length(testing_y)), pch = 16,
+         xlab = "Index", ylab = "Residual") 
+    abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+    dev.flush()
+    
+    readline(prompt = "Press [ENTER] for next plot...")
+    dev.hold()
+    plot(object$weights ~ seq(length(object$weights)), pch = 16,
+         xlab = "Bootstrap index", ylab = "Weights") 
+    dev.flush()
+    
+    return(invisible(NULL))
+}
+
+
+
+

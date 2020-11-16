@@ -24,10 +24,12 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' 
 #' @description Set-up and estimate weights of a random vector functional link neural network.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param X A matrix of observed features used to train the parameters of the output layer.
+#' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param ... Additional arguments passed to the \link{control_RVFL} function.
+#' @param ... Additional arguments.
+#' 
+#' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
 #' @return An RVFL-object containing the random and fitted weights of the RVFL-model.
 #' 
@@ -112,13 +114,28 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     return(object)
 }
 
+#' @title Coefficients of the RVFL object.
+#' 
+#' @param object An RVFL-object.
+#' @param ... Additional arguments.
+#' 
+#' @details No additional arguments are used in this instance.
+#' 
+#' @rdname coef.RVFL
+#' @method coef RVFL
+#' @export
+coef.RVFL <- function(object, ...) {
+    return(object$Weights$Output)
+}
 
 #' @title Predicting targets of an RVFL object.
 #' 
 #' @param object An RVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @rdname predict
+#' @details The only additional argument used by the function is \code{newdata}, which expects a matrix with the same number of features (columns) as in the original data.
+#' 
+#' @rdname predict.RVFL
 #' @method predict RVFL
 #' @export
 predict.RVFL <- function(object, ...) {
@@ -160,7 +177,9 @@ predict.RVFL <- function(object, ...) {
 #' @param object An RVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @rdname residuals
+#' @details Besides the arguments passed to the \code{predict} function, the argument \code{type} can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
+#'
+#' @rdname residuals.RVFL
 #' @method residuals RVFL
 #' @export
 residuals.RVFL <- function(object, ...) {
@@ -175,15 +194,42 @@ residuals.RVFL <- function(object, ...) {
     return(r)
 }
 
-#' @title Coefficients of the RVFL object.
+#' @title Diagnostic-plots of an RVFL-object.
 #' 
 #' @param object An RVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @rdname coef
-#' @method coef RVFL
+#' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.  
+#' 
+#' @rdname plot.RVFL
+#' @method plot RVFL
+#'
 #' @export
-coef.RVFL <- function(object, ...) {
-    return(object$Weights$Output)
+plot.RVFL <- function(object, ...) {
+    dots <- list(...)
+    if (is.null(dots$testing_X) || is.null(dots$testing_y)) {
+        testing_X <- object$data$X
+        testing_y <- object$data$y
+    }
+    else {
+        testing_X <- dots$testing_X
+        testing_y <- dots$testing_y
+    }
+    
+    y_hat <- predict(object, newdata = testing_X)
+    
+    dev.hold()
+    plot(y_hat ~ testing_y, pch = 16, 
+         xlab = "Observed targets", ylab = "Predicted targets")
+    abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+    dev.flush()
+    
+    readline(prompt = "Press [ENTER] for next plot...")
+    dev.hold()
+    plot(I(y_hat - testing_y) ~ seq(length(testing_y)), pch = 16,
+         xlab = "Index", ylab = "Residual") 
+    abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+    dev.flush()
+    
+    return(invisible(NULL))
 }
-

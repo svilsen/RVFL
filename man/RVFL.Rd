@@ -10,13 +10,13 @@ RVFL(X, y, N_hidden, ...)
 \method{RVFL}{default}(X, y, N_hidden, ...)
 }
 \arguments{
-\item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
+\item{X}{A matrix of observed features used to train the parameters of the output layer.}
 
-\item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+\item{y}{A vector of observed targets used to train the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{...}{Additional arguments.}
 }
 \value{
 An RVFL-object containing the random and fitted weights of the RVFL-model.
@@ -24,11 +24,14 @@ An RVFL-object containing the random and fitted weights of the RVFL-model.
 \description{
 Set-up and estimate weights of a random vector functional link neural network.
 }
+\details{
+The additional arguments are all passed to the \link{control_RVFL} function.
+}
 \examples{
-N <- 1000
+N <- 200
 p <- 5
 
-X <- matrix(rnorm(N), ncol = p) 
+X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
 y <- X \%*\% beta + rnorm(p)
 

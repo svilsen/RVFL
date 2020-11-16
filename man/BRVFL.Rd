@@ -19,7 +19,7 @@ BRVFL(X, y, N_hidden, B = NULL, ...)
 
 \item{B}{The number of bootstrap samples.}
 
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{...}{Additional arguments.}
 }
 \value{
 An BRVFL-object containing the random and fitted weights of all bootstrapped RVFL-model.
@@ -29,16 +29,19 @@ Simple creation, estimation, and prediction of random vector functional link neu
 
 Set-up and estimate weights the ensemble random vector functional link neural network.
 }
+\details{
+The additional arguments are all passed to the \link{control_RVFL} function.
+}
 \examples{
-N <- 1000
+N <- 200
 p <- 5
 
-X <- matrix(rnorm(N), ncol = p) 
+X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
 y <- X \%*\% beta + rnorm(p)
 
 N_hidden <- c(10, 2, 4, 2)
-B <- 1000
+B <- 100
 BRVFL(X = X, y = y, N_hidden = N_hidden, B = B, combine_input = FALSE)
 }
 \author{
