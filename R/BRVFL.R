@@ -222,11 +222,12 @@ estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
 #' @param object An BRVFL-object.
 #' @param validation_X The validation feature set.
 #' @param validation_y The validation target set.
+#' @param trace Numeric passed to \link{solnp}. Default is set to 0.
 #' 
 #' @rdname estimate_weights
 #' @method estimate_weights BRVFL
 #' @export
-estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = NULL) {
+estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = NULL, trace = 0) {
     if (is.null(validation_X) || is.null(validation_y)) {
         warning("The validation-set was not properly specified, therefore, the training is used for weight estimation. This is not ideal as it will lead to overestimation.")
         
@@ -247,7 +248,7 @@ estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = N
         eqfun = weight_estimation_bound,
         eqB = 1L,
         y = validation_y, y_hat = y_hat,
-        control = list(trace = FALSE, tol = 1e-16)
+        control = list(trace = trace, tol = 1e-12)
     )
     
     object$weights <- w_hat$pars
