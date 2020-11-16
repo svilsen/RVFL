@@ -22,7 +22,12 @@ BRVFL(X, y, N_hidden, B = NULL, ...)
 \item{...}{Additional arguments.}
 }
 \value{
-An BRVFL-object containing the random and fitted weights of all bootstrapped RVFL-model.
+An BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. An RVFL-object contains the following:
+\describe{
+    \item{\code{data}}{The original data used to estimate the weights.}
+    \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
+    \item{\code{weights}}{A vector of ensemble weights.}
+}
 }
 \description{
 Simple creation, estimation, and prediction of random vector functional link neural networks. Furthermore, it incorporates a random forest style boosting into the RVFL framework, yielding more robust estimation and prediction.

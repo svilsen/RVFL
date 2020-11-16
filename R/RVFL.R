@@ -31,7 +31,16 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return An RVFL-object containing the random and fitted weights of the RVFL-model.
+#' @return An RVFL-object containing the random and fitted weights of the RVFL-model. An RVFL-object contains the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{N_hidden}}{The vector of neurons in each layer.}
+#'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
+#'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
+#'     \item{\code{SE}}{The standard error of the weights in the output layer.}
+#'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
+#'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made input.}
+#' }
 #' 
 #' @export
 RVFL <- function(X, y, N_hidden, ...) {
@@ -121,6 +130,8 @@ RVFL.default <- function(X, y, N_hidden, ...) {
 #' 
 #' @details No additional arguments are used in this instance.
 #' 
+#' @return The estiamted weights of the output-layer.
+#' 
 #' @rdname coef.RVFL
 #' @method coef RVFL
 #' @export
@@ -134,6 +145,8 @@ coef.RVFL <- function(object, ...) {
 #' @param ... Additional arguments.
 #' 
 #' @details The only additional argument used by the function is \code{newdata}, which expects a matrix with the same number of features (columns) as in the original data.
+#' 
+#' @return A vector of predicted targets.
 #' 
 #' @rdname predict.RVFL
 #' @method predict RVFL
@@ -179,6 +192,8 @@ predict.RVFL <- function(object, ...) {
 #' 
 #' @details Besides the arguments passed to the \code{predict} function, the argument \code{type} can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
 #'
+#' @return A vector of residuals of the desired \code{type}. 
+#'
 #' @rdname residuals.RVFL
 #' @method residuals RVFL
 #' @export
@@ -204,6 +219,8 @@ residuals.RVFL <- function(object, ...) {
 #' @rdname plot.RVFL
 #' @method plot RVFL
 #'
+#' @return NULL
+#' 
 #' @export
 plot.RVFL <- function(object, ...) {
     dots <- list(...)

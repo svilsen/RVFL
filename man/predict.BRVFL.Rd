@@ -17,7 +17,7 @@ Predicting targets of an BRVFL object.
 \details{
 The additional argument '\code{newdata}' and '\code{type}' can be specified:
 \describe{
-  \item{\code{newdata}: }{Expects a matrix the same number of features (columns) as in the original data.}
-  \item{\code{type}: }{Takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
+  \item{\code{newdata}}{Expects a matrix the same number of features (columns) as in the original data.}
+  \item{\code{type}}{Takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
 }
 }

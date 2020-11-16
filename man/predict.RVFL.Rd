@@ -11,6 +11,9 @@
 
 \item{...}{Additional arguments.}
 }
+\value{
+A vector of predicted targets.
+}
 \description{
 Predicting targets of an RVFL object.
 }

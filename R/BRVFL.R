@@ -14,7 +14,12 @@
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return An BRVFL-object containing the random and fitted weights of all bootstrapped RVFL-model.
+#' @return An BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. An RVFL-object contains the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
+#'     \item{\code{weights}}{A vector of ensemble weights.}
+#' }
 #' 
 #' @export
 BRVFL <- function(X, y, N_hidden, B = NULL, ...) {
