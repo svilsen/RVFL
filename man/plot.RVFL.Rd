@@ -4,10 +4,10 @@
 \alias{plot.RVFL}
 \title{Diagnostic-plots of an RVFL-object.}
 \usage{
-\method{plot}{RVFL}(object, ...)
+\method{plot}{RVFL}(x, ...)
 }
 \arguments{
-\item{object}{An RVFL-object.}
+\item{x}{An RVFL-object.}
 
 \item{...}{Additional arguments.}
 }

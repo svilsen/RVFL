@@ -7,7 +7,14 @@ Author: Søren B. Vilsen
 Maintainer: Søren B. Vilsen <svilsen@math.aau.dk>
 Description: Simple creation, estimation, and prediction of random vector functional link neural networks. Furthermore, it incorporates a random forest style boosting into the RVFL framework, yielding more robust estimation and prediction. 
 License: MIT + file LICENSE
-Imports: Rcpp (>= 1.0.4.6), Rsolnp, stats
-LinkingTo: Rcpp, RcppArmadillo
+Imports: 
+    Rcpp (>= 1.0.4.6), 
+    Rsolnp, 
+    stats, 
+    graphics, 
+    grDevices
+LinkingTo: 
+    Rcpp, 
+    RcppArmadillo
 Encoding: UTF-8
 RoxygenNote: 7.1.1

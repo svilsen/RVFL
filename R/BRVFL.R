@@ -14,7 +14,7 @@
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return An BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. An RVFL-object contains the following:
+#' @return A BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. An RVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -56,10 +56,17 @@ BRVFL.default <- function(X, y, N_hidden, B, ...) {
 
 #' @title Coefficients of the BRVFL object.
 #' 
-#' @param object An BRVFL-object.
+#' @param object A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{type}' can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
+#' 
+#' @return Depended on \code{type}: 
+#' \describe{
+#'     \item{\code{"all"}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
+#'     \item{\code{"sd"}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
+#'     \item{\code{"mean"}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
+#' }
 #' 
 #' @rdname coef.BRVFL
 #' @method coef BRVFL
@@ -94,13 +101,20 @@ coef.BRVFL <- function(object, ...) {
 
 #' @title Predicting targets of an BRVFL object.
 #' 
-#' @param object An BRVFL-object.
+#' @param object A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{newdata}' and '\code{type}' can be specified:
 #' \describe{
 #'   \item{\code{newdata}}{Expects a matrix the same number of features (columns) as in the original data.}
 #'   \item{\code{type}}{Takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
+#' }
+#'
+#' @return Depended on \code{type}: 
+#' \describe{
+#'     \item{\code{"all"}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
+#'     \item{\code{"sd"}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
+#'     \item{\code{"mean"}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
 #' }
 #'
 #' @rdname predict.BRVFL
@@ -149,10 +163,12 @@ predict.BRVFL <- function(object, ...) {
 
 #' @title Residuals of the BRVFL object.
 #' 
-#' @param object An BRVFL-object.
+#' @param object A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details No additional arguments are used in this instance.
+#' 
+#' @return A vector of raw residuals between the predicted (using \code{type = "mean"}) and observed targets.
 #' 
 #' @rdname residuals.BRVFL
 #' @method residuals BRVFL
@@ -173,7 +189,7 @@ residuals.BRVFL <- function(object, ...) {
 #' @param object An BRVFL-object.
 #' @param weights A vector of ensemble weights.
 #' 
-#' @return An BRVFL-object.
+#' @return A \link{BRVFL}-object.
 #' 
 #' @export
 set_weights <- function(object, weights = NULL) {
@@ -182,7 +198,7 @@ set_weights <- function(object, weights = NULL) {
 
 #' @title Set ensemble weights for an BRVFL-object.
 #' 
-#' @param object An BRVFL-object.
+#' @param object A BRVFL-object.
 #' @param weights A vector of ensemble weights.
 #' 
 #' @rdname set_weights
@@ -229,11 +245,11 @@ weight_estimation_bound <- function(pars, y, y_hat) {
 #' 
 #' @description Estimate ensemble weights for an BRVFL-object.
 #' 
-#' @param object An BRVFL-object.
+#' @param object A BRVFL-object.
 #' @param validation_X The validation feature set.
 #' @param validation_y The validation target set.
 #' 
-#' @return An BRVFL-object.
+#' @return A \link{BRVFL}-object.
 #' 
 #' @export
 estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
@@ -242,7 +258,7 @@ estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
 
 #' @title Estimate ensemble weights for an BRVFL-object.
 #' 
-#' @param object An BRVFL-object.
+#' @param object A BRVFL-object.
 #' @param validation_X A matrix of observed features used to estimate the weights.
 #' @param validation_y A vector of observed targets used to estimate the weights.
 #' @param trace The trace of \link{solnp} are printed every 'trace' number of iteration (default 0). 
@@ -283,29 +299,31 @@ estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = N
 
 #' @title Diagnostic-plots of an BRVFL-object.
 #' 
-#' @param object An BRVFL-object.
+#' @param x A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.  
+#' 
+#' @return NULL
 #' 
 #' @rdname plot.BRVFL
 #' @method plot BRVFL
 #'
 #' @export
-plot.BRVFL <- function(object, ...) {
+plot.BRVFL <- function(x, ...) {
     dots <- list(...)
     if (is.null(dots$testing_X) || is.null(dots$testing_y)) {
         message("The testing-set was not properly specified, therefore, the training-set is used.")
         
-        testing_X <- object$data$X
-        testing_y <- object$data$y
+        testing_X <- x$data$X
+        testing_y <- x$data$y
     }
     else {
         testing_X <- dots$testing_X
         testing_y <- dots$testing_y
     }
     
-    y_hat <- predict(object, newdata = testing_X)
+    y_hat <- predict(x, newdata = testing_X)
     
     dev.hold()
     plot(y_hat ~ testing_y, pch = 16, 
@@ -322,7 +340,7 @@ plot.BRVFL <- function(object, ...) {
     
     readline(prompt = "Press [ENTER] for next plot...")
     dev.hold()
-    plot(object$weights ~ seq(length(object$weights)), pch = 16,
+    plot(x$weights ~ seq(length(object$weights)), pch = 16,
          xlab = "Bootstrap index", ylab = "Weights") 
     dev.flush()
     

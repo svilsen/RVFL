@@ -12,6 +12,10 @@
 #' 
 #' @importFrom Rsolnp solnp
 #' 
+#' @importFrom graphics abline
+#' 
+#' @importFrom grDevices dev.hold dev.flush
+#' 
 #' @useDynLib BRVFL
 #' 
 #' @name BRVFL

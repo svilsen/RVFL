@@ -7,9 +7,17 @@
 \method{predict}{BRVFL}(object, ...)
 }
 \arguments{
-\item{object}{An BRVFL-object.}
+\item{object}{A BRVFL-object.}
 
 \item{...}{Additional arguments.}
+}
+\value{
+Depended on \code{type}: 
+\describe{
+    \item{\code{"all"}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
+    \item{\code{"sd"}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
+    \item{\code{"mean"}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
+}
 }
 \description{
 Predicting targets of an BRVFL object.

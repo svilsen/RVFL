@@ -192,7 +192,7 @@ predict.RVFL <- function(object, ...) {
 #' 
 #' @details Besides the arguments passed to the \code{predict} function, the argument \code{type} can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
 #'
-#' @return A vector of residuals of the desired \code{type}. 
+#' @return A vector of residuals of the desired \code{type} (see details). 
 #'
 #' @rdname residuals.RVFL
 #' @method residuals RVFL
@@ -211,7 +211,7 @@ residuals.RVFL <- function(object, ...) {
 
 #' @title Diagnostic-plots of an RVFL-object.
 #' 
-#' @param object An RVFL-object.
+#' @param x An RVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.  
@@ -222,18 +222,18 @@ residuals.RVFL <- function(object, ...) {
 #' @return NULL
 #' 
 #' @export
-plot.RVFL <- function(object, ...) {
+plot.RVFL <- function(x, ...) {
     dots <- list(...)
     if (is.null(dots$testing_X) || is.null(dots$testing_y)) {
-        testing_X <- object$data$X
-        testing_y <- object$data$y
+        testing_X <- x$data$X
+        testing_y <- x$data$y
     }
     else {
         testing_X <- dots$testing_X
         testing_y <- dots$testing_y
     }
     
-    y_hat <- predict(object, newdata = testing_X)
+    y_hat <- predict(x, newdata = testing_X)
     
     dev.hold()
     plot(y_hat ~ testing_y, pch = 16, 

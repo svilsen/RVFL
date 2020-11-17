@@ -12,7 +12,7 @@
 \item{...}{Additional arguments.}
 }
 \value{
-A vector of residuals of the desired \code{type}.
+A vector of residuals of the desired \code{type} (see details).
 }
 \description{
 Residuals of the RVFL object.

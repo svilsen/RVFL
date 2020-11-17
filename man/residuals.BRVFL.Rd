@@ -7,9 +7,12 @@
 \method{residuals}{BRVFL}(object, ...)
 }
 \arguments{
-\item{object}{An BRVFL-object.}
+\item{object}{A BRVFL-object.}
 
 \item{...}{Additional arguments.}
+}
+\value{
+A vector of raw residuals between the predicted (using \code{type = "mean"}) and observed targets.
 }
 \description{
 Residuals of the BRVFL object.

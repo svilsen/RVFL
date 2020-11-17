@@ -7,9 +7,17 @@
 \method{coef}{BRVFL}(object, ...)
 }
 \arguments{
-\item{object}{An BRVFL-object.}
+\item{object}{A BRVFL-object.}
 
 \item{...}{Additional arguments.}
+}
+\value{
+Depended on \code{type}: 
+\describe{
+    \item{\code{"all"}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
+    \item{\code{"sd"}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
+    \item{\code{"mean"}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
+}
 }
 \description{
 Coefficients of the BRVFL object.

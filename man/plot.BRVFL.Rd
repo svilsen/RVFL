@@ -4,10 +4,10 @@
 \alias{plot.BRVFL}
 \title{Diagnostic-plots of an BRVFL-object.}
 \usage{
-\method{plot}{BRVFL}(object, ...)
+\method{plot}{BRVFL}(x, ...)
 }
 \arguments{
-\item{object}{An BRVFL-object.}
+\item{x}{A BRVFL-object.}
 
 \item{...}{Additional arguments.}
 }
