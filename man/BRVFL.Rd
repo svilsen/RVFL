@@ -22,7 +22,7 @@ BRVFL(X, y, N_hidden, B = NULL, ...)
 \item{...}{Additional arguments.}
 }
 \value{
-A BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. An RVFL-object contains the following:
+A BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. A BRVFL-object contains the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}

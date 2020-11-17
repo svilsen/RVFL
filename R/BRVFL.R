@@ -14,7 +14,7 @@
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return A BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. An RVFL-object contains the following:
+#' @return A BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. A BRVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -138,7 +138,7 @@ predict.BRVFL <- function(object, ...) {
     B <- length(object$RVFLmodels)
     newy <- vector("list", B)
     for (b in seq_along(newy)) {
-        newy[[b]] <- BRVFL:::predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
+        newy[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
     }
     
     newy <- do.call("cbind", newy)
@@ -196,11 +196,6 @@ set_weights <- function(object, weights = NULL) {
     UseMethod("set_weights")
 }
 
-#' @title Set ensemble weights for an BRVFL-object.
-#' 
-#' @param object A BRVFL-object.
-#' @param weights A vector of ensemble weights.
-#' 
 #' @rdname set_weights
 #' @method set_weights BRVFL
 #' 
@@ -248,21 +243,15 @@ weight_estimation_bound <- function(pars, y, y_hat) {
 #' @param object A BRVFL-object.
 #' @param validation_X The validation feature set.
 #' @param validation_y The validation target set.
+#' @param trace The trace of \link{solnp} are printed every 'trace' number of iteration (default 0). 
 #' 
 #' @return A \link{BRVFL}-object.
 #' 
 #' @export
-estimate_weights <- function(object, validation_X = NULL, validation_y = NULL) {
+estimate_weights <- function(object, validation_X = NULL, validation_y = NULL, trace = 0) {
     UseMethod("estimate_weights")
 }
 
-#' @title Estimate ensemble weights for an BRVFL-object.
-#' 
-#' @param object A BRVFL-object.
-#' @param validation_X A matrix of observed features used to estimate the weights.
-#' @param validation_y A vector of observed targets used to estimate the weights.
-#' @param trace The trace of \link{solnp} are printed every 'trace' number of iteration (default 0). 
-#' 
 #' @rdname estimate_weights
 #' @method estimate_weights BRVFL
 #' 

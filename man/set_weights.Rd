@@ -10,7 +10,7 @@ set_weights(object, weights = NULL)
 \method{set_weights}{BRVFL}(object, weights = NULL)
 }
 \arguments{
-\item{object}{A BRVFL-object.}
+\item{object}{An BRVFL-object.}
 
 \item{weights}{A vector of ensemble weights.}
 }

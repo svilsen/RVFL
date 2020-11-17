@@ -5,16 +5,16 @@
 \alias{estimate_weights.BRVFL}
 \title{Estimate ensemble weights for an BRVFL-object.}
 \usage{
-estimate_weights(object, validation_X = NULL, validation_y = NULL)
+estimate_weights(object, validation_X = NULL, validation_y = NULL, trace = 0)
 
 \method{estimate_weights}{BRVFL}(object, validation_X = NULL, validation_y = NULL, trace = 0)
 }
 \arguments{
 \item{object}{A BRVFL-object.}
 
-\item{validation_X}{A matrix of observed features used to estimate the weights.}
+\item{validation_X}{The validation feature set.}
 
-\item{validation_y}{A vector of observed targets used to estimate the weights.}
+\item{validation_y}{The validation target set.}
 
 \item{trace}{The trace of \link{solnp} are printed every 'trace' number of iteration (default 0).}
 }

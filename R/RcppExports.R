@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 rvfl_forward <- function(X, W, bias) {
-    .Call('_BRVFL_rvfl_forward', PACKAGE = 'BRVFL', X, W, bias)
+    .Call(`_BRVFL_rvfl_forward`, X, W, bias)
 }
 
 estimate_output_weights <- function(O, y) {
-    .Call('_BRVFL_estimate_output_weights', PACKAGE = 'BRVFL', O, y)
+    .Call(`_BRVFL_estimate_output_weights`, O, y)
 }
 
