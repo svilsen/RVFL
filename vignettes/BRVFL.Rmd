@@ -4,7 +4,7 @@ author: "Søren B. Vilsen"
 date: "18. November 2020"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BRVFL}
+  %\VignetteIndexEntry{Bagging RVFL neural networks}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
