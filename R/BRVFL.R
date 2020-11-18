@@ -260,7 +260,7 @@ estimate_weights <- function(object, validation_X = NULL, validation_y = NULL, t
 #' @export
 estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = NULL, trace = 0) {
     if (is.null(validation_X) || is.null(validation_y)) {
-        warning("The validation-set was not properly specified, therefore, the training is used for weight estimation. This is not ideal as it will lead to overestimation.")
+        warning("The validation-set was not properly specified, therefore, the training is used for weight estimation.")
         
         validation_X <- object$data$X
         validation_y <- object$data$y

@@ -12,7 +12,7 @@
 #' 
 #' @importFrom Rsolnp solnp
 #' 
-#' @importFrom graphics abline
+#' @importFrom graphics plot abline
 #' 
 #' @importFrom grDevices dev.hold dev.flush
 #' 
