@@ -329,7 +329,7 @@ plot.BRVFL <- function(x, ...) {
     
     readline(prompt = "Press [ENTER] for next plot...")
     dev.hold()
-    plot(x$weights ~ seq(length(object$weights)), pch = 16,
+    plot(x$weights ~ seq(length(x$weights)), pch = 16,
          xlab = "Bootstrap index", ylab = "Weights") 
     dev.flush()
     
