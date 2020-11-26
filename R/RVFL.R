@@ -39,7 +39,7 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
 #'     \item{\code{SE}}{The standard error of the weights in the output layer.}
 #'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
-#'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made input.}
+#'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
 #' }
 #' 
 #' @export
@@ -130,7 +130,7 @@ RVFL.default <- function(X, y, N_hidden, ...) {
 #' 
 #' @details No additional arguments are used in this instance.
 #' 
-#' @return The estiamted weights of the output-layer.
+#' @return The estimated weights of the output-layer.
 #' 
 #' @rdname coef.RVFL
 #' @method coef RVFL
