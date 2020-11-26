@@ -1,9 +1,9 @@
 # BRVFL
-The `BRVFL`-package is an `R` implementation of a Boostrap aggregated (Bagged) Random Vector Functional Link (RVFL) Neural Network. In RVFL neural networks the weights are randomly initialised, but only the weights between last hidden-layer and the output-layer are fitted using the training data. If the activation function of the last hidden-layer is forced to be linear, and the loss-function is the sum of squared errors, then the resulting optimisation problem is equivalent to that of a linear model, making optimisation fast and efficient. 
+The `BRVFL`-package is an `R` implementation of a Bootstrap aggregated (Bagged) Random Vector Functional Link (RVFL) Neural Network. In RVFL neural networks the weights are randomly initialised, but only the weights between last hidden-layer and the output-layer are fitted using the training data. If the activation function of the last hidden-layer is forced to be linear, and the loss-function is the sum of squared errors, then the resulting optimisation problem is equivalent to that of a linear model, making optimisation fast and efficient. 
 
 ## Installation
 
-The `BRVFL`-package depends on `R` (>= 4.0.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `Rsolnp`. As the package is not available on CRAN, devtools is needed to install the package from github. 
+The `BRVFL`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `Rsolnp`. As the package is not available on CRAN, devtools is needed to install the package from github. 
 
 From R, run the following commands:  
 
