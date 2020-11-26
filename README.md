@@ -17,7 +17,7 @@ devtools::install_github("svilsen/BRVFL")
 ```
 
 ## Usage
-The data is randomly generated and split into training and validation sets. Afterwhich following three models are fitted: (1) a simple RVFL, (2) a bagged RVFL with equal weighting, and (3) a bagged RVFL with optimised weighting (using the validation set).
+In the following the data is randomly generated and split into training and validation sets. After which, three models are fitted: (1) a simple RVFL, (2) a bagged RVFL with equal weighting, and (3) a bagged RVFL where the ensemble weights are optimised using the validation set.
 
 ```r
 ## Data set-up
