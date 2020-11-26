@@ -24,16 +24,12 @@ In the following the data is randomly generated and split into training and vali
 N <- 500 # Number of observations
 p <- 50 # Number of features
 X <- matrix(rnorm(p * N), ncol = p) # Features 
-y <- matrix( 
-    0.2 * sin(X[, 1]) + 
-    0.8 * exp(X[, 2]) + 
-    2 * cos(X[, 3]) +
-    1.2 * X[, 4] + 
-    0.6 * abs(X[, 5]) + 
-    X[, 6:p] %*% rnorm(p - 5) + 
-    rnorm(N, sd = 0.5), 
+y <- matrix(
+    0.2 * sin(X[, 1]) + 0.8 * exp(X[, 2]) + 2 * cos(X[, 3]) +
+        1.2 * X[, 4] + 0.6 * abs(X[, 5]) + X[, 6:p] %*% rnorm(p - 5) + 
+        rnorm(N, sd = 0.5), 
     ncol = 1
-)
+) # Response
 
 ## Split data into training and validtion sets
 proportion_training <- 0.7
