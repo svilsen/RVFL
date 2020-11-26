@@ -64,5 +64,3 @@ This project is licensed under the MIT License.
 ## Acknowledgments
 
 This project is partly financed by the “CloudBMS – The New Generation of Intelligent Battery Management Systems” research and development project, project number 64017-05167. The authors gratefully acknowledge EUDP Denmark for providing the financial support necessary for carrying out this work.
-
-
