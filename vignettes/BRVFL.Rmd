@@ -1,0 +1,29 @@
+---
+title: "Bagging RVFL neural networks"
+author: "Søren B. Vilsen"
+date: "18. November 2020"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bagging RVFL neural networks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library("BRVFL")
+```
+
+## Introduction
+
+## Random Vector Functional Link Neural Networks
+
+## Bagging RVFL Neural Networks
+
+## References
