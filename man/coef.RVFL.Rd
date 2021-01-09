@@ -12,7 +12,7 @@
 \item{...}{Additional arguments.}
 }
 \value{
-The estiamted weights of the output-layer.
+The estimated weights of the output-layer.
 }
 \description{
 Coefficients of the RVFL object.

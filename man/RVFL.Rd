@@ -27,7 +27,7 @@ An RVFL-object containing the random and fitted weights of the RVFL-model. An RV
     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
     \item{\code{SE}}{The standard error of the weights in the output layer.}
     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
-    \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made input.}
+    \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
 }
 }
 \description{
