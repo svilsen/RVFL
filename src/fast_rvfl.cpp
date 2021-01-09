@@ -8,7 +8,7 @@ arma::mat sigmoid(const arma::mat & x) {
     return 1.0 / (1.0 + arma::exp(-1.0 * x));
 }
 
-arma::mat bind_cols(arma::mat A, arma::mat B){
+arma::mat bind_cols(const arma::mat & A, const arma::mat & B){
     arma::mat M = join_horiz(A, B); 
     return M;
 }
