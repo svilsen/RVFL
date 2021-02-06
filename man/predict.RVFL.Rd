@@ -18,5 +18,5 @@ A vector of predicted targets.
 Predicting targets of an RVFL object.
 }
 \details{
-The only additional argument used by the function is \code{newdata}, which expects a matrix with the same number of features (columns) as in the original data.
+The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.
 }

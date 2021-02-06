@@ -12,11 +12,11 @@
 \item{...}{Additional arguments.}
 }
 \value{
-A vector of residuals of the desired \code{type} (see details).
+A vector of residuals of the desired '\code{type}' (see details).
 }
 \description{
 Residuals of the RVFL object.
 }
 \details{
-Besides the arguments passed to the \code{predict} function, the argument \code{type} can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
+Besides the arguments passed to the '\code{predict}' function, the argument '\code{type}' can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
 }

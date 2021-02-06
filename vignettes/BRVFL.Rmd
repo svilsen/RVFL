@@ -21,7 +21,7 @@ library("BRVFL")
 ```
 
 ## Introduction
-The `BRVFL`-package is an `R` implementation of a Bootstrap aggregated (Bagged) Random Vector Functional Link (RVFL) Neural Network.
+The `BRVFL`-package is an `R` implementation of a Bootstrap aggregated (Bagged), and boosting Random Vector Functional Link (RVFL) Neural Network.
 
 ## Random Vector Functional Link Neural Networks
 

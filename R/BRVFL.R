@@ -2,14 +2,15 @@
 ####################### An ensemble RVFL neural network #######################
 ###############################################################################
 
-#' @title Bagging random vector functional link
+#' @title Bagging and boosting random vector functional link
 #' 
-#' @description Set-up and estimate weights the ensemble random vector functional link neural network.
+#' @description Set-up and estimate weights the ensemble random vector functional link neural network, while either bagging or boosting for added stability of the model.
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param B The number of bootstrap samples. 
+#' @param B If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels in the .
+#' @param method A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.
 #' @param ... Additional arguments. 
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
@@ -22,7 +23,7 @@
 #' }
 #' 
 #' @export
-BRVFL <- function(X, y, N_hidden, B = NULL, ...) {
+BRVFL <- function(X, y, N_hidden, B = NULL, method = NULL, ...) {
     UseMethod("BRVFL")
 }
 
@@ -32,13 +33,71 @@ BRVFL <- function(X, y, N_hidden, B = NULL, ...) {
 #' @example inst/examples/brvfl_example.R
 #' 
 #' @export
-BRVFL.default <- function(X, y, N_hidden, B, ...) {
+BRVFL.default <- function(X, y, N_hidden, B, method, ...) {
+    ## Checks
+    # Data
+    if (!is.matrix(X)) {
+        stop("'X' has to be a matrix.")
+    }
+    
+    if (!is.matrix(y)) {
+        stop("'y' has to be a matrix.")
+    }
+    
+    if (dim(y)[2] != 1) {
+        warning("Note: More than a single column was detected in 'y', only the first column is used in the model.")
+        y <- matrix(y[, 1], ncol = 1)
+    }
+    
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
+    # Parameters
+    if (is.null(method)) {
+        warning("Note: 'method' was not set, it will be set to 'bagging'.")
+        method <- "bagging"
+    }
+    
+    method <- tolower(method)
+    if (method %in% c("bg", "bag", "bagging")) {
+        method <- "bagging"
+    }
+    else if (method %in% c("bs", "bt", "boost", "boosting")) {
+        method <- "boosting"
+    }
+    else {
+        stop("'method' has to be set to either 'bagging' or 'boosting'.")
+    }
+    
+    if (is.null("B")) {
+        if (method == "bagging") {
+            B <- 100
+        }
+        else {
+            B <- 10
+        }
+        
+        warning(paste0("Note: 'B' was not supplied -- due to the choice of 'method', 'B' was set to ", B, "."))
+    }
+    
     ##
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        indices_b <- sample(nrow(X), nrow(X), replace = TRUE)
-        X_b <- matrix(X[indices_b, ], ncol = ncol(X))
-        y_b <- matrix(y[indices_b], ncol = ncol(y))
+        if (method == "bagging") {
+            indices_b <- sample(nrow(X), nrow(X), replace = TRUE)
+            X_b <- matrix(X[indices_b, ], ncol = ncol(X))
+            y_b <- matrix(y[indices_b], ncol = ncol(y))    
+        }
+        else {
+            X_b <- X
+            if (b == 1) {
+                y_b <- y
+            }
+            else {
+                y_b <- residuals(objects[[b - 1]])
+            }
+        }
         
         objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, ...)
     }
@@ -47,7 +106,8 @@ BRVFL.default <- function(X, y, N_hidden, B, ...) {
     object <- list(
         data = list(X = X, y = y), 
         RVFLmodels = objects, 
-        weights = rep(1L / B, B)
+        weights = rep(1L / B, B), 
+        method = method
     )  
     
     class(object) <- "BRVFL"
@@ -59,20 +119,31 @@ BRVFL.default <- function(X, y, N_hidden, B, ...) {
 #' @param object A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional argument '\code{type}' can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
+#' @details The additional argument '\code{type}' is only used if '\code{method}' was set to \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
 #' 
-#' @return Depended on \code{type}: 
+#' @return Depended on '\code{method}' and '\code{type}':
+#' 
+#' If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
 #'     \item{\code{"all"}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
 #'     \item{\code{"sd"}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
 #'     \item{\code{"mean"}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
 #' }
 #' 
+#' If '\code{method}' was set to \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
+#' 
 #' @rdname coef.BRVFL
 #' @method coef BRVFL
 #' @export
 coef.BRVFL <- function(object, ...) {
     dots <- list(...)
+    type <- dots$type
+    if (is.null(type)) {
+        type <- "mean"
+    }
+    else {
+        type <- tolower(type)
+    }
     
     B <- length(object$RVFLmodels)
     beta <- vector("list", B)
@@ -83,19 +154,24 @@ coef.BRVFL <- function(object, ...) {
     beta <- do.call("cbind", beta)
     
     ##
-    if (is.null(dots$type)) {
-        beta <- matrix(apply(beta, 1, mean), ncol = 1)
-        return(beta)
-    }
-    else {
-        type <- tolower(dots$type)
+    if (object$method == "bagging") {
         if (type %in% c("a", "all", "f", "full")) {
             return(beta)
         }
-        else if (type %in% c("sd", "standarddeviation")) {
+        else if (type %in% c("m", "mean", "avg", "average")) {
+            beta <- matrix(apply(beta, 1, mean), ncol = 1)
+            return(beta)
+        }            
+        else if (type %in% c("s", "sd", "standarddeviation")) {
             beta <- matrix(apply(beta, 1, sd), ncol = 1)
             return(beta)
         }
+        else {
+            stop("The passed value of 'type' was not valid. See '?coef.BRVFL' for valid options of 'type'.")
+        }
+    }
+    else {
+        return(beta)
     }
 }
 
@@ -104,24 +180,35 @@ coef.BRVFL <- function(object, ...) {
 #' @param object A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional argument '\code{newdata}' and '\code{type}' can be specified:
+#' @details The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:
 #' \describe{
 #'   \item{\code{newdata}}{Expects a matrix the same number of features (columns) as in the original data.}
-#'   \item{\code{type}}{Takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
+#'   \item{\code{type}}{Is only used of '\code{method}' was set to \code{"bagging"}, in which case it takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
 #' }
 #'
-#' @return Depended on \code{type}: 
+#' @return Depended on '\code{method}' and '\code{type}'. 
+#' 
+#' If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
 #'     \item{\code{"all"}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 #'     \item{\code{"sd"}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
 #'     \item{\code{"mean"}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
 #' }
+#' 
+#' If '\code{method}' was set to \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
 #'
 #' @rdname predict.BRVFL
 #' @method predict BRVFL
 #' @export
 predict.BRVFL <- function(object, ...) {
     dots <- list(...)
+    type <- dots$type
+    if (is.null(type)) {
+        type <- "mean"
+    }
+    else {
+        type <- tolower(type)
+    }
     
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
@@ -144,20 +231,26 @@ predict.BRVFL <- function(object, ...) {
     newy <- do.call("cbind", newy)
     
     ##
-    if (is.null(dots$type)) {
-        W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
-        newy <- matrix(apply(newy * W, 1, sum), ncol = 1)
-        return(newy)
-    }
-    else {
-        type <- tolower(dots$type)
+    if (object$method == "bagging") {
         if (type %in% c("a", "all", "f", "full")) {
             return(newy)
         }
-        else if (type %in% c("sd", "standarddeviation")) {
+        else if (type %in% c("m", "mean", "avg", "average")) {
+            W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
+            newy <- matrix(apply(newy * W, 1, sum), ncol = 1)
+            return(newy)
+        }
+        else if (type %in% c("s", "sd", "standarddeviation")) {
             newy <- matrix(apply(newy, 1, sd), ncol = 1)
             return(newy)
         }
+        else {
+            stop("The passed value of 'type' was not valid. See '?coef.BRVFL' for valid options of 'type'.")
+        }
+    }
+    else {
+        newy <- matrix(apply(newy, 1, sum), ncol = 1)
+        return(newy)
     }
 }
 
@@ -243,7 +336,7 @@ weight_estimation_bound <- function(pars, y, y_hat) {
 #' @param object A BRVFL-object.
 #' @param validation_X The validation feature set.
 #' @param validation_y The validation target set.
-#' @param trace The trace of \link{solnp} are printed every 'trace' number of iteration (default 0). 
+#' @param trace The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0). 
 #' 
 #' @return A \link{BRVFL}-object.
 #' 
@@ -291,7 +384,7 @@ estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = N
 #' @param x A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.  
+#' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occurred.  
 #' 
 #' @return NULL
 #' 

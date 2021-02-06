@@ -23,6 +23,7 @@ An RVFL-object containing the random and fitted weights of the RVFL-model. An RV
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{N_hidden}}{The vector of neurons in each layer.}
+    \item{\code{activation}}{The vector of the activation functions used in each layer.}
     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
     \item{\code{SE}}{The standard error of the weights in the output layer.}
@@ -34,7 +35,7 @@ An RVFL-object containing the random and fitted weights of the RVFL-model. An RV
 Set-up and estimate weights of a random vector functional link neural network.
 }
 \details{
-The additional arguments are all passed to the \link{control_RVFL} function.
+The additional arguments are all passed to the \link{control_RVFL}-function.
 }
 \examples{
 N <- 200

@@ -6,9 +6,9 @@
 \alias{BRVFL.default}
 \title{BRVFL: Random Forest Random Vector Functional Link Neural Network Models}
 \usage{
-BRVFL(X, y, N_hidden, B = NULL, ...)
+BRVFL(X, y, N_hidden, B = NULL, method = NULL, ...)
 
-\method{BRVFL}{default}(X, y, N_hidden, B, ...)
+\method{BRVFL}{default}(X, y, N_hidden, B, method, ...)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -17,7 +17,9 @@ BRVFL(X, y, N_hidden, B = NULL, ...)
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{B}{The number of bootstrap samples.}
+\item{B}{If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels in the .}
+
+\item{method}{A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.}
 
 \item{...}{Additional arguments.}
 }
@@ -32,7 +34,7 @@ A BRVFL-object containing the random and fitted weights of all bootstrapped \lin
 \description{
 Simple creation, estimation, and prediction of random vector functional link neural networks. Furthermore, it incorporates a random forest style boosting into the RVFL framework, yielding more robust estimation and prediction.
 
-Set-up and estimate weights the ensemble random vector functional link neural network.
+Set-up and estimate weights the ensemble random vector functional link neural network, while either bagging or boosting for added stability of the model.
 }
 \details{
 The additional arguments are all passed to the \link{control_RVFL} function.

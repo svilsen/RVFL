@@ -16,7 +16,7 @@ estimate_weights(object, validation_X = NULL, validation_y = NULL, trace = 0)
 
 \item{validation_y}{The validation target set.}
 
-\item{trace}{The trace of \link{solnp} are printed every 'trace' number of iteration (default 0).}
+\item{trace}{The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0).}
 }
 \value{
 A \link{BRVFL}-object.

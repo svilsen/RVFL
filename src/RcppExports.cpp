@@ -7,15 +7,16 @@
 using namespace Rcpp;
 
 // rvfl_forward
-arma::mat rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<bool>& bias);
-RcppExport SEXP _BRVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP biasSEXP) {
+arma::mat rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
+RcppExport SEXP _BRVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< const std::vector<arma::mat>& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type activation(activationSEXP);
     Rcpp::traits::input_parameter< const std::vector<bool>& >::type bias(biasSEXP);
-    rcpp_result_gen = Rcpp::wrap(rvfl_forward(X, W, bias));
+    rcpp_result_gen = Rcpp::wrap(rvfl_forward(X, W, activation, bias));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -33,7 +34,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BRVFL_rvfl_forward", (DL_FUNC) &_BRVFL_rvfl_forward, 3},
+    {"_BRVFL_rvfl_forward", (DL_FUNC) &_BRVFL_rvfl_forward, 4},
     {"_BRVFL_estimate_output_weights", (DL_FUNC) &_BRVFL_estimate_output_weights, 2},
     {NULL, NULL, 0}
 };

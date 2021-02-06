@@ -12,20 +12,24 @@
 \item{...}{Additional arguments.}
 }
 \value{
-Depended on \code{type}: 
+Depended on '\code{method}' and '\code{type}'. 
+
+If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
 \describe{
     \item{\code{"all"}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
     \item{\code{"sd"}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
     \item{\code{"mean"}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
 }
+
+If '\code{method}' was set to \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
 }
 \description{
 Predicting targets of an BRVFL object.
 }
 \details{
-The additional argument '\code{newdata}' and '\code{type}' can be specified:
+The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:
 \describe{
   \item{\code{newdata}}{Expects a matrix the same number of features (columns) as in the original data.}
-  \item{\code{type}}{Takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
+  \item{\code{type}}{Is only used of '\code{method}' was set to \code{"bagging"}, in which case it takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
 }
 }

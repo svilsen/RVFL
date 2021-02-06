@@ -7,9 +7,24 @@
 #' @description A function used to create a control-object for the \link{RVFL} function.
 #' 
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
-#' @param activation A vector of activation functions (NOT IMPLEMENTED -- IN THIS VERSION ALL ACTIVATIONS ARE SIGMOID).
+#' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
 #' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output layer?
+#' 
+#' @details The possible activation functions supplied to '\code{activation}' are:
+#' \describe{
+#'     \item{\code{"sigmoid"}}{\deqn{a(x) = \frac{1}{1 + \exp(-x)}}}
+#'     \item{\code{"tanh"}}{\deqn{a(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}}}
+#'     \item{\code{"relu"}}{\deqn{a(x) = \max\{0, x\}}}
+#'     \item{\code{"silu"}}{\deqn{a(x) = \frac{x}{1 + \exp(-x)}}}
+#'     \item{\code{"softplus"}}{\deqn{a(x) = \log(1 + \exp(x))}}
+#'     \item{\code{"softsign"}}{\deqn{a(x) = \frac{x}{1 + |x|)}}}
+#'     \item{\code{"sqnl"}}{\deqn{a(x) = -1, if x < -2, a(x) = x + \frac{x^2}{4}, if -2 \le x < 0, a(x) = x - \frac{x^2}{4}, if 0 \le x \le 2, and a(x) = 2, if x > 2}}
+#'     \item{\code{"gaussian"}}{\deqn{a(x) = \exp(x^2)}}
+#'     \item{\code{"sqrbf"}}{\deqn{a(x) = 0, if |x| \ge 2, a(x) = \frac{(2 - |x|)^2}{2}, if 1 < |x| < 2, and a(x) = 1 - \frac{x^2}{2}, if |x| \le 1}}
+#'     \item{\code{"bentidentity"}}{\deqn{a(x) = \frac{\sqrt{x^2 + 1} - 1}{2} + x}}
+#'     \item{\code{"identity"}}{\deqn{a(x) = x}}
+#' }
 #' 
 #' @return A list of control variables.
 #' @export
@@ -29,12 +44,13 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param ... Additional arguments.
 #' 
-#' @details The additional arguments are all passed to the \link{control_RVFL} function.
+#' @details The additional arguments are all passed to the \link{control_RVFL}-function.
 #' 
 #' @return An RVFL-object containing the random and fitted weights of the RVFL-model. An RVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{N_hidden}}{The vector of neurons in each layer.}
+#'     \item{\code{activation}}{The vector of the activation functions used in each layer.}
 #'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
 #'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
 #'     \item{\code{SE}}{The standard error of the weights in the output layer.}
@@ -59,6 +75,25 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     control <- do.call(control_RVFL, dots)
     
     ## Checks
+    # Data
+    if (!is.matrix(X)) {
+        stop("'X' has to be a matrix.")
+    }
+    
+    if (!is.matrix(y)) {
+        stop("'y' has to be a matrix.")
+    }
+    
+    if (dim(y)[2] != 1) {
+        warning("Note: More than a single column was detected in 'y', only the first column is used in the model.")
+        y <- matrix(y[, 1], ncol = 1)
+    }
+    
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
+    # Parameters
     if (length(N_hidden) < 1) {
         stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
     }
@@ -73,8 +108,23 @@ RVFL.default <- function(X, y, N_hidden, ...) {
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
-    if (dim(y)[1] != dim(X)[1]) {
-        stop("The number of rows in 'y' and 'X' do not match.")
+    activation <- control$activation
+    if (is.null(activation)) {
+        activation <- "sigmoid"
+    }
+    
+    if (length(activation) == 1) {
+        activation <- rep(tolower(activation), length(N_hidden))
+    }
+    else if (length(activation) == length(N_hidden)) {
+        activation <- tolower(activation)
+    }
+    else {
+        stop("The 'activation' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+    }
+    
+    if (all(!(activation %in% c("sigmoid", "tanh", "relu", "silu", "softplus", "softsign", "sqnl", "gaussian", "sqrbf", "bentidentity", "identity")))) {
+        stop("Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
     }
     
     ## Initialisation
@@ -94,7 +144,7 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     }
     
     ## Values of last hidden layer
-    H <- rvfl_forward(X, W_hidden, bias_hidden)
+    H <- rvfl_forward(X, W_hidden, activation, bias_hidden)
     
     ## Estimate parameters in output layer
     if (control$bias_output) {
@@ -112,6 +162,7 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     object <- list(
         data = list(X = X, y = y), 
         N_hidden = N_hidden, 
+        activation = activation,
         Bias = list(Hidden = bias_hidden, Output = control$bias_output),
         Weights = list(Hidden = W_hidden, Output = W_output$beta),
         SE = list(Hidden = NA, Output = W_output$se), 
@@ -144,7 +195,7 @@ coef.RVFL <- function(object, ...) {
 #' @param object An RVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The only additional argument used by the function is \code{newdata}, which expects a matrix with the same number of features (columns) as in the original data.
+#' @details The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.
 #' 
 #' @return A vector of predicted targets.
 #' 
@@ -168,6 +219,7 @@ predict.RVFL <- function(object, ...) {
     newH <- rvfl_forward(
         X = newdata, 
         W = object$Weights$Hidden, 
+        activation = object$activation,
         bias = object$Bias$Hidden
     )
     
@@ -190,19 +242,24 @@ predict.RVFL <- function(object, ...) {
 #' @param object An RVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details Besides the arguments passed to the \code{predict} function, the argument \code{type} can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
+#' @details Besides the arguments passed to the '\code{predict}' function, the argument '\code{type}' can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
 #'
-#' @return A vector of residuals of the desired \code{type} (see details). 
+#' @return A vector of residuals of the desired '\code{type}' (see details). 
 #'
 #' @rdname residuals.RVFL
 #' @method residuals RVFL
 #' @export
 residuals.RVFL <- function(object, ...) {
     dots <- list(...)
+    type <- dots$type
+    if (is.null(type)) {
+        type <- "raw"
+    }
+    
     newy <- predict.RVFL(object, newdata = NULL, ...)
     
     r <- newy - object$data$y
-    if (tolower(dots$type) %in% c("standard", "standardised", "rs")) {        
+    if (tolower(type) %in% c("standard", "standardised", "rs")) {        
         r <- r / object$Sigma$Output
     }
     

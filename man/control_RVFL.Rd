@@ -14,7 +14,7 @@ control_RVFL(
 \arguments{
 \item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
 
-\item{activation}{A vector of activation functions (NOT IMPLEMENTED -- IN THIS VERSION ALL ACTIVATIONS ARE SIGMOID).}
+\item{activation}{A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.}
 
 \item{bias_output}{TRUE/FALSE: Should a bias be added to the output layer?}
 
@@ -25,4 +25,20 @@ A list of control variables.
 }
 \description{
 A function used to create a control-object for the \link{RVFL} function.
+}
+\details{
+The possible activation functions supplied to '\code{activation}' are:
+\describe{
+    \item{\code{"sigmoid"}}{\deqn{a(x) = \frac{1}{1 + \exp(-x)}}}
+    \item{\code{"tanh"}}{\deqn{a(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}}}
+    \item{\code{"relu"}}{\deqn{a(x) = \max\{0, x\}}}
+    \item{\code{"silu"}}{\deqn{a(x) = \frac{x}{1 + \exp(-x)}}}
+    \item{\code{"softplus"}}{\deqn{a(x) = \log(1 + \exp(x))}}
+    \item{\code{"softsign"}}{\deqn{a(x) = \frac{x}{1 + |x|)}}}
+    \item{\code{"sqnl"}}{\deqn{a(x) = -1, if x < -2, a(x) = x + \frac{x^2}{4}, if -2 \le x < 0, a(x) = x - \frac{x^2}{4}, if 0 \le x \le 2, and a(x) = 2, if x > 2}}
+    \item{\code{"gaussian"}}{\deqn{a(x) = \exp(x^2)}}
+    \item{\code{"sqrbf"}}{\deqn{a(x) = 0, if |x| \ge 2, a(x) = \frac{(2 - |x|)^2}{2}, if 1 < |x| < 2, and a(x) = 1 - \frac{x^2}{2}, if |x| \le 1}}
+    \item{\code{"bentidentity"}}{\deqn{a(x) = \frac{\sqrt{x^2 + 1} - 1}{2} + x}}
+    \item{\code{"identity"}}{\deqn{a(x) = x}}
+}
 }
