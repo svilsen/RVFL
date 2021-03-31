@@ -82,7 +82,7 @@ RVFL.default <- function(X, y, N_hidden, ...) {
     }
     
     if (!is.matrix(y)) {
-        stop("'y' has to be a matrix... trying to cast 'y' as a matrix.")
+        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
         y <- as.matrix(y)
     }
     

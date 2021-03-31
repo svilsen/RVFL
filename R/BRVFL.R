@@ -37,15 +37,17 @@ BRVFL.default <- function(X, y, N_hidden, B, method, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
-        stop("'X' has to be a matrix.")
+        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
+        X <- as.matrix(X)
     }
     
     if (!is.matrix(y)) {
-        stop("'y' has to be a matrix.")
+        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
+        y <- as.matrix(y)
     }
     
     if (dim(y)[2] != 1) {
-        warning("Note: More than a single column was detected in 'y', only the first column is used in the model.")
+        warning("More than a single column was detected in 'y', only the first column is used in the model.")
         y <- matrix(y[, 1], ncol = 1)
     }
     
