@@ -1,10 +1,10 @@
 ---
-title: "Bagging RVFL neural networks"
+title: "Bagging and boosting of RVFL neural networks"
 author: "Søren B. Vilsen"
-date: "18. November 2020"
+date: "5. March 2021"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bagging RVFL neural networks}
+  %\VignetteIndexEntry{Bagging and boosting of RVFL neural networks}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,10 +21,17 @@ library("BRVFL")
 ```
 
 ## Introduction
-The `BRVFL`-package is an `R` implementation of a Bootstrap aggregated (Bagged), and boosting Random Vector Functional Link (RVFL) Neural Network.
+The `BRVFL`-package is an `R` implementation of Bootstrap aggregated (Bagged) and boosted Random Vector Functional Link (RVFL) Neural Network.
 
 ## Random Vector Functional Link Neural Networks
+The idea of RVFL is to simplify a feed forward neural network, by only estimating the weigths connecting the last hidden layer to the output layer, while the remaining weights are sampled randomly from a bounded distribution. The idea was introduced in [], and then later rediscovered, and rebranded to extreme learning machines (ELMs), in []. The only difference between ELM and RVFL, is that RVFL also allows for connections between the input and output layers making it a more general framework. The general structure of an RVFL network can be seen in Fig. [].
+
+The 
 
 ## Bagging RVFL Neural Networks
+The general idea of bagging is to stabalise predicted response by re-sampling from the data (with replacement), estimate the parameters of the model (in this case an RVFL), creating a series of models. Given a new data point ensemble predictions can be made using the estimated models.  
+
+## Boosting RVFL Neural Networks
+
 
 ## References

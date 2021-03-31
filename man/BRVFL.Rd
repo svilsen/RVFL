@@ -17,7 +17,7 @@ BRVFL(X, y, N_hidden, B = NULL, method = NULL, ...)
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{B}{If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels in the .}
+\item{B}{If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels used when boosting the model.}
 
 \item{method}{A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.}
 
