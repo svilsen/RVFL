@@ -11,6 +11,8 @@
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param B If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels used when boosting the model.
 #' @param method A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.
+#' @param lambda A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).
+#' @param epsilon The learning rate used when boosting the RVFL (not used when bagging).
 #' @param ... Additional arguments. 
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
@@ -23,7 +25,7 @@
 #' }
 #' 
 #' @export
-BRVFL <- function(X, y, N_hidden, B = NULL, method = NULL, ...) {
+BRVFL <- function(X, y, N_hidden, B = NULL, method = NULL, lambda = NULL, epsilon = NULL, ...) {
     UseMethod("BRVFL")
 }
 
@@ -33,7 +35,7 @@ BRVFL <- function(X, y, N_hidden, B = NULL, method = NULL, ...) {
 #' @example inst/examples/brvfl_example.R
 #' 
 #' @export
-BRVFL.default <- function(X, y, N_hidden, B, method, ...) {
+BRVFL.default <- function(X, y, N_hidden, B = NULL, method = NULL, lambda = NULL, epsilon = NULL, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -72,7 +74,7 @@ BRVFL.default <- function(X, y, N_hidden, B, method, ...) {
         stop("'method' has to be set to either 'bagging' or 'boosting'.")
     }
     
-    if (is.null("B")) {
+    if (is.null(B)) {
         if (method == "bagging") {
             B <- 100
         }
@@ -81,6 +83,38 @@ BRVFL.default <- function(X, y, N_hidden, B, method, ...) {
         }
         
         warning(paste0("Note: 'B' was not supplied -- due to the choice of 'method', 'B' was set to ", B, "."))
+    }
+    
+    if (is.null(lambda)) {
+        lambda <- 0
+        warning("Note: 'lambda' was not supplied and set to 1.")
+    }
+    else if (lambda > (1 - 1e-8)) {
+        lambda <- (1 - 1e-8)
+        warning("'lambda' has to be a real number in [0; 1).")
+    }
+    else if (lambda < 0) {
+        lambda <- 0
+        warning("'lambda' has to be a real number in [0; 1).")
+    }
+    
+    if ((length(lambda) == 1) || (length(lambda) != length(N_hidden))) {
+        lambda <- rep(lambda[1], length(N_hidden))
+    }
+    
+    if (method == "boosting") {
+        if (is.null(epsilon)) {
+            epsilon <- 1
+            warning("Note: 'epsilon' was not supplied and set to 1.")
+        }
+        else if (epsilon > 1) {
+            epsilon <- 1
+            warning("'epsilon' has to be a number between 0 and 1.")
+        }
+        else if (epsilon < 0) {
+            epsilon <- 0
+            warning("'epsilon' has to be a number between 0 and 1.")
+        }
     }
     
     ##
@@ -97,11 +131,11 @@ BRVFL.default <- function(X, y, N_hidden, B, method, ...) {
                 y_b <- y
             }
             else {
-                y_b <- residuals(objects[[b - 1]])
+                y_b <- y_b - epsilon * predict(objects[[b - 1]])
             }
         }
         
-        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, ...)
+        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, ...)
     }
     
     ##

@@ -6,9 +6,27 @@
 \alias{BRVFL.default}
 \title{BRVFL: Random Forest Random Vector Functional Link Neural Network Models}
 \usage{
-BRVFL(X, y, N_hidden, B = NULL, method = NULL, ...)
+BRVFL(
+  X,
+  y,
+  N_hidden,
+  B = NULL,
+  method = NULL,
+  lambda = NULL,
+  epsilon = NULL,
+  ...
+)
 
-\method{BRVFL}{default}(X, y, N_hidden, B, method, ...)
+\method{BRVFL}{default}(
+  X,
+  y,
+  N_hidden,
+  B = NULL,
+  method = NULL,
+  lambda = NULL,
+  epsilon = NULL,
+  ...
+)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -20,6 +38,10 @@ BRVFL(X, y, N_hidden, B = NULL, method = NULL, ...)
 \item{B}{If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels used when boosting the model.}
 
 \item{method}{A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.}
+
+\item{lambda}{A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).}
+
+\item{epsilon}{The learning rate used when boosting the RVFL (not used when bagging).}
 
 \item{...}{Additional arguments.}
 }

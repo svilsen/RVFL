@@ -42,6 +42,7 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param lambda A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL}-function.
@@ -59,7 +60,7 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' }
 #' 
 #' @export
-RVFL <- function(X, y, N_hidden, ...) {
+RVFL <- function(X, y, N_hidden, lambda = NULL, ...) {
     UseMethod("RVFL")
 }
 
@@ -69,7 +70,7 @@ RVFL <- function(X, y, N_hidden, ...) {
 #' @example inst/examples/rvfl_example.R
 #' 
 #' @export
-RVFL.default <- function(X, y, N_hidden, ...) {
+RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
     ## Creating control object 
     dots <- list(...)
     control <- do.call(control_RVFL, dots)
@@ -129,6 +130,26 @@ RVFL.default <- function(X, y, N_hidden, ...) {
         stop("Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
     }
     
+    if (is.null(lambda)) {
+        lambda <- 0
+        warning("Note: 'lambda' was not supplied and set to 0.")
+    }
+    else if (lambda > (1 - 1e-8)) {
+        lambda <- (1 - 1e-8)
+        warning("'lambda' has to be a real number in [0; 1).")
+    }
+    else if (lambda < 0) {
+        lambda <- 0
+        warning("'lambda' has to be a real number in [0; 1).")
+    }
+    
+    if (length(lambda) == 1) {
+        lambda <- rep(lambda, length(N_hidden))
+    }
+    else if (length(lambda) != length(N_hidden)) {
+        stop("The 'lambda' vector specified should have length 1, or be the same length as the vector 'N_hidden'.")
+    }
+    
     ## Initialisation
     X_dim <- dim(X)
     
@@ -142,6 +163,11 @@ RVFL.default <- function(X, y, N_hidden, ...) {
         }
         
         random_weights <- runif(nr_connections, -1, 1)
+        if (lambda[w] > 0) {
+            N_lambda <- floor(lambda[w] * nr_connections)
+            random_weights[sample(nr_connections, N_lambda, replace = FALSE)] <- 0
+        } 
+        
         W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w])
     }
     

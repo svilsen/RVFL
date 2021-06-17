@@ -5,9 +5,9 @@
 \alias{RVFL.default}
 \title{Random vector functional link}
 \usage{
-RVFL(X, y, N_hidden, ...)
+RVFL(X, y, N_hidden, lambda = NULL, ...)
 
-\method{RVFL}{default}(X, y, N_hidden, ...)
+\method{RVFL}{default}(X, y, N_hidden, lambda = NULL, ...)
 }
 \arguments{
 \item{X}{A matrix of observed features used to train the parameters of the output layer.}
@@ -15,6 +15,8 @@ RVFL(X, y, N_hidden, ...)
 \item{y}{A vector of observed targets used to train the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+
+\item{lambda}{A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).}
 
 \item{...}{Additional arguments.}
 }
