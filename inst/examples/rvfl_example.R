@@ -5,5 +5,5 @@ X <- matrix(rnorm(N * p), ncol = p)
 beta <- matrix(runif(p), ncol = 1) 
 y <- X %*% beta + rnorm(p)
 
-N_hidden <- c(10, 2, 4, 2)
+N_hidden <- 10
 RVFL(X = X, y = y, N_hidden = N_hidden, combine_input = FALSE)

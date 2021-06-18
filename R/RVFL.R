@@ -164,11 +164,26 @@ RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
         
         random_weights <- runif(nr_connections, -1, 1)
         if (lambda[w] > 0) {
-            N_lambda <- floor(lambda[w] * nr_connections)
-            random_weights[sample(nr_connections, N_lambda, replace = FALSE)] <- 0
-        } 
+            if (w == 1) {
+                N_lambda <- floor(lambda[w] * N_hidden[w])
+                R_lambda <- sample(N_hidden[w], N_lambda, replace = FALSE)
+                
+                I_lambda <- diag(1, N_hidden[w], N_hidden[w])
+                I_lambda[R_lambda, R_lambda] <- 0
+                random_weights <- matrix(random_weights, ncol = N_hidden[w])
+                random_weights <- random_weights %*% I_lambda
+            }
+            else {
+                N_lambda <- floor(lambda[w] * nr_connections)
+                random_weights[sample(nr_connections, N_lambda, replace = FALSE)] <- 0
+                random_weights <- matrix(random_weights, ncol = N_hidden[w])  
+            }
+        }
+        else {
+            random_weights <- matrix(random_weights, ncol = N_hidden[w]) 
+        }
         
-        W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w])
+        W_hidden[[w]] <- random_weights
     }
     
     ## Values of last hidden layer

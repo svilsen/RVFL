@@ -25,7 +25,7 @@
 #' }
 #' 
 #' @export
-BRVFL <- function(X, y, N_hidden, B = NULL, method = NULL, lambda = NULL, epsilon = NULL, ...) {
+BRVFL <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0.0, epsilon = NULL, ...) {
     UseMethod("BRVFL")
 }
 
@@ -35,7 +35,7 @@ BRVFL <- function(X, y, N_hidden, B = NULL, method = NULL, lambda = NULL, epsilo
 #' @example inst/examples/brvfl_example.R
 #' 
 #' @export
-BRVFL.default <- function(X, y, N_hidden, B = NULL, method = NULL, lambda = NULL, epsilon = NULL, ...) {
+BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0.0, epsilon = NULL, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -83,23 +83,6 @@ BRVFL.default <- function(X, y, N_hidden, B = NULL, method = NULL, lambda = NULL
         }
         
         warning(paste0("Note: 'B' was not supplied -- due to the choice of 'method', 'B' was set to ", B, "."))
-    }
-    
-    if (is.null(lambda)) {
-        lambda <- 0
-        warning("Note: 'lambda' was not supplied and set to 1.")
-    }
-    else if (lambda > (1 - 1e-8)) {
-        lambda <- (1 - 1e-8)
-        warning("'lambda' has to be a real number in [0; 1).")
-    }
-    else if (lambda < 0) {
-        lambda <- 0
-        warning("'lambda' has to be a real number in [0; 1).")
-    }
-    
-    if ((length(lambda) == 1) || (length(lambda) != length(N_hidden))) {
-        lambda <- rep(lambda[1], length(N_hidden))
     }
     
     if (method == "boosting") {
@@ -263,34 +246,34 @@ predict.BRVFL <- function(object, ...) {
     
     ##
     B <- length(object$RVFLmodels)
-    newy <- vector("list", B)
-    for (b in seq_along(newy)) {
-        newy[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
+    y_new <- vector("list", B)
+    for (b in seq_along(y_new)) {
+        y_new[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
     }
     
-    newy <- do.call("cbind", newy)
+    y_new <- do.call("cbind", y_new)
     
     ##
     if (object$method == "bagging") {
         if (type %in% c("a", "all", "f", "full")) {
-            return(newy)
+            return(y_new)
         }
         else if (type %in% c("m", "mean", "avg", "average")) {
             W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
-            newy <- matrix(apply(newy * W, 1, sum), ncol = 1)
-            return(newy)
+            y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
+            return(y_new)
         }
         else if (type %in% c("s", "sd", "standarddeviation")) {
-            newy <- matrix(apply(newy, 1, sd), ncol = 1)
-            return(newy)
+            y_new <- matrix(apply(y_new, 1, sd), ncol = 1)
+            return(y_new)
         }
         else {
             stop("The passed value of 'type' was not valid. See '?coef.BRVFL' for valid options of 'type'.")
         }
     }
     else {
-        newy <- matrix(apply(newy, 1, sum), ncol = 1)
-        return(newy)
+        y_new <- matrix(apply(y_new, 1, sum), ncol = 1)
+        return(y_new)
     }
 }
 
@@ -308,9 +291,9 @@ predict.BRVFL <- function(object, ...) {
 #' @export
 residuals.BRVFL <- function(object, ...) {
     dots <- list(...)
-    newy <- predict(object)
+    y_new <- predict(object)
     
-    r <- newy - object$data$y
+    r <- y_new - object$data$y
     return(r)
 }
 
@@ -357,7 +340,6 @@ set_weights.BRVFL <- function(object, weights = NULL) {
     return(object)
 }
 
-
 weight_estimation_function <- function(pars, y, y_hat) {
     y_w <- y_hat %*% pars
     e <- y - y_w
@@ -374,14 +356,14 @@ weight_estimation_bound <- function(pars, y, y_hat) {
 #' @description Estimate ensemble weights for an BRVFL-object.
 #' 
 #' @param object A BRVFL-object.
-#' @param validation_X The validation feature set.
-#' @param validation_y The validation target set.
+#' @param X_val The validation feature set.
+#' @param y_val The validation target set.
 #' @param trace The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0). 
 #' 
 #' @return A \link{BRVFL}-object.
 #' 
 #' @export
-estimate_weights <- function(object, validation_X = NULL, validation_y = NULL, trace = 0) {
+estimate_weights <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
     UseMethod("estimate_weights")
 }
 
@@ -391,16 +373,16 @@ estimate_weights <- function(object, validation_X = NULL, validation_y = NULL, t
 #' @example inst/examples/ew_example.R
 #'
 #' @export
-estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = NULL, trace = 0) {
-    if (is.null(validation_X) || is.null(validation_y)) {
+estimate_weights.BRVFL <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
+    if (is.null(X_val) || is.null(y_val)) {
         warning("The validation-set was not properly specified, therefore, the training is used for weight estimation.")
         
-        validation_X <- object$data$X
-        validation_y <- object$data$y
+        X_val <- object$data$X
+        y_val <- object$data$y
     }
     
     B <- length(object$RVFLmodels)
-    y_hat <- predict(object, newdata = validation_X, type = "full")
+    y_hat <- predict(object, newdata = X_val, type = "full")
     
     w_0 <- runif(B) 
     w_0 <- w_0 / sum(w_0)
@@ -411,7 +393,7 @@ estimate_weights.BRVFL <- function(object, validation_X = NULL, validation_y = N
         UB = rep(1L - .Machine$double.eps, length(w_0)), 
         eqfun = weight_estimation_bound,
         eqB = 1L,
-        y = validation_y, y_hat = y_hat,
+        y = y_val, y_hat = y_hat,
         control = list(trace = trace, tol = 1e-12)
     )
     

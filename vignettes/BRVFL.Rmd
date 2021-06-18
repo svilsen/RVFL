@@ -24,7 +24,7 @@ library("BRVFL")
 The `BRVFL`-package is an `R` implementation of Bootstrap aggregated (Bagged) and boosted Random Vector Functional Link (RVFL) Neural Network.
 
 ## Random Vector Functional Link Neural Networks
-The idea of RVFL is to simplify a feed forward neural network, by only estimating the weigths connecting the last hidden layer to the output layer, while the remaining weights are sampled randomly from a bounded distribution. The idea was introduced in [], and then later rediscovered, and rebranded to extreme learning machines (ELMs), in []. The only difference between ELM and RVFL, is that RVFL also allows for connections between the input and output layers making it a more general framework. The general structure of an RVFL network can be seen in Fig. [].
+The idea of RVFL is to simplify a feed forward neural network, by only estimating the weights connecting the last hidden layer to the output layer, while the remaining weights are sampled randomly from a bounded distribution. The idea was introduced in [], and then later rediscovered, and re-branded to extreme learning machines (ELMs), in []. The only difference between ELM and RVFL, is that RVFL also allows for connections between the input and output layers making it a more general framework. The general structure of an RVFL network can be seen in Fig. [].
 
 The 
 
