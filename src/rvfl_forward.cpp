@@ -123,6 +123,7 @@ std::vector<arma::mat> rvfl_forward(arma::mat X,
     H[0] = X * W[0];
     for (unsigned int m = 1; m < M; m++) {
         arma::mat H_m = H[m - 1];
+        
         if (bias[m]) {
             H_m = bind_cols(b, H_m);
         }

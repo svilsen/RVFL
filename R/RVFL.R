@@ -113,16 +113,6 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
-    if (length(control$combine_input) == 1) {
-        combine_input <- rep(control$combine_input, length(N_hidden))
-    }
-    else if (length(control$combine_input) == length(N_hidden)) {
-        combine_input <- control$combine_input
-    }
-    else {
-        stop("The 'combine_input' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
-    }
-    
     activation <- control$activation
     if (is.null(activation)) {
         activation <- "sigmoid"
@@ -174,7 +164,9 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     
     ## Values of last hidden layer
     H <- rvfl_forward(X, W_hidden, activation, bias_hidden)
-    
+    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
+    H <- do.call("cbind", H)
+        
     ## Estimate parameters in output layer
     if (control$bias_output) {
         H <- cbind(1, H)
