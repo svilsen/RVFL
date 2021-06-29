@@ -1,12 +1,12 @@
-###############################################################################
-####################### An ensemble RVFL neural network #######################
-###############################################################################
+############################################################################
+####################### Ensemble RVFL neural network #######################
+############################################################################
 
-#### Bagging functions ----
+#### Bagging ----
 
 #' @title Bagging random vector functional links.
 #' 
-#' @description Use boostrap aggregation to reduce the varinace of random vector functional link neural network models.
+#' @description Use bootstrap aggregation to reduce the variance of random vector functional link neural network models.
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
@@ -17,11 +17,12 @@
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return A BRVFL-object containing the random and fitted weights of all \link{RVFL}-model. A BRVFL-object contains the following:
+#' @return A ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
 #'     \item{\code{weights}}{A vector of ensemble weights.}
+#'     \item{\code{method}}{A string indicating the method ('bagging' in this case)}
 #' }
 #' 
 #' @export
@@ -32,7 +33,7 @@ bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
 #' @rdname bagRVFL
 #' @method bagRVFL default
 #' 
-#' @example inst/examples/brvfl_example.R
+#' @example inst/examples/bagrvfl_example.R
 #' 
 #' @export
 bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
@@ -81,11 +82,11 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL,
         method = "bagging"
     )  
     
-    class(object) <- "BRVFL"
+    class(object) <- "ERVFL"
     return(object)
 }
 
-#### Boosting functions ----
+#### Boosting ----
 
 #' @title Boosting random vector functional link
 #' 
@@ -101,11 +102,12 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL,
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return A BRVFL-object containing the random and fitted weights of all \link{RVFL}-model. A BRVFL-object contains the following:
+#' @return A ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
 #'     \item{\code{weights}}{A vector of ensemble weights.}
+#'     \item{\code{method}}{A string indicating the method ('boosting' in this case)}
 #' }
 #' 
 #' @export
@@ -116,7 +118,7 @@ boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
 #' @rdname boostRVFL
 #' @method boostRVFL default
 #' 
-#' @example inst/examples/brvfl_example.R
+#' @example inst/examples/boostrvfl_example.R
 #' 
 #' @export
 boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
@@ -182,16 +184,20 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, .
         method = "boosting"
     )  
     
-    class(object) <- "BRVFL"
+    class(object) <- "ERVFL"
     return(object)
 }
 
 
-#### AUX functions ----
+#### Stacking ----
 
-#' @title Coefficients of the BRVFL object.
+#### ED ----
+
+#### Auxiliary ----
+
+#' @title Coefficients of the ERVFL object.
 #' 
-#' @param object A BRVFL-object.
+#' @param object A ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{type}' is only used if '\code{method}' was \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
@@ -207,10 +213,10 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, .
 #' 
 #' If '\code{method}' was \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
 #' 
-#' @rdname coef.BRVFL
-#' @method coef BRVFL
+#' @rdname coef.ERVFL
+#' @method coef ERVFL
 #' @export
-coef.BRVFL <- function(object, ...) {
+coef.ERVFL <- function(object, ...) {
     dots <- list(...)
     type <- dots$type
     if (is.null(type)) {
@@ -242,7 +248,7 @@ coef.BRVFL <- function(object, ...) {
             return(beta)
         }
         else {
-            stop("The passed value of 'type' was not valid. See '?coef.BRVFL' for valid options of 'type'.")
+            stop("The passed value of 'type' was not valid. See '?coef.ERVFL' for valid options of 'type'.")
         }
     }
     else {
@@ -250,9 +256,9 @@ coef.BRVFL <- function(object, ...) {
     }
 }
 
-#' @title Predicting targets of an BRVFL object.
+#' @title Predicting targets of an ERVFL object.
 #' 
-#' @param object A BRVFL-object.
+#' @param object A ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:
@@ -265,17 +271,17 @@ coef.BRVFL <- function(object, ...) {
 #' 
 #' If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
-#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
+#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{ERVFL}-object) sum each observation taken across the bootstrap samples.}
 #'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
 #'     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 #' }
 #' 
 #' If '\code{method}' was \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
 #'
-#' @rdname predict.BRVFL
-#' @method predict BRVFL
+#' @rdname predict.ERVFL
+#' @method predict ERVFL
 #' @export
-predict.BRVFL <- function(object, ...) {
+predict.ERVFL <- function(object, ...) {
     dots <- list(...)
     type <- dots$type
     if (is.null(type)) {
@@ -324,7 +330,7 @@ predict.BRVFL <- function(object, ...) {
             return(y_new)
         }
         else {
-            stop("The passed value of 'type' was not valid. See '?coef.BRVFL' for valid options of 'type'.")
+            stop("The passed value of 'type' was not valid. See '?coef.ERVFL' for valid options of 'type'.")
         }
     }
     else {
@@ -333,19 +339,19 @@ predict.BRVFL <- function(object, ...) {
     }
 }
 
-#' @title Residuals of the BRVFL object.
+#' @title Residuals of the ERVFL object.
 #' 
-#' @param object A BRVFL-object.
+#' @param object A ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details No additional arguments are used in this instance.
 #' 
 #' @return A vector of raw residuals between the predicted (using \code{type = "mean"}) and observed targets.
 #' 
-#' @rdname residuals.BRVFL
-#' @method residuals BRVFL
+#' @rdname residuals.ERVFL
+#' @method residuals ERVFL
 #' @export
-residuals.BRVFL <- function(object, ...) {
+residuals.ERVFL <- function(object, ...) {
     dots <- list(...)
     y_new <- predict(object)
     
@@ -353,124 +359,20 @@ residuals.BRVFL <- function(object, ...) {
     return(r)
 }
 
-
-#' @title Set ensemble weights for an BRVFL-object.
+#' @title Diagnostic-plots of an ERVFL-object.
 #' 
-#' @description Manually set ensemble weights for an BRVFL-object.
-#' 
-#' @param object An BRVFL-object.
-#' @param weights A vector of ensemble weights.
-#' 
-#' @return A \link{BRVFL}-object.
-#' 
-#' @export
-set_weights <- function(object, weights = NULL) {
-    UseMethod("set_weights")
-}
-
-#' @rdname set_weights
-#' @method set_weights BRVFL
-#' 
-#' @example inst/examples/sw_example.R
-#'
-#' @export
-set_weights.BRVFL <- function(object, weights = NULL) {
-    if (is.null(weights)) {
-        warning("No weights defined, setting weights to uniform.")
-        return(object)
-    }
-    
-    if (length(weights) != length(object$weights)) {
-        stop("The number of supplied weights have to be equal to the number of bootstrap samples.")
-    }
-    
-    if (abs(sum(weights) - 1) > 1e-6) {
-        stop("The weights have to sum to 1.")
-    }
-    
-    if (any(weights > 1) || any(weights < 0)) {
-        stop("All weights have to be between 0 and 1.")
-    }
-    
-    object$weights <- weights
-    return(object)
-}
-
-weight_estimation_function <- function(pars, y, y_hat) {
-    y_w <- y_hat %*% pars
-    e <- y - y_w
-    SSE <- c(t(e) %*% e)
-    return(SSE)
-}
-
-weight_estimation_bound <- function(pars, y, y_hat) {
-    return(sum(pars))
-}
-
-#' @title Estimate ensemble weights for an BRVFL-object.
-#' 
-#' @description Estimate ensemble weights for an BRVFL-object.
-#' 
-#' @param object A BRVFL-object.
-#' @param X_val The validation feature set.
-#' @param y_val The validation target set.
-#' @param trace The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0). 
-#' 
-#' @return A \link{BRVFL}-object.
-#' 
-#' @export
-estimate_weights <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
-    UseMethod("estimate_weights")
-}
-
-#' @rdname estimate_weights
-#' @method estimate_weights BRVFL
-#' 
-#' @example inst/examples/ew_example.R
-#'
-#' @export
-estimate_weights.BRVFL <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
-    if (is.null(X_val) || is.null(y_val)) {
-        warning("The validation-set was not properly specified, therefore, the training is used for weight estimation.")
-        
-        X_val <- object$data$X
-        y_val <- object$data$y
-    }
-    
-    B <- length(object$RVFLmodels)
-    y_hat <- predict(object, newdata = X_val, type = "full")
-    
-    w_0 <- runif(B) 
-    w_0 <- w_0 / sum(w_0)
-    w_hat <- solnp(
-        pars = w_0, 
-        fun = weight_estimation_function, 
-        LB = rep(.Machine$double.eps, length(w_0)), 
-        UB = rep(1L - .Machine$double.eps, length(w_0)), 
-        eqfun = weight_estimation_bound,
-        eqB = 1L,
-        y = y_val, y_hat = y_hat,
-        control = list(trace = trace, tol = 1e-12)
-    )
-    
-    object$weights <- w_hat$pars
-    return(object)
-}
-
-#' @title Diagnostic-plots of an BRVFL-object.
-#' 
-#' @param x A BRVFL-object.
+#' @param x A ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occurred.  
 #' 
 #' @return NULL
 #' 
-#' @rdname plot.BRVFL
-#' @method plot BRVFL
+#' @rdname plot.ERVFL
+#' @method plot ERVFL
 #'
 #' @export
-plot.BRVFL <- function(x, ...) {
+plot.ERVFL <- function(x, ...) {
     dots <- list(...)
     if (is.null(dots$X_val) && is.null(dots$y_val)) {
         X_val <- x$data$X
@@ -510,7 +412,5 @@ plot.BRVFL <- function(x, ...) {
     
     return(invisible(NULL))
 }
-
-
 
 

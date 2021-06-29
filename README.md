@@ -58,7 +58,7 @@ m1 <- RVFL(X = X_train, y = y_train, N_hidden = N_hidden, lambda = 0.3, combine_
 
 # Number of bootstrap samples
 B <- 100 
-m2 <- BRVFL(X = X_train, y = y_train, N_hidden = N_hidden, B = B, lambda = 0.3, combine_input = TRUE, include_data = FALSE)
+m2 <- bagRVFL(X = X_train, y = y_train, N_hidden = N_hidden, B = B, lambda = 0.3, combine_input = TRUE, include_data = FALSE)
 m3 <- estimate_weights(m2, X_val = X_val, y_val = y_val)
 
 ```

@@ -7,4 +7,4 @@ y <- X %*% beta + rnorm(p)
 
 N_hidden <- 10
 B <- 100
-BRVFL(X = X, y = y, N_hidden = N_hidden, B = B, combine_input = FALSE)
+bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = 0.1, combine_input = FALSE)

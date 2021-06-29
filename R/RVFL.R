@@ -1,6 +1,8 @@
-############################################################################
-####################### A simple RVFL neural network #######################
-############################################################################
+####################################################################
+####################### RVFL neural networks #######################
+####################################################################
+
+#### Motor of the RVFL framework ----
 
 #' @title RVFL control function
 #' 
@@ -36,7 +38,6 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
                 bias_output = bias_output, combine_input = combine_input, 
                 include_data = include_data))
 }
-
 
 #' @title Random vector functional link
 #' 
@@ -195,6 +196,8 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     return(object)
 }
 
+#### Auxiliary ----
+
 #' @title Coefficients of the RVFL object.
 #' 
 #' @param object An RVFL-object.
@@ -247,6 +250,9 @@ predict.RVFL <- function(object, ...) {
         activation = object$activation,
         bias = object$Bias$Hidden
     )
+    
+    newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$N_hidden[i]))
+    newH <- do.call("cbind", newH)
     
     ## Estimate parameters in output layer
     if (object$Bias$Output) {

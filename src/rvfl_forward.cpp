@@ -105,7 +105,7 @@ arma::mat identity(const arma::mat & x) {
     return x;
 }
 
-// RVFL functions
+// RVFL function
 //[[Rcpp::export]]
 std::vector<arma::mat> rvfl_forward(arma::mat X, 
                                     const std::vector<arma::mat> & W, 
