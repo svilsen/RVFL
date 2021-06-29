@@ -6,8 +6,21 @@
 
 using namespace Rcpp;
 
+// estimate_output_weights
+Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y, const double& lambda);
+RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type O(OSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(estimate_output_weights(O, y, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rvfl_forward
-arma::mat rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
+std::vector<arma::mat> rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
 RcppExport SEXP _RVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -20,22 +33,10 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// estimate_output_weights
-Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y);
-RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type O(OSEXP);
-    Rcpp::traits::input_parameter< const arma::colvec& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(estimate_output_weights(O, y));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_RVFL_estimate_output_weights", (DL_FUNC) &_RVFL_estimate_output_weights, 3},
     {"_RVFL_rvfl_forward", (DL_FUNC) &_RVFL_rvfl_forward, 4},
-    {"_RVFL_estimate_output_weights", (DL_FUNC) &_RVFL_estimate_output_weights, 2},
     {NULL, NULL, 0}
 };
 

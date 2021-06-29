@@ -15,5 +15,5 @@
 Diagnostic-plots of an RVFL-object.
 }
 \details{
-The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.
+The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occured.
 }

@@ -38,7 +38,7 @@ BRVFL(
 
 \item{method}{A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.}
 
-\item{lambda}{A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).}
+\item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
 \item{epsilon}{The learning rate used when boosting the RVFL (not used when bagging).}
 

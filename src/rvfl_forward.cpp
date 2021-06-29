@@ -107,10 +107,10 @@ arma::mat identity(const arma::mat & x) {
 
 // RVFL functions
 //[[Rcpp::export]]
-arma::mat rvfl_forward(arma::mat X, 
-                       const std::vector<arma::mat> & W, 
-                       const std::vector<std::string> & activation,
-                       const std::vector<bool> & bias) {
+std::vector<arma::mat> rvfl_forward(arma::mat X, 
+                                    const std::vector<arma::mat> & W, 
+                                    const std::vector<std::string> & activation,
+                                    const std::vector<bool> & bias) {
     const unsigned int & N = X.n_rows;
     const unsigned int & M = W.size();
     
@@ -119,68 +119,53 @@ arma::mat rvfl_forward(arma::mat X,
         X = bind_cols(b, X);
     }
     
-    arma::mat H = X * W[0];
+    std::vector<arma::mat> H(M); 
+    H[0] = X * W[0];
     for (unsigned int m = 1; m < M; m++) {
+        arma::mat H_m = H[m - 1];
         if (bias[m]) {
-            H = bind_cols(b, H);
+            H_m = bind_cols(b, H_m);
         }
         
-        H = H * W[m];
+        H_m = H_m * W[m];
         if (activation[m] == "sigmoid") {
-            H = sigmoid(H);
+            H_m = sigmoid(H_m);
         }
         else if (activation[m] == "tanh") {
-            H = tanh(H);
+            H_m = tanh(H_m);
         }
         else if (activation[m] == "relu") {
-            H = relu(H);
+            H_m = relu(H_m);
         }
         else if (activation[m] == "silu") {
-            H = silu(H);
+            H_m = silu(H_m);
         }
         else if (activation[m] == "softplus") {
-            H = softplus(H);
+            H_m = softplus(H_m);
         }
         else if (activation[m] == "softsign") {
-            H = softsign(H);
+            H_m = softsign(H_m);
         }
         else if (activation[m] == "sqnl") {
-            H = sqnl(H);
+            H_m = sqnl(H_m);
         }
         else if (activation[m] == "gaussian") {
-            H = gaussian(H);
+            H_m = gaussian(H_m);
         }
         else if (activation[m] == "sqrbf") {
-            H = sqrbf(H);
+            H_m = sqrbf(H_m);
         }
         else if (activation[m] == "bentidentity") {
-            H = bentidentity(H);
+            H_m = bentidentity(H_m);
         }
         else if (activation[m] == "identity") {
-            H = identity(H);
+            H_m = identity(H_m);
         }
+        
+        H[m] = H_m;
     } 
     
     return H;
 }
 
-//[[Rcpp::export]]
-Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y) {
-    const int & N = O.n_rows;
-    const int & p = O.n_cols;
-    
-    const arma::mat mpO = arma::pinv(O); // arma::pinv(arma::trans(O) * O);
-    
-    const arma::colvec beta = mpO * y; // OO * arma::trans(O) * y; 
-    const arma::colvec residual = y - O * beta; 
-    
-    const double sigma_squared = arma::as_scalar(arma::trans(residual) * residual / (N - p));
-    const arma::colvec standard_error = arma::sqrt(sigma_squared * arma::diagvec(mpO));
-    
-    return Rcpp::List::create(
-        Rcpp::Named("beta") = beta,
-        Rcpp::Named("sigma") = std::sqrt(sigma_squared),
-        Rcpp::Named("se") = standard_error
-    );
-}
 

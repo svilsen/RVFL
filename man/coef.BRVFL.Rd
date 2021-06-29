@@ -16,9 +16,9 @@ Depended on '\code{method}' and '\code{type}':
 
 If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
 \describe{
-    \item{\code{"all"}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
-    \item{\code{"sd"}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
-    \item{\code{"mean"}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
+    \item{\code{"mean" (default):}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
+    \item{\code{"sd":}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
+    \item{\code{"all":}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
 }
 
 If '\code{method}' was set to \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.

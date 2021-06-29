@@ -45,28 +45,25 @@ proportion_validation <- 1L - proportion_training
 index_training <- sample(N, proportion_training * N)
 index_validation <- seq(N)[-index_training]
 
-training_X <- X[index_training, ]
-validation_X <- X[index_validation, ]
+X_train <- X[index_training, ]
+X_val <- X[index_validation, ]
 
-training_y <- matrix(y[index_training, ], ncol = 1)
-validation_y <- matrix(y[index_validation, ], ncol = 1)
+y_train <- matrix(y[index_training, ], ncol = 1)
+y_val <- matrix(y[index_validation, ], ncol = 1)
 
 ## Fitting models
 # Number of hidden-layers and neurons in each layer.
-N_hidden <- c(100) 
-m1 <- RVFL(X = training_X, y = training_y, N_hidden = N_hidden, combine_input = TRUE)
+N_hidden <- 10
+m1 <- RVFL(X = X_train, y = y_train, N_hidden = N_hidden, lambda = 0.3, combine_input = TRUE)
 
 # Number of bootstrap samples
 B <- 100 
-m2 <- BRVFL(X = training_X, y = training_y, N_hidden = N_hidden, B = B, combine_input = TRUE)
-m3 <- estimate_weights(m2, X_val = validation_X, y_val = validation_y)
+m2 <- BRVFL(X = X_train, y = y_train, N_hidden = N_hidden, B = B, lambda = 0.3, combine_input = TRUE, include_data = FALSE)
+m3 <- estimate_weights(m2, X_val = X_val, y_val = y_val)
+
 ```
 
 ## License
 
 This project is licensed under the MIT License.
-
-## Acknowledgments
-
-This project is partly financed by the “CloudBMS – The New Generation of Intelligent Battery Management Systems” research and development project, project number 64017-05167. The authors gratefully acknowledge EUDP Denmark for providing the financial support necessary for carrying out this work.
 

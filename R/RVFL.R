@@ -9,7 +9,8 @@
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
-#' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output layer?
+#' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?
+#' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.
 #' 
 #' @details The possible activation functions supplied to '\code{activation}' are:
 #' \describe{
@@ -29,9 +30,11 @@
 #' @return A list of control variables.
 #' @export
 control_RVFL <- function(bias_hidden = TRUE, activation = NULL, 
-                         bias_output = TRUE, combine_input = FALSE) {
+                         bias_output = TRUE, combine_input = FALSE, 
+                         include_data = TRUE) {
     return(list(bias_hidden = bias_hidden, activation = activation, 
-                bias_output = bias_output, combine_input = combine_input))
+                bias_output = bias_output, combine_input = combine_input, 
+                include_data = include_data))
 }
 
 
@@ -42,7 +45,7 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param lambda A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).
+#' @param lambda The penalisation constant used when training the output layer.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL}-function.
@@ -54,13 +57,12 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #'     \item{\code{activation}}{The vector of the activation functions used in each layer.}
 #'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
 #'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
-#'     \item{\code{SE}}{The standard error of the weights in the output layer.}
 #'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
 #'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
 #' }
 #' 
 #' @export
-RVFL <- function(X, y, N_hidden, lambda = NULL, ...) {
+RVFL <- function(X, y, N_hidden, lambda = 0, ...) {
     UseMethod("RVFL")
 }
 
@@ -70,7 +72,7 @@ RVFL <- function(X, y, N_hidden, lambda = NULL, ...) {
 #' @example inst/examples/rvfl_example.R
 #' 
 #' @export
-RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
+RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     ## Creating control object 
     dots <- list(...)
     control <- do.call(control_RVFL, dots)
@@ -111,6 +113,16 @@ RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
+    if (length(control$combine_input) == 1) {
+        combine_input <- rep(control$combine_input, length(N_hidden))
+    }
+    else if (length(control$combine_input) == length(N_hidden)) {
+        combine_input <- control$combine_input
+    }
+    else {
+        stop("The 'combine_input' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+    }
+    
     activation <- control$activation
     if (is.null(activation)) {
         activation <- "sigmoid"
@@ -134,20 +146,14 @@ RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
         lambda <- 0
         warning("Note: 'lambda' was not supplied and set to 0.")
     }
-    else if (lambda > (1 - 1e-8)) {
-        lambda <- (1 - 1e-8)
-        warning("'lambda' has to be a real number in [0; 1).")
-    }
     else if (lambda < 0) {
         lambda <- 0
-        warning("'lambda' has to be a real number in [0; 1).")
+        warning("'lambda' has to be a real number larger than or equal to 0.")
     }
     
-    if (length(lambda) == 1) {
-        lambda <- rep(lambda, length(N_hidden))
-    }
-    else if (length(lambda) != length(N_hidden)) {
-        stop("The 'lambda' vector specified should have length 1, or be the same length as the vector 'N_hidden'.")
+    if (length(lambda) > 1) {
+        lambda <- lambda[1]
+        warning("The length of 'lambda' was larger than 1; continuing analysis using only the first element.")
     }
     
     ## Initialisation
@@ -163,27 +169,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
         }
         
         random_weights <- runif(nr_connections, -1, 1)
-        if (lambda[w] > 0) {
-            if (w == 1) {
-                N_lambda <- floor(lambda[w] * N_hidden[w])
-                R_lambda <- sample(N_hidden[w], N_lambda, replace = FALSE)
-                
-                I_lambda <- diag(1, N_hidden[w], N_hidden[w])
-                I_lambda[R_lambda, R_lambda] <- 0
-                random_weights <- matrix(random_weights, ncol = N_hidden[w])
-                random_weights <- random_weights %*% I_lambda
-            }
-            else {
-                N_lambda <- floor(lambda[w] * nr_connections)
-                random_weights[sample(nr_connections, N_lambda, replace = FALSE)] <- 0
-                random_weights <- matrix(random_weights, ncol = N_hidden[w])  
-            }
-        }
-        else {
-            random_weights <- matrix(random_weights, ncol = N_hidden[w]) 
-        }
-        
-        W_hidden[[w]] <- random_weights
+        W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w]) 
     }
     
     ## Values of last hidden layer
@@ -196,19 +182,19 @@ RVFL.default <- function(X, y, N_hidden, lambda = NULL, ...) {
     
     O <- H
     if (control$combine_input) {
-        O <- cbind(H, X)
+        O <- cbind(X, H)
     }
     
-    W_output <- estimate_output_weights(O, y)
+    W_output <- estimate_output_weights(O, y, lambda)
     
     ## Return object
     object <- list(
-        data = list(X = X, y = y), 
+        data = if(control$include_data) list(X = X, y = y) else NULL, 
         N_hidden = N_hidden, 
-        activation = activation,
+        activation = activation, 
+        lambda = lambda,
         Bias = list(Hidden = bias_hidden, Output = control$bias_output),
         Weights = list(Hidden = W_hidden, Output = W_output$beta),
-        SE = list(Hidden = NA, Output = W_output$se), 
         Sigma = list(Hidden = NA, Output = W_output$sigma),
         Combined = control$combine_input
     )
@@ -249,10 +235,14 @@ predict.RVFL <- function(object, ...) {
     dots <- list(...)
     
     if (is.null(dots$newdata)) {
+        if (is.null(object$data)) {
+            stop("The RVFL-object does not contain any data: \nEither supply 'newdata', or re-create object with 'include_data = TRUE' (default).")
+        }
+        
         newdata <- object$data$X
     }
     else {
-        if (dim(dots$newdata)[2] != dim(object$data$X)[2]) {
+        if (dim(dots$newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
             stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
         
@@ -299,7 +289,22 @@ residuals.RVFL <- function(object, ...) {
         type <- "raw"
     }
     
-    newy <- predict.RVFL(object, newdata = NULL, ...)
+    if (is.null(dots$newdata)) {
+        if (is.null(object$data)) {
+            stop("The RVFL-object does not contain any data: \nEither supply 'newdata', or re-create RVFL-object with 'include_data = TRUE' (default).")
+        }
+        
+        newdata <- object$data$X
+    }
+    else {
+        if (dim(dots$newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        }
+        
+        newdata <- dots$newdata
+    }
+    
+    newy <- predict.RVFL(object, newdata = newdata, ...)
     
     r <- newy - object$data$y
     if (tolower(type) %in% c("standard", "standardised", "rs")) {        
@@ -314,7 +319,7 @@ residuals.RVFL <- function(object, ...) {
 #' @param x An RVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occured.  
+#' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occured.  
 #' 
 #' @rdname plot.RVFL
 #' @method plot RVFL
@@ -324,26 +329,30 @@ residuals.RVFL <- function(object, ...) {
 #' @export
 plot.RVFL <- function(x, ...) {
     dots <- list(...)
-    if (is.null(dots$testing_X) || is.null(dots$testing_y)) {
-        testing_X <- x$data$X
-        testing_y <- x$data$y
+    if (is.null(dots$X_val) || is.null(dots$y_val)) {
+        if (is.null(x$data)) {
+            stop("The RVFL-object does not contain any data: \nEither supply 'X_val' and 'y_val', or re-create RVFL-object with 'include_data = TRUE' (default).")
+        }
+        
+        X_val <- x$data$X
+        y_val <- x$data$y
     }
     else {
-        testing_X <- dots$testing_X
-        testing_y <- dots$testing_y
+        X_val <- dots$X_val
+        y_val <- dots$y_val
     }
     
-    y_hat <- predict(x, newdata = testing_X)
+    y_hat <- predict(x, newdata = X_val)
     
     dev.hold()
-    plot(y_hat ~ testing_y, pch = 16, 
+    plot(y_hat ~ y_val, pch = 16, 
          xlab = "Observed targets", ylab = "Predicted targets")
     abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
     dev.flush()
     
     readline(prompt = "Press [ENTER] for next plot...")
     dev.hold()
-    plot(I(y_hat - testing_y) ~ seq(length(testing_y)), pch = 16,
+    plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
          xlab = "Index", ylab = "Residual") 
     abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
     dev.flush()

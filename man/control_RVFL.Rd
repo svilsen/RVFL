@@ -8,7 +8,8 @@ control_RVFL(
   bias_hidden = TRUE,
   activation = NULL,
   bias_output = TRUE,
-  combine_input = FALSE
+  combine_input = FALSE,
+  include_data = TRUE
 )
 }
 \arguments{
@@ -18,7 +19,9 @@ control_RVFL(
 
 \item{bias_output}{TRUE/FALSE: Should a bias be added to the output layer?}
 
-\item{combine_input}{TRUE/FALSE: Should the input and hidden layer be combined for the output layer?}
+\item{combine_input}{TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?}
+
+\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.}
 }
 \value{
 A list of control variables.

@@ -11,7 +11,7 @@
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param B If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels used when boosting the model.
 #' @param method A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.
-#' @param lambda A vector of the proportions of null weights in connections from one layer to the next (excluding the output layer).
+#' @param lambda The penalisation constant used when training the output layers of each RVFL.
 #' @param epsilon The learning rate used when boosting the RVFL (not used when bagging).
 #' @param ... Additional arguments. 
 #' 
@@ -25,7 +25,7 @@
 #' }
 #' 
 #' @export
-BRVFL <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0.0, epsilon = NULL, ...) {
+BRVFL <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0, epsilon = NULL, ...) {
     UseMethod("BRVFL")
 }
 
@@ -35,7 +35,7 @@ BRVFL <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0.0, eps
 #' @example inst/examples/brvfl_example.R
 #' 
 #' @export
-BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0.0, epsilon = NULL, ...) {
+BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0, epsilon = NULL, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -144,9 +144,9 @@ BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 
 #' 
 #' If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
-#'     \item{\code{"all"}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
-#'     \item{\code{"sd"}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
-#'     \item{\code{"mean"}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
+#'     \item{\code{"mean" (default):}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
+#'     \item{\code{"sd":}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
+#'     \item{\code{"all":}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
 #' }
 #' 
 #' If '\code{method}' was set to \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
@@ -209,9 +209,9 @@ coef.BRVFL <- function(object, ...) {
 #' 
 #' If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
-#'     \item{\code{"all"}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
-#'     \item{\code{"sd"}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
-#'     \item{\code{"mean"}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
+#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
+#'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
+#'     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 #' }
 #' 
 #' If '\code{method}' was set to \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
@@ -406,7 +406,7 @@ estimate_weights.BRVFL <- function(object, X_val = NULL, y_val = NULL, trace = 0
 #' @param x A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional arguments used by the function are '\code{testing_X}' and '\code{testing_y}', i.e. the features and targets of the testing-set. These are helpful when analysing whether overfitting of model has occurred.  
+#' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occurred.  
 #' 
 #' @return NULL
 #' 
@@ -416,28 +416,32 @@ estimate_weights.BRVFL <- function(object, X_val = NULL, y_val = NULL, trace = 0
 #' @export
 plot.BRVFL <- function(x, ...) {
     dots <- list(...)
-    if (is.null(dots$testing_X) || is.null(dots$testing_y)) {
+    if (is.null(dots$X_val) && is.null(dots$y_val)) {
+        X_val <- x$data$X
+        y_val <- x$data$y
+    }
+    else if (is.null(dots$X_val) || is.null(dots$y_val)) {
         message("The testing-set was not properly specified, therefore, the training-set is used.")
         
-        testing_X <- x$data$X
-        testing_y <- x$data$y
+        X_val <- x$data$X
+        y_val <- x$data$y
     }
     else {
-        testing_X <- dots$testing_X
-        testing_y <- dots$testing_y
+        X_val <- dots$X_val
+        y_val <- dots$y_val
     }
     
-    y_hat <- predict(x, newdata = testing_X)
+    y_hat <- predict(x, newdata = X_val)
     
     dev.hold()
-    plot(y_hat ~ testing_y, pch = 16, 
+    plot(y_hat ~ y_val, pch = 16, 
          xlab = "Observed targets", ylab = "Predicted targets")
     abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
     dev.flush()
     
     readline(prompt = "Press [ENTER] for next plot...")
     dev.hold()
-    plot(I(y_hat - testing_y) ~ seq(length(testing_y)), pch = 16,
+    plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
          xlab = "Index", ylab = "Residual") 
     abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
     dev.flush()
