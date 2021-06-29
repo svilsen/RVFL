@@ -5,16 +5,16 @@
 \alias{estimate_weights.BRVFL}
 \title{Estimate ensemble weights for an BRVFL-object.}
 \usage{
-estimate_weights(object, validation_X = NULL, validation_y = NULL, trace = 0)
+estimate_weights(object, X_val = NULL, y_val = NULL, trace = 0)
 
-\method{estimate_weights}{BRVFL}(object, validation_X = NULL, validation_y = NULL, trace = 0)
+\method{estimate_weights}{BRVFL}(object, X_val = NULL, y_val = NULL, trace = 0)
 }
 \arguments{
 \item{object}{A BRVFL-object.}
 
-\item{validation_X}{The validation feature set.}
+\item{X_val}{The validation feature set.}
 
-\item{validation_y}{The validation target set.}
+\item{y_val}{The validation target set.}
 
 \item{trace}{The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0).}
 }
@@ -33,22 +33,22 @@ X <- matrix(rnorm(N * p), ncol = p)
 beta <- matrix(runif(p), ncol = 1) 
 y <- X \%*\% beta + rnorm(p)
 
-proportion_training <- 0.7
-proportion_validation <- 1L - proportion_training
-index_training <- sample(N, 0.7 * N)
+##
+train_fraction <- 0.7
+train_index <- sample(N, train_fraction * N)
 
-training_X <- X[index_training, ]
-validation_X <- X[-index_training, ]
+X_train <- X[train_index, ]
+X_val <- X[-train_index, ]
 
-training_y <- matrix(y[index_training, ], ncol = 1)
-validation_y <- matrix(y[-index_training, ], ncol = 1)
+y_train <- matrix(y[train_index, ], ncol = 1)
+y_val <- matrix(y[-train_index, ], ncol = 1)
 
 ###
-N_hidden <- c(10, 2, 4, 2)
+N_hidden <- 10
 B <- 100
-mm <- BRVFL(X = training_X, y = training_y, N_hidden = N_hidden, 
+mm <- BRVFL(X = X_train, y = y_train, N_hidden = N_hidden, 
             B = B, combine_input = FALSE)
 
 ###
-estimate_weights(mm, validation_X = validation_X, validation_y = validation_y)
+estimate_weights(mm, X_val = X_val, y_val = y_val)
 }

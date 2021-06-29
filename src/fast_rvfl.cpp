@@ -169,13 +169,13 @@ Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y) 
     const int & N = O.n_rows;
     const int & p = O.n_cols;
     
-    const arma::mat OO = arma::pinv(arma::trans(O) * O);
+    const arma::mat mpO = arma::pinv(O); // arma::pinv(arma::trans(O) * O);
     
-    const arma::colvec beta = OO * arma::trans(O) * y; 
+    const arma::colvec beta = mpO * y; // OO * arma::trans(O) * y; 
     const arma::colvec residual = y - O * beta; 
     
     const double sigma_squared = arma::as_scalar(arma::trans(residual) * residual / (N - p));
-    const arma::colvec standard_error = arma::sqrt(sigma_squared * arma::diagvec(OO));
+    const arma::colvec standard_error = arma::sqrt(sigma_squared * arma::diagvec(mpO));
     
     return Rcpp::List::create(
         Rcpp::Named("beta") = beta,

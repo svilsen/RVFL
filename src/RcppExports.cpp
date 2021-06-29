@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // rvfl_forward
 arma::mat rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
-RcppExport SEXP _BRVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
+RcppExport SEXP _RVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,7 +22,7 @@ END_RCPP
 }
 // estimate_output_weights
 Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y);
-RcppExport SEXP _BRVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP) {
+RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,12 +34,12 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BRVFL_rvfl_forward", (DL_FUNC) &_BRVFL_rvfl_forward, 4},
-    {"_BRVFL_estimate_output_weights", (DL_FUNC) &_BRVFL_estimate_output_weights, 2},
+    {"_RVFL_rvfl_forward", (DL_FUNC) &_RVFL_rvfl_forward, 4},
+    {"_RVFL_estimate_output_weights", (DL_FUNC) &_RVFL_estimate_output_weights, 2},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_BRVFL(DllInfo *dll) {
+RcppExport void R_init_RVFL(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
