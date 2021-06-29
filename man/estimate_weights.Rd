@@ -10,7 +10,7 @@ estimate_weights(object, X_val = NULL, y_val = NULL, trace = 0)
 \method{estimate_weights}{ERVFL}(object, X_val = NULL, y_val = NULL, trace = 0)
 }
 \arguments{
-\item{object}{A ERVFL-object.}
+\item{object}{An ERVFL-object.}
 
 \item{X_val}{The validation feature set.}
 
@@ -19,7 +19,7 @@ estimate_weights(object, X_val = NULL, y_val = NULL, trace = 0)
 \item{trace}{The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0).}
 }
 \value{
-A \link{ERVFL}-object.
+An ERVFL-object.
 }
 \description{
 Estimate ensemble weights for an ERVFL-object.
@@ -46,8 +46,8 @@ y_val <- matrix(y[-train_index, ], ncol = 1)
 ###
 N_hidden <- 10
 B <- 100
-mm <- BRVFL(X = X_train, y = y_train, N_hidden = N_hidden, 
-            B = B, combine_input = FALSE)
+mm <- bagRVFL(X = X_train, y = y_train, N_hidden = N_hidden, 
+            B = B, lambda = 0.2, combine_input = FALSE)
 
 ###
 estimate_weights(mm, X_val = X_val, y_val = y_val)

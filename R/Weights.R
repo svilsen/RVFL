@@ -20,7 +20,7 @@ weight_estimation_bound <- function(pars, y, y_hat) {
 #' @param object An ERVFL-object.
 #' @param weights A vector of ensemble weights.
 #' 
-#' @return A \link{ERVFL}-object.
+#' @return An ERVFL-object.
 #' 
 #' @export
 set_weights <- function(object, weights = NULL) {
@@ -59,12 +59,12 @@ set_weights.ERVFL <- function(object, weights = NULL) {
 #' 
 #' @description Estimate ensemble weights for an ERVFL-object.
 #' 
-#' @param object A ERVFL-object.
+#' @param object An ERVFL-object.
 #' @param X_val The validation feature set.
 #' @param y_val The validation target set.
 #' @param trace The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0). 
 #' 
-#' @return A \link{ERVFL}-object.
+#' @return An ERVFL-object.
 #' 
 #' @export
 estimate_weights <- function(object, X_val = NULL, y_val = NULL, trace = 0) {

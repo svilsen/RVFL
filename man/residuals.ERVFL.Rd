@@ -7,7 +7,7 @@
 \method{residuals}{ERVFL}(object, ...)
 }
 \arguments{
-\item{object}{A ERVFL-object.}
+\item{object}{An ERVFL-object.}
 
 \item{...}{Additional arguments.}
 }

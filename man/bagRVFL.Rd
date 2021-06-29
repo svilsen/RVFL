@@ -5,9 +5,9 @@
 \alias{bagRVFL.default}
 \title{Bagging random vector functional links.}
 \usage{
-bagRVFL(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...)
+bagRVFL(X, y, N_hidden, B = 100, lambda = 0, ...)
 
-\method{bagRVFL}{default}(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...)
+\method{bagRVFL}{default}(X, y, N_hidden, B = 100, lambda = 0, ...)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -23,7 +23,7 @@ bagRVFL(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...)
 \item{...}{Additional arguments.}
 }
 \value{
-A ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -47,5 +47,6 @@ y <- X \%*\% beta + rnorm(p)
 
 N_hidden <- 10
 B <- 100
-bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = 0.1, combine_input = FALSE)
+bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
+        lambda = 0.2, combine_input = FALSE)
 }

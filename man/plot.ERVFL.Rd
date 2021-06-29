@@ -7,7 +7,7 @@
 \method{plot}{ERVFL}(x, ...)
 }
 \arguments{
-\item{x}{A ERVFL-object.}
+\item{x}{An ERVFL-object.}
 
 \item{...}{Additional arguments.}
 }

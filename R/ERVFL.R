@@ -17,7 +17,7 @@
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return A ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -26,7 +26,7 @@
 #' }
 #' 
 #' @export
-bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
+bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
     UseMethod("bagRVFL")
 }
 
@@ -36,7 +36,7 @@ bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
 #' @example inst/examples/bagrvfl_example.R
 #' 
 #' @export
-bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
+bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -102,7 +102,7 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL,
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return A ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -197,7 +197,7 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, .
 
 #' @title Coefficients of the ERVFL object.
 #' 
-#' @param object A ERVFL-object.
+#' @param object An ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{type}' is only used if '\code{method}' was \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
@@ -258,7 +258,7 @@ coef.ERVFL <- function(object, ...) {
 
 #' @title Predicting targets of an ERVFL object.
 #' 
-#' @param object A ERVFL-object.
+#' @param object An ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:
@@ -271,7 +271,7 @@ coef.ERVFL <- function(object, ...) {
 #' 
 #' If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
-#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{ERVFL}-object) sum each observation taken across the bootstrap samples.}
+#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the ERVFL-object) sum each observation taken across the bootstrap samples.}
 #'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
 #'     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 #' }
@@ -341,7 +341,7 @@ predict.ERVFL <- function(object, ...) {
 
 #' @title Residuals of the ERVFL object.
 #' 
-#' @param object A ERVFL-object.
+#' @param object An ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details No additional arguments are used in this instance.
@@ -361,7 +361,7 @@ residuals.ERVFL <- function(object, ...) {
 
 #' @title Diagnostic-plots of an ERVFL-object.
 #' 
-#' @param x A ERVFL-object.
+#' @param x An ERVFL-object.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occurred.  

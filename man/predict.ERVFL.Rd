@@ -7,7 +7,7 @@
 \method{predict}{ERVFL}(object, ...)
 }
 \arguments{
-\item{object}{A ERVFL-object.}
+\item{object}{An ERVFL-object.}
 
 \item{...}{Additional arguments.}
 }
@@ -16,7 +16,7 @@ Depended on '\code{method}' and '\code{type}'.
 
 If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
 \describe{
-    \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{ERVFL}-object) sum each observation taken across the bootstrap samples.}
+    \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the ERVFL-object) sum each observation taken across the bootstrap samples.}
     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 }
