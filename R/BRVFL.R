@@ -2,22 +2,22 @@
 ####################### An ensemble RVFL neural network #######################
 ###############################################################################
 
-#' @title Bagging and boosting random vector functional link
+#### Bagging functions ----
+
+#' @title Bagging random vector functional links.
 #' 
-#' @description Set-up and estimate weights the ensemble random vector functional link neural network, while either bagging or boosting for added stability of the model.
+#' @description Use boostrap aggregation to reduce the varinace of random vector functional link neural network models.
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param B If '\code{method}' is \code{"bagging"}, then it is the number of bootstrap samples. If \code{method} is \code{"boosting"}, it is the number of levels used when boosting the model.
-#' @param method A string specifying whether \code{"bagging"} (default) or \code{"boosting"} should be performed on the RVFL.
+#' @param B The number of bootstrap samples.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
-#' @param epsilon The learning rate used when boosting the RVFL (not used when bagging).
 #' @param ... Additional arguments. 
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
 #' 
-#' @return A BRVFL-object containing the random and fitted weights of all bootstrapped \link{RVFL}-model. A BRVFL-object contains the following:
+#' @return A BRVFL-object containing the random and fitted weights of all \link{RVFL}-model. A BRVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -25,17 +25,17 @@
 #' }
 #' 
 #' @export
-BRVFL <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0, epsilon = NULL, ...) {
-    UseMethod("BRVFL")
+bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
+    UseMethod("bagRVFL")
 }
 
-#' @rdname BRVFL
-#' @method BRVFL default
+#' @rdname bagRVFL
+#' @method bagRVFL default
 #' 
 #' @example inst/examples/brvfl_example.R
 #' 
 #' @export
-BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 0, epsilon = NULL, ...) {
+bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, epsilon = NULL, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -57,65 +57,118 @@ BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 
         stop("The number of rows in 'y' and 'X' do not match.")
     }
     
-    # Parameters
-    if (is.null(method)) {
-        warning("Note: 'method' was not set, it will be set to 'bagging'.")
-        method <- "bagging"
-    }
-    
-    method <- tolower(method)
-    if (method %in% c("bg", "bag", "bagging")) {
-        method <- "bagging"
-    }
-    else if (method %in% c("bs", "bt", "boost", "boosting")) {
-        method <- "boosting"
-    }
-    else {
-        stop("'method' has to be set to either 'bagging' or 'boosting'.")
-    }
-    
     if (is.null(B)) {
-        if (method == "bagging") {
-            B <- 100
-        }
-        else {
-            B <- 10
-        }
+        B <- 100
         
-        warning(paste0("Note: 'B' was not supplied -- due to the choice of 'method', 'B' was set to ", B, "."))
-    }
-    
-    if (method == "boosting") {
-        if (is.null(epsilon)) {
-            epsilon <- 1
-            warning("Note: 'epsilon' was not supplied and set to 1.")
-        }
-        else if (epsilon > 1) {
-            epsilon <- 1
-            warning("'epsilon' has to be a number between 0 and 1.")
-        }
-        else if (epsilon < 0) {
-            epsilon <- 0
-            warning("'epsilon' has to be a number between 0 and 1.")
-        }
+        warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
     }
     
     ##
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        if (method == "bagging") {
-            indices_b <- sample(nrow(X), nrow(X), replace = TRUE)
-            X_b <- matrix(X[indices_b, ], ncol = ncol(X))
-            y_b <- matrix(y[indices_b], ncol = ncol(y))    
+        indices_b <- sample(nrow(X), nrow(X), replace = TRUE)
+        X_b <- matrix(X[indices_b, ], ncol = ncol(X))
+        y_b <- matrix(y[indices_b], ncol = ncol(y))    
+        
+        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, ...)
+    }
+    
+    ##
+    object <- list(
+        data = list(X = X, y = y), 
+        RVFLmodels = objects, 
+        weights = rep(1L / B, B), 
+        method = "bagging"
+    )  
+    
+    class(object) <- "BRVFL"
+    return(object)
+}
+
+#### Boosting functions ----
+
+#' @title Boosting random vector functional link
+#' 
+#' @description Use gradient boosting to create ensemble random vector functional link neural network models.
+#' 
+#' @param X A matrix of observed features used to estimate the parameters of the output layer.
+#' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param B The number of levels used in the boosting tree.
+#' @param lambda The penalisation constant used when training the output layers of each RVFL.
+#' @param epsilon The learning rate.
+#' @param ... Additional arguments. 
+#' 
+#' @details The additional arguments are all passed to the \link{control_RVFL} function.
+#' 
+#' @return A BRVFL-object containing the random and fitted weights of all \link{RVFL}-model. A BRVFL-object contains the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
+#'     \item{\code{weights}}{A vector of ensemble weights.}
+#' }
+#' 
+#' @export
+boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
+    UseMethod("boostRVFL")
+}
+
+#' @rdname boostRVFL
+#' @method boostRVFL default
+#' 
+#' @example inst/examples/brvfl_example.R
+#' 
+#' @export
+boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
+    ## Checks
+    # Data
+    if (!is.matrix(X)) {
+        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
+        X <- as.matrix(X)
+    }
+    
+    if (!is.matrix(y)) {
+        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
+        y <- as.matrix(y)
+    }
+    
+    if (dim(y)[2] != 1) {
+        warning("More than a single column was detected in 'y', only the first column is used in the model.")
+        y <- matrix(y[, 1], ncol = 1)
+    }
+    
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
+    if (is.null(B)) {
+        B <- 10
+        
+        warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
+    }
+    
+    if (is.null(epsilon)) {
+        epsilon <- 1
+        warning("Note: 'epsilon' was not supplied and set to 1.")
+    }
+    else if (epsilon > 1) {
+        epsilon <- 1
+        warning("'epsilon' has to be a number between 0 and 1.")
+    }
+    else if (epsilon < 0) {
+        epsilon <- 0
+        warning("'epsilon' has to be a number between 0 and 1.")
+    }
+    
+    ##
+    objects <- vector("list", B)
+    for (b in seq_len(B)) {
+        X_b <- X
+        if (b == 1) {
+            y_b <- y
         }
         else {
-            X_b <- X
-            if (b == 1) {
-                y_b <- y
-            }
-            else {
-                y_b <- y_b - epsilon * predict(objects[[b - 1]])
-            }
+            y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
         objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, ...)
@@ -126,30 +179,33 @@ BRVFL.default <- function(X, y, N_hidden, B = 100, method = "bagging", lambda = 
         data = list(X = X, y = y), 
         RVFLmodels = objects, 
         weights = rep(1L / B, B), 
-        method = method
+        method = "boosting"
     )  
     
     class(object) <- "BRVFL"
     return(object)
 }
 
+
+#### AUX functions ----
+
 #' @title Coefficients of the BRVFL object.
 #' 
 #' @param object A BRVFL-object.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional argument '\code{type}' is only used if '\code{method}' was set to \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
+#' @details The additional argument '\code{type}' is only used if '\code{method}' was \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
 #' 
 #' @return Depended on '\code{method}' and '\code{type}':
 #' 
-#' If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
+#' If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
 #'     \item{\code{"mean" (default):}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
 #'     \item{\code{"sd":}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
 #'     \item{\code{"all":}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
 #' }
 #' 
-#' If '\code{method}' was set to \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
+#' If '\code{method}' was \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
 #' 
 #' @rdname coef.BRVFL
 #' @method coef BRVFL
@@ -207,14 +263,14 @@ coef.BRVFL <- function(object, ...) {
 #'
 #' @return Depended on '\code{method}' and '\code{type}'. 
 #' 
-#' If '\code{method}' was set to \code{"bagging"}, the '\code{type}' yields the following results: 
+#' If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
 #' \describe{
 #'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{BRVFL}-object) sum each observation taken across the bootstrap samples.}
 #'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
 #'     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 #' }
 #' 
-#' If '\code{method}' was set to \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
+#' If '\code{method}' was \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
 #'
 #' @rdname predict.BRVFL
 #' @method predict BRVFL
