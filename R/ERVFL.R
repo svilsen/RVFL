@@ -321,7 +321,6 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param B The number of models in the stack.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
 #' @param ... Additional arguments. 
 #' 
@@ -336,7 +335,7 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N
 #' }
 #' 
 #' @export
-edRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
+edRVFL <- function(X, y, N_hidden, lambda = 0, ...) {
     UseMethod("edRVFL")
 }
 
@@ -369,12 +368,17 @@ edRVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     }
     
     ##
-    objects <- RVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, ...)
+    deepRVFL <- RVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, ...)
+    H <- rvfl_forward(X = X, W = deepRVFL$Weights$Hidden, activation = deepRVFL$activation, bias = deepRVFL$Bias$Hidden)
+    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deepRVFL$N_hidden[i]))
+    O <- lapply(seq_along(H), function(i) cbind(1, X, H[[i]]))
+    beta <- lapply(seq_along(O), function(i) estimate_output_weights(O[[i]], y, lambda)$beta)
     
     ##
     object <- list(
         data = list(X = X, y = y), 
-        RVFLmodels = objects, 
+        RVFLmodels = deepRVFL, 
+        OutputWeights = beta,
         weights = rep(1L / length(N_hidden), length(N_hidden)), 
         method = "ed"
     ) 
@@ -428,16 +432,21 @@ coef.ERVFL <- function(object, ...) {
         type <- tolower(type)
     }
     
-    B <- length(object$RVFLmodels)
-    beta <- vector("list", B)
-    for (b in seq_along(beta)) {
-        beta[[b]] <- coef(object$RVFLmodels[[b]])
+    if (object$method == "ed") {
+        beta <- object$OutputWeights
+    }
+    else {
+        B <- length(object$RVFLmodels)
+        beta <- vector("list", B)
+        for (b in seq_along(beta)) {
+            beta[[b]] <- coef(object$RVFLmodels[[b]])
+        }
+        
+        beta <- do.call("cbind", beta)
     }
     
-    beta <- do.call("cbind", beta)
-    
     ##
-    if (object$method == "bagging") {
+    if (object$method %in% c("bagging")) {
         if (type %in% c("a", "all", "f", "full")) {
             return(beta)
         }
@@ -509,25 +518,12 @@ predict.ERVFL <- function(object, ...) {
     }
     
     ##
-    B <- length(object$RVFLmodels)
+    B <- length(object$weights)
     if (object$method == "ed") {
-        newH <- rvfl_forward(
-            X = newdata, 
-            W = object$RVFLmodels$Weights$Hidden, 
-            activation = object$RVFLmodels$activation,
-            bias = object$RVFLmodels$Bias$Hidden
-        )
-        
+        newH <- rvfl_forward(X = newdata, W = object$RVFLmodels$Weights$Hidden, activation = object$RVFLmodels$activation, bias = object$RVFLmodels$Bias$Hidden)
         newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$RVFLmodels$N_hidden[i]))
-        
-        Z <- newdata
-        y_new <- vector("list", B)
-        for (b in seq_len(B)) {
-            y_new[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = Z)
-            
-            H <- rvfl_forward(Z, object$RVFLmodels[[b]]$Weights$Hidden, object$RVFLmodels[[b]]$activation, object$RVFLmodels[[b]]$Bias$Hidden)
-            Z <- matrix(H[[1]], ncol = ncol(object$RVFLmodels[[b]]$Weights$Hidden[[1]]))
-        }
+        newO <- lapply(seq_along(newH), function(i) cbind(1, newdata, newH[[i]]))
+        y_new <- lapply(seq_along(newO), function(i) newO[[i]] %*% object$OutputWeights[[i]])
         
         y_new <- do.call("cbind", y_new)
     }

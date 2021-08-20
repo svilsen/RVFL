@@ -5,6 +5,5 @@ X <- matrix(rnorm(N * p), ncol = p)
 beta <- matrix(runif(p), ncol = 1) 
 y <- X %*% beta + rnorm(p)
 
-N_hidden <- rep(10, 10)
-object <- edRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
-plot(object, page = 1)
+N_hidden <- rep(10, 15)
+edRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)

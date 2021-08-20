@@ -5,7 +5,7 @@
 \alias{edRVFL.default}
 \title{Ensemble deep random vector functional links}
 \usage{
-edRVFL(X, y, N_hidden, B = 100, lambda = 0, ...)
+edRVFL(X, y, N_hidden, lambda = 0, ...)
 
 \method{edRVFL}{default}(X, y, N_hidden, lambda = 0, ...)
 }
@@ -15,8 +15,6 @@ edRVFL(X, y, N_hidden, B = 100, lambda = 0, ...)
 \item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
-
-\item{B}{The number of models in the stack.}
 
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
@@ -45,7 +43,6 @@ X <- matrix(rnorm(N * p), ncol = p)
 beta <- matrix(runif(p), ncol = 1) 
 y <- X \%*\% beta + rnorm(p)
 
-N_hidden <- rep(10, 10)
-object <- edRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
-plot(object, page = 1)
+N_hidden <- rep(10, 15)
+edRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
 }
