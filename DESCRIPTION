@@ -12,7 +12,8 @@ Imports:
     Rsolnp, 
     stats, 
     graphics, 
-    grDevices
+    grDevices,
+    quadprog
 LinkingTo: 
     Rcpp, 
     RcppArmadillo

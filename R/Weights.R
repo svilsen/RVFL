@@ -2,15 +2,17 @@
 ####################### Ensemble weight estimation #######################
 ##########################################################################
 
-weight_estimation_function <- function(pars, y, y_hat) {
-    y_w <- y_hat %*% pars
-    e <- y - y_w
-    SSE <- c(t(e) %*% e)
-    return(SSE)
-}
-
-weight_estimation_bound <- function(pars, y, y_hat) {
-    return(sum(pars))
+estimate_weights_stack <- function(C, b, B) {
+    D <- t(C) %*% C + diag(1e-8, nrow = ncol(C), ncol = ncol(C))
+    d <- t(C) %*% b
+    A <- rbind(t(matrix(rep(1, B), ncol = 1)), diag(B), -diag(B))
+    b <- c(1, rep(0, B), rep(-1, B))
+    
+    w <- solve.QP(D, d, t(A), b, meq = 1)$solution
+    w[w < 0] <- 0
+    w <- w / sum(w)
+    
+    return(w)
 }
 
 #' @title Set ensemble weights for an ERVFL-object.
@@ -86,21 +88,8 @@ estimate_weights.ERVFL <- function(object, X_val = NULL, y_val = NULL, trace = 0
     }
     
     B <- length(object$RVFLmodels)
-    y_hat <- predict(object, newdata = X_val, type = "full")
+    C <- predict(object, newdata = X_val, type = "full")
     
-    w_0 <- runif(B) 
-    w_0 <- w_0 / sum(w_0)
-    w_hat <- solnp(
-        pars = w_0, 
-        fun = weight_estimation_function, 
-        LB = rep(.Machine$double.eps, length(w_0)), 
-        UB = rep(1L - .Machine$double.eps, length(w_0)), 
-        eqfun = weight_estimation_bound,
-        eqB = 1L,
-        y = y_val, y_hat = y_hat,
-        control = list(trace = trace, tol = 1e-12)
-    )
-    
-    object$weights <- w_hat$pars
+    object$weights <- estimate_weights_stack(C = C, b = y_val, B = B)
     return(object)
 }

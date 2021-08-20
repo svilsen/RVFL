@@ -13,9 +13,8 @@
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param B The number of bootstrap samples.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
-#' @param ... Additional arguments. 
-#' 
-#' @details The additional arguments are all passed to the \link{control_RVFL} function.
+#' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}). 
+#' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
 #' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
 #' \describe{
@@ -26,7 +25,7 @@
 #' }
 #' 
 #' @export
-bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
+bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, N_features = NULL, ...) {
     UseMethod("bagRVFL")
 }
 
@@ -36,7 +35,7 @@ bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
 #' @example inst/examples/bagrvfl_example.R
 #' 
 #' @export
-bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
+bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, N_features = NULL, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -64,14 +63,19 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
         warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
     }
     
+    if (is.null(N_features)) {
+        N_features <- ceiling(dim(X)[2] / 3)
+    }
+    
     ##
     objects <- vector("list", B)
     for (b in seq_len(B)) {
         indices_b <- sample(nrow(X), nrow(X), replace = TRUE)
+        
         X_b <- matrix(X[indices_b, ], ncol = ncol(X))
         y_b <- matrix(y[indices_b], ncol = ncol(y))    
         
-        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, ...)
+        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, N_features = N_features, ...)
     }
     
     ##
@@ -88,7 +92,7 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
 
 #### Boosting ----
 
-#' @title Boosting random vector functional link
+#' @title Boosting random vector functional links
 #' 
 #' @description Use gradient boosting to create ensemble random vector functional link neural network models.
 #' 
@@ -98,6 +102,7 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
 #' @param B The number of levels used in the boosting tree.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
 #' @param epsilon The learning rate.
+#' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).
 #' @param ... Additional arguments. 
 #' 
 #' @details The additional arguments are all passed to the \link{control_RVFL} function.
@@ -111,7 +116,7 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
 #' }
 #' 
 #' @export
-boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
+boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N_features = NULL, ...) {
     UseMethod("boostRVFL")
 }
 
@@ -121,7 +126,7 @@ boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
 #' @example inst/examples/boostrvfl_example.R
 #' 
 #' @export
-boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...) {
+boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N_features = NULL, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -162,6 +167,10 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, .
         warning("'epsilon' has to be a number between 0 and 1.")
     }
     
+    if (is.null(N_features)) {
+        N_features <- ceiling(dim(X)[2] / 3)
+    }
+    
     ##
     objects <- vector("list", B)
     for (b in seq_len(B)) {
@@ -173,7 +182,7 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, .
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, ...)
+        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, N_features = N_features, ...)
     }
     
     ##
@@ -190,10 +199,203 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, .
 
 
 #### Stacking ----
+#' @title Stacking random vector functional links
+#' 
+#' @description Use stacking to create ensemble random vector functional link neural network models.
+#' 
+#' @param X A matrix of observed features used to estimate the parameters of the output layer.
+#' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param B The number of models in the stack.
+#' @param folds The number of folds used to train the RVFL models. 
+#' @param lambda The penalisation constant used when training the output layers of each RVFL.
+#' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).
+#' @param ... Additional arguments. 
+#' 
+#' @details The additional arguments are all passed to the \link{control_RVFL} function.
+#' 
+#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
+#'     \item{\code{weights}}{A vector of ensemble weights.}
+#'     \item{\code{method}}{A string indicating the method ('boosting' in this case)}
+#' }
+#' 
+#' @export
+stackRVFL <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_features = NULL, ...) {
+    UseMethod("stackRVFL")
+}
+
+#' @rdname stackRVFL
+#' @method stackRVFL default
+#' 
+#' @example inst/examples/stackrvfl_example.R
+#' 
+#' @export
+stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_features = NULL, ...) {
+    ## Checks
+    # Data
+    if (!is.matrix(X)) {
+        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
+        X <- as.matrix(X)
+    }
+    
+    if (!is.matrix(y)) {
+        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
+        y <- as.matrix(y)
+    }
+    
+    if (dim(y)[2] != 1) {
+        warning("More than a single column was detected in 'y', only the first column is used in the model.")
+        y <- matrix(y[, 1], ncol = 1)
+    }
+    
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
+    if (is.null(B)) {
+        B <- 100
+        
+        warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
+    }
+    
+    if (is.null(N_features)) {
+        N_features <- ceiling(dim(X)[2] / 3)
+    }
+    
+    ##
+    fold_index <- create_folds(X, folds)
+    objects <- vector("list", B)
+    for (b in seq_len(B)) {
+        object_b <- RVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, N_features = N_features, ...)
+        
+        beta_b <- vector("list", folds)
+        for (k in seq_len(folds)) {
+            Xk <- matrix(X[-fold_index[[k]], ], ncol = ncol(X))
+            yk <- matrix(y[-fold_index[[k]], ], ncol = ncol(y))
+            
+            Hk <- rvfl_forward(Xk, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
+            Hk <- lapply(seq_along(Hk), function(i) matrix(Hk[[i]], ncol = N_hidden[i]))
+            Hk <- do.call("cbind", Hk)
+            
+            ## Estimate parameters in output layer
+            if (object_b$Bias$Output) {
+                Hk <- cbind(1, Hk)
+            }
+            
+            Ok <- Hk
+            if (object_b$Combined) {
+                Ok <- cbind(Xk, Hk)
+            }
+            
+            beta_b[[k]] <- estimate_output_weights(Ok, yk, lambda)$beta
+        }
+        
+        object_b$Weights$Output <- apply(do.call("cbind", beta_b), 1, mean)
+        objects[[b]] <- object_b
+    }
+    
+    ##
+    C <- do.call("cbind", lapply(objects, predict))
+    w <- estimate_weights_stack(C = C, b = y, B = B)
+    
+    ##
+    object <- list(
+        data = list(X = X, y = y), 
+        RVFLmodels = objects, 
+        weights = w, 
+        method = "stacking"
+    )  
+    
+    class(object) <- "ERVFL"
+    return(object)
+}
 
 #### ED ----
+#' @title Ensemble deep random vector functional links
+#' 
+#' @description Use multiple layers to create deep ensemble random vector functional link neural network models.
+#' 
+#' @param X A matrix of observed features used to estimate the parameters of the output layer.
+#' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param B The number of models in the stack.
+#' @param lambda The penalisation constant used when training the output layers of each RVFL.
+#' @param ... Additional arguments. 
+#' 
+#' @details The additional arguments are all passed to the \link{control_RVFL} function.
+#' 
+#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
+#'     \item{\code{weights}}{A vector of ensemble weights.}
+#'     \item{\code{method}}{A string indicating the method ('boosting' in this case)}
+#' }
+#' 
+#' @export
+edRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, ...) {
+    UseMethod("edRVFL")
+}
+
+#' @rdname edRVFL
+#' @method edRVFL default
+#' 
+#' @example inst/examples/edrvfl_example.R
+#' 
+#' @export
+edRVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
+    ## Checks
+    # Data
+    if (!is.matrix(X)) {
+        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
+        X <- as.matrix(X)
+    }
+    
+    if (!is.matrix(y)) {
+        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
+        y <- as.matrix(y)
+    }
+    
+    if (dim(y)[2] != 1) {
+        warning("More than a single column was detected in 'y', only the first column is used in the model.")
+        y <- matrix(y[, 1], ncol = 1)
+    }
+    
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
+    ##
+    objects <- RVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, ...)
+    
+    ##
+    object <- list(
+        data = list(X = X, y = y), 
+        RVFLmodels = objects, 
+        weights = rep(1L / length(N_hidden), length(N_hidden)), 
+        method = "ed"
+    ) 
+    
+    class(object) <- "ERVFL"
+    return(object)
+}
+
 
 #### Auxiliary ----
+
+create_folds <- function(X, folds) {
+    index <- sample(nrow(X), nrow(X), replace = FALSE)
+    fold_index <- rep(seq_len(folds), each = floor(nrow(X) / folds))
+    
+    if (length(fold_index) < length(index)) {
+        fold_index <- c(fold_index, seq_len(folds)[seq_len(length(index) - length(fold_index))])
+    }
+    
+    return(unname(split(x = index, f = fold_index)))
+}
 
 #' @title Coefficients of the ERVFL object.
 #' 
@@ -308,15 +510,38 @@ predict.ERVFL <- function(object, ...) {
     
     ##
     B <- length(object$RVFLmodels)
-    y_new <- vector("list", B)
-    for (b in seq_along(y_new)) {
-        y_new[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
+    if (object$method == "ed") {
+        newH <- rvfl_forward(
+            X = newdata, 
+            W = object$RVFLmodels$Weights$Hidden, 
+            activation = object$RVFLmodels$activation,
+            bias = object$RVFLmodels$Bias$Hidden
+        )
+        
+        newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$RVFLmodels$N_hidden[i]))
+        
+        Z <- newdata
+        y_new <- vector("list", B)
+        for (b in seq_len(B)) {
+            y_new[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = Z)
+            
+            H <- rvfl_forward(Z, object$RVFLmodels[[b]]$Weights$Hidden, object$RVFLmodels[[b]]$activation, object$RVFLmodels[[b]]$Bias$Hidden)
+            Z <- matrix(H[[1]], ncol = ncol(object$RVFLmodels[[b]]$Weights$Hidden[[1]]))
+        }
+        
+        y_new <- do.call("cbind", y_new)
+    }
+    else {
+        y_new <- vector("list", B)
+        for (b in seq_along(y_new)) {
+            y_new[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
+        }
+        
+        y_new <- do.call("cbind", y_new)
     }
     
-    y_new <- do.call("cbind", y_new)
-    
     ##
-    if (object$method == "bagging") {
+    if (object$method %in% c("bagging", "stacking", "ed")) {
         if (type %in% c("a", "all", "f", "full")) {
             return(y_new)
         }
@@ -391,24 +616,49 @@ plot.ERVFL <- function(x, ...) {
     
     y_hat <- predict(x, newdata = X_val)
     
-    dev.hold()
-    plot(y_hat ~ y_val, pch = 16, 
-         xlab = "Observed targets", ylab = "Predicted targets")
-    abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
-    dev.flush()
-    
-    readline(prompt = "Press [ENTER] for next plot...")
-    dev.hold()
-    plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
-         xlab = "Index", ylab = "Residual") 
-    abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
-    dev.flush()
-    
-    readline(prompt = "Press [ENTER] for next plot...")
-    dev.hold()
-    plot(x$weights ~ seq(length(x$weights)), pch = 16,
-         xlab = "Bootstrap index", ylab = "Weights") 
-    dev.flush()
+    if (is.null(dots$page)) {
+        dev.hold()
+        plot(y_hat ~ y_val, pch = 16, 
+             xlab = "Observed targets", ylab = "Predicted targets")
+        abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+        
+        readline(prompt = "Press [ENTER] for next plot...")
+        dev.hold()
+        plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
+             xlab = "Index", ylab = "Residual") 
+        abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+        
+        readline(prompt = "Press [ENTER] for next plot...")
+        dev.hold()
+        plot(x$weights ~ seq(length(x$weights)), pch = 16,
+             xlab = "Bootstrap index", ylab = "Weights") 
+        dev.flush()
+    }
+    else if (dots$page == 1) {
+        dev.hold()
+        plot(y_hat ~ y_val, pch = 16, 
+             xlab = "Observed targets", ylab = "Predicted targets")
+        abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+    }
+    else if (dots$page == 2) {
+        dev.hold()
+        plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
+             xlab = "Index", ylab = "Residual") 
+        abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+    }
+    else if (dots$page == 3) {
+        dev.hold()
+        plot(x$weights ~ seq(length(x$weights)), pch = 16,
+             xlab = "Bootstrap index", ylab = "Weights") 
+        dev.flush()
+    }
+    else {
+        stop("Invalid choice of 'page', it has to take the values 1, 2, 3, or NULL.")
+    }
     
     return(invisible(NULL))
 }

@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // estimate_output_weights
 Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y, const double& lambda);
 RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lambdaSEXP) {

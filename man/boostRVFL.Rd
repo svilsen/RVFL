@@ -3,11 +3,29 @@
 \name{boostRVFL}
 \alias{boostRVFL}
 \alias{boostRVFL.default}
-\title{Boosting random vector functional link}
+\title{Boosting random vector functional links}
 \usage{
-boostRVFL(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...)
+boostRVFL(
+  X,
+  y,
+  N_hidden,
+  B = 10,
+  lambda = 0,
+  epsilon = 1,
+  N_features = NULL,
+  ...
+)
 
-\method{boostRVFL}{default}(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...)
+\method{boostRVFL}{default}(
+  X,
+  y,
+  N_hidden,
+  B = 10,
+  lambda = 0,
+  epsilon = 1,
+  N_features = NULL,
+  ...
+)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -21,6 +39,8 @@ boostRVFL(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, ...)
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
 \item{epsilon}{The learning rate.}
+
+\item{N_features}{The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).}
 
 \item{...}{Additional arguments.}
 }
@@ -51,5 +71,5 @@ N_hidden <- 10
 B <- 10
 epsilon <- 0.2
 boostRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = 0.2, 
-          epsilon = epsilon, combine_input = FALSE)
+          epsilon = epsilon, N_features = NULL)
 }

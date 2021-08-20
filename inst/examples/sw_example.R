@@ -7,9 +7,9 @@ y <- X %*% beta + rnorm(p)
 
 N_hidden <- 10
 B <- 100
-mm <- bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
-              lambda = 0.2, combine_input = FALSE)
+bRVFL <- bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
+                 lambda = 0.2, N_features = NULL)
 
 w <- runif(B)
 w <- w / sum(w)
-set_weights(mm, weights = w)
+set_weights(bRVFL, weights = w)

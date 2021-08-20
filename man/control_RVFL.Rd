@@ -9,7 +9,8 @@ control_RVFL(
   activation = NULL,
   bias_output = TRUE,
   combine_input = FALSE,
-  include_data = TRUE
+  include_data = TRUE,
+  N_features = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ control_RVFL(
 \item{combine_input}{TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?}
 
 \item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.}
+
+\item{N_features}{The number of randomly chosen features in the RVFL model. Note: This is meant for use in \link{bagRVFL}, and it is recommended that is not be used outside of that function.}
 }
 \value{
 A list of control variables.

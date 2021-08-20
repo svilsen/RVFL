@@ -16,6 +16,8 @@
 #' 
 #' @importFrom grDevices dev.hold dev.flush
 #' 
+#' @importFrom quadprog solve.QP
+#' 
 #' @useDynLib RVFL
 #' 
 #' @name RVFL

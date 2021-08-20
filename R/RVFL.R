@@ -13,6 +13,7 @@
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
 #' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?
 #' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.
+#' @param N_features The number of randomly chosen features in the RVFL model. Note: This is meant for use in \link{bagRVFL}, and it is recommended that is not be used outside of that function. 
 #' 
 #' @details The possible activation functions supplied to '\code{activation}' are:
 #' \describe{
@@ -33,10 +34,10 @@
 #' @export
 control_RVFL <- function(bias_hidden = TRUE, activation = NULL, 
                          bias_output = TRUE, combine_input = FALSE, 
-                         include_data = TRUE) {
+                         include_data = TRUE, N_features = NULL) {
     return(list(bias_hidden = bias_hidden, activation = activation, 
                 bias_output = bias_output, combine_input = combine_input, 
-                include_data = include_data))
+                include_data = include_data, N_features = N_features))
 }
 
 #' @title Random vector functional link
@@ -147,6 +148,17 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         warning("The length of 'lambda' was larger than 1; continuing analysis using only the first element.")
     }
     
+    if (is.null(control$N_features)) {
+        N_features <- dim(X)[2]
+    }
+    else {
+        N_features <- control$N_features
+    }
+    
+    if ((N_features < 1) || (N_features > dim(X)[2])) {
+        stop("'N_features' have to be in the interval [1; dim(X)[2]].")
+    }
+    
     ## Initialisation
     X_dim <- dim(X)
     
@@ -161,6 +173,11 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         
         random_weights <- runif(nr_connections, -1, 1)
         W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w]) 
+        
+        if ((w == 1) && (N_features < dim(X)[2])) {
+            indices_f <- sample(ncol(X), N_features, replace = FALSE) + as.numeric(bias_hidden[w])
+            W_hidden[[w]][-indices_f, ] <- 0
+        }
     }
     
     ## Values of last hidden layer
