@@ -184,7 +184,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     H <- rvfl_forward(X, W_hidden, activation, bias_hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
     H <- do.call("cbind", H)
-        
+    
     ## Estimate parameters in output layer
     if (control$bias_output) {
         H <- cbind(1, H)
@@ -359,18 +359,37 @@ plot.RVFL <- function(x, ...) {
     
     y_hat <- predict(x, newdata = X_val)
     
-    dev.hold()
-    plot(y_hat ~ y_val, pch = 16, 
-         xlab = "Observed targets", ylab = "Predicted targets")
-    abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
-    dev.flush()
-    
-    readline(prompt = "Press [ENTER] for next plot...")
-    dev.hold()
-    plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
-         xlab = "Index", ylab = "Residual") 
-    abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
-    dev.flush()
+    if (is.null(dots$page)) {
+        dev.hold()
+        plot(y_hat ~ y_val, pch = 16, 
+             xlab = "Observed targets", ylab = "Predicted targets")
+        abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+        
+        readline(prompt = "Press [ENTER] for next plot...")
+        dev.hold()
+        plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
+             xlab = "Index", ylab = "Residual") 
+        abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+    }
+    else if (dots$page == 1) {
+        dev.hold()
+        plot(y_hat ~ y_val, pch = 16, 
+             xlab = "Observed targets", ylab = "Predicted targets")
+        abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+    }
+    else if (dots$page == 2) {
+        dev.hold()
+        plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
+             xlab = "Index", ylab = "Residual") 
+        abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+        dev.flush()
+    }
+    else {
+        stop("Invalid choice of 'page', it has to take the values 1, 2, or NULL.")
+    }
     
     return(invisible(NULL))
 }
