@@ -25,7 +25,7 @@ bagRVFL(X, y, N_hidden, B = 100, lambda = 0, N_features = NULL, ...)
 \item{...}{Additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+An ERVFL-object containing the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}

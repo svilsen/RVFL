@@ -16,7 +16,7 @@
 #' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}). 
 #' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' @return An ERVFL-object containing the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -103,11 +103,9 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, N_features = NU
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
 #' @param epsilon The learning rate.
 #' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).
-#' @param ... Additional arguments. 
+#' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @details The additional arguments are all passed to the \link{control_RVFL} function.
-#' 
-#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' @return An ERVFL-object containing the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -210,11 +208,10 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N
 #' @param folds The number of folds used to train the RVFL models. 
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
 #' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).
-#' @param ... Additional arguments. 
+#' @param optimise TRUE/FALSE: Should the stacking weights be optimised (or should the stack just use the average)? 
+#' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @details The additional arguments are all passed to the \link{control_RVFL} function.
-#' 
-#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' @return An ERVFL-object containing the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -223,7 +220,7 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N
 #' }
 #' 
 #' @export
-stackRVFL <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_features = NULL, ...) {
+stackRVFL <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_features = NULL, optimise = TRUE, ...) {
     UseMethod("stackRVFL")
 }
 
@@ -233,7 +230,7 @@ stackRVFL <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_feature
 #' @example inst/examples/stackrvfl_example.R
 #' 
 #' @export
-stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_features = NULL, ...) {
+stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N_features = NULL, optimise = TRUE, ...) {
     ## Checks
     # Data
     if (!is.matrix(X)) {
@@ -298,8 +295,13 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N
     }
     
     ##
-    C <- do.call("cbind", lapply(objects, predict))
-    w <- estimate_weights_stack(C = C, b = y, B = B)
+    if (optimise) {
+        C <- do.call("cbind", lapply(objects, predict))
+        w <- estimate_weights_stack(C = C, b = y, B = B)
+    }
+    else {
+        w <- 1 / B
+    }
     
     ##
     object <- list(
@@ -322,11 +324,9 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, folds = 10, lambda = 0, N
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
-#' @param ... Additional arguments. 
+#' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @details The additional arguments are all passed to the \link{control_RVFL} function.
-#' 
-#' @return An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+#' @return An ERVFL-object containing the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -497,15 +497,13 @@ predict.ERVFL <- function(object, ...) {
     type <- dots$type
     if (is.null(type)) {
         type <- "mean"
-    }
-    else {
+    } else {
         type <- tolower(type)
     }
     
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
-    }
-    else {
+    } else {
         if (dim(dots$newdata)[2] != dim(object$data$X)[2]) {
             stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
@@ -537,7 +535,7 @@ predict.ERVFL <- function(object, ...) {
     }
     
     ##
-    if (object$method %in% c("bagging", "stacking", "ed")) {
+    if (object$method %in% c("bagging", "stacking", "ed", "resample")) {
         if (type %in% c("a", "all", "f", "full")) {
             return(y_new)
         }

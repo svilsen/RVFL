@@ -13,6 +13,7 @@ stackRVFL(
   folds = 10,
   lambda = 0,
   N_features = NULL,
+  optimise = TRUE,
   ...
 )
 
@@ -24,6 +25,7 @@ stackRVFL(
   folds = 10,
   lambda = 0,
   N_features = NULL,
+  optimise = TRUE,
   ...
 )
 }
@@ -42,10 +44,12 @@ stackRVFL(
 
 \item{N_features}{The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).}
 
-\item{...}{Additional arguments.}
+\item{optimise}{TRUE/FALSE: Should the stacking weights be optimised (or should the stack just use the average)?}
+
+\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+An ERVFL-object containing the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -55,9 +59,6 @@ An ERVFL-object containing the random and fitted weights of all \link{RVFL}-mode
 }
 \description{
 Use stacking to create ensemble random vector functional link neural network models.
-}
-\details{
-The additional arguments are all passed to the \link{control_RVFL} function.
 }
 \examples{
 N <- 200

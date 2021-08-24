@@ -18,10 +18,10 @@ edRVFL(X, y, N_hidden, lambda = 0, ...)
 
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the random and fitted weights of all \link{RVFL}-model. A ERVFL-object contains the following:
+An ERVFL-object containing the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
@@ -31,9 +31,6 @@ An ERVFL-object containing the random and fitted weights of all \link{RVFL}-mode
 }
 \description{
 Use multiple layers to create deep ensemble random vector functional link neural network models.
-}
-\details{
-The additional arguments are all passed to the \link{control_RVFL} function.
 }
 \examples{
 N <- 200

@@ -10,7 +10,9 @@ control_RVFL(
   bias_output = TRUE,
   combine_input = FALSE,
   include_data = TRUE,
-  N_features = NULL
+  N_features = NULL,
+  rng = "runif",
+  rng_pars = list(min = -1, max = 1)
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ control_RVFL(
 \item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.}
 
 \item{N_features}{The number of randomly chosen features in the RVFL model. Note: This is meant for use in \link{bagRVFL}, and it is recommended that is not be used outside of that function.}
+
+\item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"runif"}).}
+
+\item{rng_pars}{A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).}
 }
 \value{
 A list of control variables.

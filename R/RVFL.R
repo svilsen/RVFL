@@ -14,6 +14,8 @@
 #' @param combine_input TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?
 #' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.
 #' @param N_features The number of randomly chosen features in the RVFL model. Note: This is meant for use in \link{bagRVFL}, and it is recommended that is not be used outside of that function. 
+#' @param rng A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"runif"}). 
+#' @param rng_pars A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).   
 #' 
 #' @details The possible activation functions supplied to '\code{activation}' are:
 #' \describe{
@@ -34,10 +36,12 @@
 #' @export
 control_RVFL <- function(bias_hidden = TRUE, activation = NULL, 
                          bias_output = TRUE, combine_input = FALSE, 
-                         include_data = TRUE, N_features = NULL) {
+                         include_data = TRUE, N_features = NULL, 
+                         rng = "runif", rng_pars = list(min = -1, max = 1)) {
     return(list(bias_hidden = bias_hidden, activation = activation, 
                 bias_output = bias_output, combine_input = combine_input, 
-                include_data = include_data, N_features = N_features))
+                include_data = include_data, N_features = N_features, 
+                rng = rng, rng_pars = rng_pars))
 }
 
 #' @title Random vector functional link
@@ -48,9 +52,7 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
-#' @param ... Additional arguments.
-#' 
-#' @details The additional arguments are all passed to the \link{control_RVFL}-function.
+#' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
 #' @return An RVFL-object containing the random and fitted weights of the RVFL-model. An RVFL-object contains the following:
 #' \describe{
@@ -115,6 +117,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
+    # Activation
     activation <- control$activation
     if (is.null(activation)) {
         activation <- "sigmoid"
@@ -134,6 +137,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         stop("Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
     }
     
+    # Regularisation
     if (is.null(lambda)) {
         lambda <- 0
         warning("Note: 'lambda' was not supplied and set to 0.")
@@ -148,6 +152,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         warning("The length of 'lambda' was larger than 1; continuing analysis using only the first element.")
     }
     
+    # Trimming
     if (is.null(control$N_features)) {
         N_features <- dim(X)[2]
     }
@@ -157,6 +162,15 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     
     if ((N_features < 1) || (N_features > dim(X)[2])) {
         stop("'N_features' have to be in the interval [1; dim(X)[2]].")
+    }
+    
+    # RNG motor
+    rng_function <- control$rng
+    rng_pars <- control$rng_pars
+    
+    rng_arg <- formalArgs(rng_function)[-which(formalArgs(rng_function) == "n")]
+    if (!all(rng_arg %in% names(rng_pars))) {
+        stop(paste("The following arguments were not found in 'rng_pars' list:", paste(rng_arg[!(rng_arg %in% names(rng_pars))], collapse = ", ")))
     }
     
     ## Initialisation
@@ -171,7 +185,8 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
             nr_connections <- N_hidden[w] * (N_hidden[w - 1] + as.numeric(bias_hidden[w]))
         }
         
-        random_weights <- runif(nr_connections, -1, 1)
+        rng_pars$n <- nr_connections
+        random_weights <- do.call(rng_function, rng_pars)
         W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w]) 
         
         if ((w == 1) && (N_features < dim(X)[2])) {
@@ -252,8 +267,7 @@ predict.RVFL <- function(object, ...) {
         }
         
         newdata <- object$data$X
-    }
-    else {
+    } else {
         if (dim(dots$newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
             stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
@@ -261,7 +275,7 @@ predict.RVFL <- function(object, ...) {
         newdata <- dots$newdata 
     }
     
-    newH <- rvfl_forward(
+    newH <- RVFL:::rvfl_forward(
         X = newdata, 
         W = object$Weights$Hidden, 
         activation = object$activation,
@@ -392,4 +406,61 @@ plot.RVFL <- function(x, ...) {
     }
     
     return(invisible(NULL))
+}
+
+
+#### Errors ----
+#' @name Errors
+#' @rdname errors 
+#' 
+#' @title Error functions 
+#' 
+#' @description Simple error functions for finding MSE, RMSE, MAE, and MAPE. 
+#' 
+#' @param object A model object
+#' @param X A matrix of observed features.
+#' @param y A vector of observed targets.
+#' 
+#' @return Error for the provided data-set.
+NULL 
+
+e <- function(object, X, y) {
+    yhat <- predict(object, newdata = X)
+    return((y - yhat))
+}
+
+se <- function(object, X, y) {
+    return(e(object, X, y)^2)
+}
+
+#' @rdname errors
+#' @export  
+mse <- function(object, X, y) {
+    return(mean(se(object, X, y)))
+}
+
+#' @rdname errors
+#' @export  
+rmse <- function(object, X, y) {
+    return(sqrt(mse(object, X, y)))
+}
+
+ae <- function(object, X, y) {
+    return(abs(e(object, X, y)))
+}
+
+#' @rdname errors
+#' @export  
+mae <- function(object, X, y) {
+    return(mean(ae(object, X, y)))
+}
+
+ape <- function(object, X, y) {
+    return(abs(e(object, X, y) / y))
+}
+
+#' @rdname errors
+#' @export  
+mape <- function(object, X, y) {
+    return(mean(ape(object, X, y)))
 }

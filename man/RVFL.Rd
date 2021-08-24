@@ -19,7 +19,7 @@ RVFL(X, y, N_hidden, lambda = 0, ...)
 
 \item{lambda}{The penalisation constant used when training the output layer.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
 An RVFL-object containing the random and fitted weights of the RVFL-model. An RVFL-object contains the following:
@@ -38,22 +38,19 @@ Creation, estimation, and prediction of random vector functional link neural net
 
 Set-up and estimate weights of a random vector functional link neural network.
 }
-\details{
-The additional arguments are all passed to the \link{control_RVFL}-function.
-}
 \examples{
 N <- 200
 p <- 5
 
 X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(p)
+y <- exp(X \%*\% beta) + rnorm(p)
 
-N_hidden <- 10
-RVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
+N_hidden <- 100
+RVFL(X = X, y = y, N_hidden = N_hidden)
 
 N_hidden <- c(10, 20, 10, 5)
-RVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
+RVFL(X = X, y = y, N_hidden = N_hidden)
 }
 \author{
 Søren B. Vilsen <svilsen@math.aau.dk>
