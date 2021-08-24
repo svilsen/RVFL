@@ -52,6 +52,8 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param ... Additional arguments passed to the \link{control_RVFL} function.
 #' 
+#' @details The function \code{ELM} is a wrapper for the general \code{RVFL} function without the link between features and targets. Furthermore, notice that \code{dRVFL} is handled by increasing the number of elements passed in \code{N_hidden}.
+#' 
 #' @return An RVFL-object containing the random and fitted weights of the RVFL-model. An RVFL-object contains the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
@@ -225,3 +227,23 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
     class(object) <- "RVFL"
     return(object)
 }
+
+#' @rdname RVFL
+#' 
+#' @example inst/examples/rvfl_example.R
+#' 
+#' @export
+ELM <- function(X, y, N_hidden, lambda = 0, ...) {
+    dots <- list(...)
+    control <- do.call(control_RVFL, dots)
+    
+    control$X <- X
+    control$y <- y
+    control$N_hidden <- N_hidden
+    control$lambda <- lambda
+    control$combine_input <- FALSE
+    
+    object <- do.call(RVFL, control)
+    return(object)
+}
+    
