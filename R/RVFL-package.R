@@ -20,5 +20,7 @@
 #' 
 #' @useDynLib RVFL
 #' 
-#' @name RVFL
+#' @name RVFL-package
+#' 
+#' @rdname RVFL-package
 NULL
