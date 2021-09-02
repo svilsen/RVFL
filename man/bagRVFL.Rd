@@ -5,9 +5,9 @@
 \alias{bagRVFL.default}
 \title{Bagging random vector functional links.}
 \usage{
-bagRVFL(X, y, N_hidden, B = 100, lambda = 0, N_features = NULL, ...)
+bagRVFL(X, y, N_hidden, B = 100, lambda = 0, control = list())
 
-\method{bagRVFL}{default}(X, y, N_hidden, B = 100, lambda = 0, N_features = NULL, ...)
+\method{bagRVFL}{default}(X, y, N_hidden, B = 100, lambda = 0, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -20,32 +20,28 @@ bagRVFL(X, y, N_hidden, B = 100, lambda = 0, N_features = NULL, ...)
 
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
-\item{N_features}{The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).}
-
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{control}{A list of additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the following:
-\describe{
-    \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-    \item{\code{weights}}{A vector of ensemble weights.}
-    \item{\code{method}}{A string indicating the method ('bagging' in this case)}
-}
+An \link{ERVFL-object}.
 }
 \description{
 Use bootstrap aggregation to reduce the variance of random vector functional link neural network models.
 }
 \examples{
-N <- 200
+N <- 2000
 p <- 5
 
-X <- matrix(rnorm(N * p), ncol = p) 
-beta <- matrix(runif(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(p)
+X <- matrix(rnorm(N * p), ncol = p)
+X[, 1] <- sin(X[, 1])
+X[, 2] <- exp(X[, 2])
+X[, 3] <- cos(X[, 3])
+X[, 4] <- X[, 4] * X[, 4]
 
-N_hidden <- 10
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X \%*\% beta + rnorm(N, 0, 0.1)
+
+N_hidden <- 100
 B <- 100
-bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
-        lambda = 0.2, N_features = NULL)
+bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = 0.02)
 }

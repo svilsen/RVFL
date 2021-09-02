@@ -2,9 +2,8 @@
 ####################### Re-sampling ERVFL neural network #######################
 ################################################################################
 
-generate_random_weights <- function(X, N_hidden, bias_hidden) {
+generate_random_weights <- function(X, N_hidden, bias_hidden) { 
     X_dim <- dim(X)
-    
     W_hidden <- vector("list", length = length(N_hidden))
     for (w in seq_along(W_hidden)) {
         if (w == 1) {
@@ -17,16 +16,23 @@ generate_random_weights <- function(X, N_hidden, bias_hidden) {
         random_weights <- runif(nr_connections, -1, 1)
         W_hidden[[w]] <- matrix(random_weights, ncol = N_hidden[w]) 
     }
-    
     return(W_hidden)
 }
 
-update_output_weights <- function(par, tau) {
-    return(par + rnorm(length(par), 0, tau))
+update_random_weights <- function(W_old, tau) {
+    N <- length(W_old)
+    
+    W_new <- vector("list", N)
+    for (n in seq_len(N)) {
+        W_old_n <- W_old[[n]]
+        W_new[[n]] <- W_old_n + matrix(rnorm(length(W_old_n), 0, tau), nrow = nrow(W_old_n), ncol = ncol(W_old_n))
+    }
+    
+    return(W_new)
 }
 
-last_hidden_layer <- function(X, N_hidden, W, activation, bias_hidden, control) {
-    H <- rvfl_forward(X, W, activation, bias_hidden)
+last_hidden_layer <- function(X, N_hidden, W, control) {
+    H <- rvfl_forward(X, W, control$activation, control$bias_hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
     H <- do.call("cbind", H)
     
@@ -48,6 +54,111 @@ model_likelihood <- function(O, y, beta, sigma) {
     return(ll)
 }
 
+metropolis_hastings_sampler <- function(y, X, N_hidden, control_rvfl, control_sample) {
+    ##
+    N_simulations <- control_sample$N_simulations
+    N_burnin <- control_sample$N_burnin
+    tau  <- control_sample$tau
+    trace  <- control_sample$trace
+    
+    ##
+    W_old <- generate_random_weights(X, N_hidden, control_rvfl$bias_hidden)
+    O_old <- last_hidden_layer(X = X, N_hidden = N_hidden, W = W_old, control = control_rvfl)
+    
+    theta <- estimate_output_weights(O_old, y, 0)
+    beta <- theta$beta
+    sigma <- theta$sigma
+    
+    ll_old <- model_likelihood(O_old, y, beta, sigma) 
+    
+    ##
+    sampled_weights <- vector("list", N_simulations - N_burnin)
+    loglikelihoods <- rep(NA, N_simulations - N_burnin)
+    for (i in seq_len(N_simulations)) {
+        if ((trace > 0) && ((i == 1) || (i == N_simulations) || ((i %% trace) == 0))) {
+            cat(i, "/", N_simulations, "\n")
+        }
+        
+        #
+        W_new <- update_random_weights(W_old, tau) 
+        O_new <- last_hidden_layer(X, N_hidden, W_new, control_rvfl)
+        ll_new <- model_likelihood(O_new, y, beta, sigma)
+        
+        #
+        mh <- min(ll_new - ll_old, 1)
+        u <- runif(1, 0, 1)
+        if (mh > log(u)) {
+            W_old <- W_new
+            ll_old <- ll_new
+        }
+        
+        if (i > N_burnin) {
+            sampled_weights[[i - N_burnin]] <- W_old
+            loglikelihoods[i - N_burnin] <- ll_old
+        }
+    }
+    
+    object <- list(
+        SampledWeights = sampled_weights, 
+        LogLikelihood = loglikelihoods, 
+        Beta = beta,
+        Sigma = sigma
+    )
+    
+    return(object)
+}
+
+#' @title sampleRVFL control function.
+#' 
+#' @description A function used to create a control-object for the \link{sampleRVFL} function.
+#' 
+#' @param N_simulations The number of Metropolis-Hastings samples drawn from the posterior.
+#' @param N_resample The number of samples drawn during re-sampling after Metropolis-Hastings.
+#' @param N_burnin The number of samples used as burn-in during Metropolis-Hastings sampling.
+#' @param tau The step-size used when generating new weights from the previous step in Metropolis-Hastings sampler.
+#' @param method String indicating the method used after Metropolis-Hastings sampling (see details). 
+#' @param trace Show trace every \code{trace} iterations.
+#' 
+#' @details The current choices of \code{method} are:
+#' \describe{
+#'     \item{\code{"map"}}{Only the maximum a posterior (MAP) estimate of the weights is returned.}
+#'     \item{\code{"resampling"}}{The weights are resampled (with replacement) weighted using the unnormalised posterior.}
+#' }
+#' 
+#' @return A list of control variables.
+#' @export
+control_sampleRVFL <- function(N_simulations = 4000, N_burnin = 1000, N_resample = 100, 
+                               tau = 0.01, method = NULL, trace = NULL) {
+    if (N_simulations < 1) {
+        stop("'N_simulations' has to be larger than 0.")
+    } 
+    
+    if (N_simulations < N_burnin) {
+        stop("'N_burnin' has be smaller than 'N_simulations'.")
+    }
+    
+    if (is.null(method)) {
+        method <- "resample"
+    }
+    
+    if (method == "resample") {
+        if (N_resample > (N_simulations - N_burnin)) {
+            stop("'N_resample' has be smaller than 'N_simulations - N_burnin'.")
+        }
+    }
+    
+    if (is.null(trace)) {
+        trace <- 0
+    }
+    
+    if (is.null(tau)) {
+        tau <- 0.01
+    } 
+    
+    return(list(N_simulations = N_simulations, N_burnin = N_burnin, N_resample = N_resample, 
+                tau = tau, method = method, trace = trace))
+}
+
 #' @title Sampling random vector functional links
 #' 
 #' @description Uses sampling to pre-train sampling distribution of the hidden layers in random vector functional link neural network models.
@@ -55,22 +166,14 @@ model_likelihood <- function(O, y, beta, sigma) {
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param N_simulations The number of Metropolis-Hastings samples drawn from the posterior.
-#' @param N_resample The number of samples drawn during re-sampling after Metropolis-Hastings.
-#' @param N_burnin The number of samples used as burn-in during Metropolis-Hastings sampling.
-#' @param trace Show trace every \code{trace} iterations.
-#' @param ... Additional arguments passed to the \link{control_RVFL} function.
+#' @param control_rvfl A list of additional arguments passed to the \link{control_RVFL} function.
+#' @param control_sample A list of additional arguments passed to the \link{control_sampleRVFL} function.
 #' 
-#' @return An ERVFL-object containing the following:
-#' \describe{
-#'     \item{\code{data}}{The original data used to estimate the weights.}
-#'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-#'     \item{\code{weights}}{A vector of ensemble weights.}
-#'     \item{\code{method}}{A string indicating the method ('boosting' in this case)}
-#' }
+#' @return The return object will depend on the choice of \code{method} passed through the \code{control_sample} argument. 
+#' If \code{method} is set to \code{"map"} an \link{RVFL-object} is returned, while an \link{ERVFL-object} is returned when \code{method} is set to \code{"resample"}.
 #' 
 #' @export
-sampleRVFL <- function(X, y, N_hidden, N_simulations = 4000, N_burnin = 1000, N_resample = 100, trace = NULL, ...) {
+sampleRVFL <- function(X, y, N_hidden, control_rvfl = list(), control_sample = list()) {
     UseMethod("sampleRVFL")
 }
 
@@ -80,161 +183,85 @@ sampleRVFL <- function(X, y, N_hidden, N_simulations = 4000, N_burnin = 1000, N_
 #' @example inst/examples/samplervfl_example.R
 #' 
 #' @export
-sampleRVFL.default <- function(X, y, N_hidden, N_simulations = 4000, N_burnin = 1000, N_resample = 100, trace = NULL, ...) {
+sampleRVFL.default <- function(X, y, N_hidden, control_rvfl = list(), control_sample = list()) {
     ## Creating control object 
-    dots <- list(...)
-    control <- do.call(control_RVFL, dots)
+    control_rvfl$N_hidden <- N_hidden
+    control_rvfl <- do.call(control_RVFL, control_rvfl)
+    control_sample <- do.call(control_sampleRVFL, control_sample)
     
     ## Checks
-    # Data
-    if (!is.matrix(X)) {
-        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
-        X <- as.matrix(X)
-    }
+    dc <- data_checks(y, X)
     
-    if (!is.matrix(y)) {
-        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
-        y <- as.matrix(y)
-    }
+    ## Simulation
+    sampled_weights_mh <- metropolis_hastings_sampler(
+        y = y, X = X, N_hidden = N_hidden,
+        control_rvfl = control_rvfl, 
+        control_sample = control_sample
+    )
     
-    if (dim(y)[2] != 1) {
-        warning("More than a single column was detected in 'y', only the first column is used in the model.")
-        y <- matrix(y[, 1], ncol = 1)
-    }
+    sampled_weights <- sampled_weights_mh$SampledWeights
+    loglikelihoods <- sampled_weights_mh$LogLikelihood
+    beta <- sampled_weights_mh$Beta
+    sigma <- sampled_weights_mh$Sigma
     
-    if (dim(y)[1] != dim(X)[1]) {
-        stop("The number of rows in 'y' and 'X' do not match.")
-    }
-    
-    # Parameters
-    if (length(N_hidden) < 1) {
-        stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
-    }
-    
-    if (length(control$bias_hidden) == 1) {
-        bias_hidden <- rep(control$bias_hidden, length(N_hidden))
-    } else if (length(control$bias_hidden) == length(N_hidden)) {
-        bias_hidden <- control$bias_hidden
-    } else {
-        stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
-    }
-    
-    # Activation
-    activation <- control$activation
-    if (is.null(activation)) {
-        activation <- "sigmoid"
-    }
-    
-    if (length(activation) == 1) {
-        activation <- rep(tolower(activation), length(N_hidden))
-    } else if (length(activation) == length(N_hidden)) {
-        activation <- tolower(activation)
-    } else {
-        stop("The 'activation' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
-    }
-    
-    if (all(!(activation %in% c("sigmoid", "tanh", "relu", "silu", "softplus", "softsign", "sqnl", "gaussian", "sqrbf", "bentidentity", "identity")))) {
-        stop("Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
-    }
-    
-    # Simulation
-    if (N_simulations < 1) {
-        stop("'N_simulations' has to be larger than 0.")
-    }
-    
-    if (N_simulations < N_burnin) {
-        stop("'N_burnin' has be smaller than 'N_simulations'.")
-    }
-    
-    if (N_resample > (N_simulations - N_burnin)) {
-        stop("'N_resample' has be smaller than 'N_simulations - N_burnin'.")
-    }
-    
-    if (is.null(trace)) {
-        trace <- 0
-    }
-    
-    ## Independent MH sampling
-    # Initialise
-    W_old <- generate_random_weights(X, N_hidden, bias_hidden)
-    O_old <- last_hidden_layer(X, N_hidden, W_old, activation, bias_hidden, control)
-    theta <- RVFL:::estimate_output_weights(O_old, y, 0)
-    #beta_old <- update_output_weights(theta_old$beta, 0.1)
-    #sigma_old <- update_output_weights(log(theta_old$sigma), 0.1)
-    
-    ll_old <- model_likelihood(O_old, y, theta$beta, theta$sigma) # beta_old, sigma_old)
-    
-    # 
-    sampled_weights <- vector("list", N_simulations - N_burnin)
-    estimated_beta <- vector("list", N_simulations - N_burnin)
-    estimated_sigma <- vector("list", N_simulations - N_burnin)
-    loglikelihoods <- rep(NA, N_simulations - N_burnin)
-    for (i in seq_len(N_simulations)) {
-        if ((trace > 0) && ((i == 1) || (i == N_simulations) || ((i %% trace) == 0))) {
-            cat(i, "/", N_simulations, "\n")
-        }
-        
-        #
-        W_new <- lapply(W_old, function(xx) xx +  matrix(rnorm(length(xx), 0, 0.01), nrow = nrow(xx), ncol = ncol(xx))) # generate_random_weights(X, N_hidden, bias_hidden) 
-        O_new <- last_hidden_layer(X, N_hidden, W_new, activation, bias_hidden, control)
-        #beta_new <- update_output_weights(beta_old, 0.1)
-        #sigma_new <- update_output_weights(sigma_old, 0.1)
-        ll_new <- model_likelihood(O_new, y, theta$beta, theta$sigma) # beta_new, sigma_new)
-        
-        #
-        mh <- min(ll_new - ll_old, 1)
-        u <- runif(1, 0, 1)
-        if (mh > log(u)) {
-            W_old <- W_new
-            beta_old <- beta_new
-            sigma_old <- sigma_new
-            ll_old <- ll_new
-        }
-        
-        if (i > N_burnin) {
-            sampled_weights[[i - N_burnin]] <- W_old
-            estimated_beta[[i - N_burnin]] <- theta$beta # beta_old
-            estimated_sigma[[i - N_burnin]] <- theta$sigma # sigma_old
-            loglikelihoods[i - N_burnin] <- ll_old
-        }
-    }
-    
-    ## Re-sampling
-    p <- loglikelihoods - (min(loglikelihoods) - 1e-8)
-    p <- p / sum(p)
-    
-    resample <- sample(x = N_simulations - N_burnin, size = N_resample, replace = FALSE, prob = p)
-    sampled_weights_re <- sampled_weights[resample]
-    estimated_beta_re <- estimated_beta[resample]
-    estimated_sigma_re <- estimated_sigma[resample]
-    
-    ## RVFL object
-    objects <- vector("list", N_resample) 
-    for (i in seq_len(N_resample)) {
-        object_i <- list(
-            data = NULL, 
+    if (control_sample$method == "map") {
+        W_map <- sampled_weights[[which.max(loglikelihoods)]]
+        object <- list(
+            data = if(control_rvfl$include_data) list(X = X, y = y) else NULL, 
             N_hidden = N_hidden, 
-            activation = activation, 
-            lambda = lambda,
-            Bias = list(Hidden = bias_hidden, Output = control$bias_output),
-            Weights = list(Hidden = sampled_weights_re[[i]], Output = estimated_beta_re[[i]]),
-            Sigma = list(Hidden = NA, Output = estimated_sigma_re[[i]]),
-            Combined = control$combine_input
+            activation = control_rvfl$activation, 
+            lambda = 0,
+            Bias = list(Hidden = control_rvfl$bias_hidden, Output = control_rvfl$bias_output),
+            Weights = list(Hidden = W_map, Output = beta),
+            Sigma = list(Hidden = NA, Output = sigma),
+            Combined = control_rvfl$combine_input
         )
         
-        class(object_i) <- "RVFL"
-        objects[[i]] <- object_i
+        class(object) <- "RVFL"
+    }
+    else if (control_sample$method == "resample") {
+        ##
+        N_simulations <- control_sample$N_simulations
+        N_burnin <- control_sample$N_burnin
+        N_resample <- control_sample$N_resample
+        
+        ## Re-sampling
+        p <- exp(loglikelihoods - min(loglikelihoods))
+        p <- p / sum(p)
+        
+        resample <- sample(x = N_simulations - N_burnin, 
+                           size = N_resample, replace = TRUE, prob = p)
+        sampled_weights_re <- sampled_weights[resample]
+        
+        ## RVFL objects
+        objects <- vector("list", N_resample) 
+        for (i in seq_len(N_resample)) {
+            object_i <- list(
+                data = NULL, 
+                N_hidden = N_hidden, 
+                activation = control_rvfl$activation, 
+                lambda = 0,
+                Bias = list(Hidden = control_rvfl$bias_hidden, Output = control_rvfl$bias_output),
+                Weights = list(Hidden = sampled_weights_re[[i]], Output = beta),
+                Sigma = list(Hidden = NA, Output = sigma),
+                Combined = control_rvfl$combine_input
+            )
+            
+            class(object_i) <- "RVFL"
+            objects[[i]] <- object_i
+        }
+        
+        ## 
+        object <- list(
+            data = list(X = X, y = y), 
+            RVFLmodels = objects, 
+            weights = rep(1 / N_resample, N_resample), 
+            method = "resample"
+        )  
+        
+        class(object) <- "ERVFL"
     }
     
-    ## 
-    object <- list(
-        data = list(X = X, y = y), 
-        RVFLmodels = objects, 
-        weights = rep(1 / N_resample, N_resample), 
-        method = "resample"
-    )  
-    
-    class(object) <- "ERVFL"
     return(object)
 }
 

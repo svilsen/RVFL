@@ -3,7 +3,7 @@ p <- 5
 
 X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
-y <- exp(X %*% beta) + rnorm(p)
+y <- exp(X %*% beta) + rnorm(N)
 
 N_hidden <- 100
 ELM(X = X, y = y, N_hidden = N_hidden)

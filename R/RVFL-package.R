@@ -8,7 +8,7 @@
 #' 
 #' @importFrom Rcpp evalCpp
 #' 
-#' @importFrom stats coef predict runif sd
+#' @importFrom stats coef predict runif sd rnorm dnorm
 #' 
 #' @importFrom Rsolnp solnp
 #' 
@@ -18,9 +18,42 @@
 #' 
 #' @importFrom quadprog solve.QP
 #' 
+#' @importFrom methods formalArgs
+#' 
 #' @useDynLib RVFL
 #' 
 #' @name RVFL-package
 #' 
 #' @rdname RVFL-package
+NULL
+
+#' @title An RVFL-object 
+#' 
+#' @description An RVFL-object is a list containing the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{N_hidden}}{The vector of neurons in each layer.}
+#'     \item{\code{activation}}{The vector of the activation functions used in each layer.}
+#'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
+#'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
+#'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
+#'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
+#' }
+#' 
+#' @name RVFL-object
+#' @rdname RVFL-object
+NULL
+
+#' @title An ERVFL-object 
+#' 
+#' @description An ERVFL-object is a list containing the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{RVFLmodels}}{A list with each element being an \link{RVFL-object}.}
+#'     \item{\code{weights}}{A vector of ensemble weights.}
+#'     \item{\code{method}}{A string indicating the method.}
+#' }
+#' 
+#' @name ERVFL-object
+#' @rdname ERVFL-object
 NULL

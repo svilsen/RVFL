@@ -5,27 +5,9 @@
 \alias{sampleRVFL.default}
 \title{Sampling random vector functional links}
 \usage{
-sampleRVFL(
-  X,
-  y,
-  N_hidden,
-  N_simulations = 4000,
-  N_burnin = 1000,
-  N_resample = 100,
-  trace = NULL,
-  ...
-)
+sampleRVFL(X, y, N_hidden, control_rvfl = list(), control_sample = list())
 
-\method{sampleRVFL}{default}(
-  X,
-  y,
-  N_hidden,
-  N_simulations = 4000,
-  N_burnin = 1000,
-  N_resample = 100,
-  trace = NULL,
-  ...
-)
+\method{sampleRVFL}{default}(X, y, N_hidden, control_rvfl = list(), control_sample = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -34,36 +16,34 @@ sampleRVFL(
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{N_simulations}{The number of Metropolis-Hastings samples drawn from the posterior.}
+\item{control_rvfl}{A list of additional arguments passed to the \link{control_RVFL} function.}
 
-\item{N_burnin}{The number of samples used as burn-in during Metropolis-Hastings sampling.}
-
-\item{N_resample}{The number of samples drawn during re-sampling after Metropolis-Hastings.}
-
-\item{trace}{Show trace every \code{trace} iterations.}
-
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{control_sample}{A list of additional arguments passed to the \link{control_sampleRVFL} function.}
 }
 \value{
-An ERVFL-object containing the following:
-\describe{
-    \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-    \item{\code{weights}}{A vector of ensemble weights.}
-    \item{\code{method}}{A string indicating the method ('boosting' in this case)}
-}
+The return object will depend on the choice of \code{method} passed through the \code{control_sample} argument. 
+If \code{method} is set to \code{"map"} an \link{RVFL-object} is returned, while an \link{ERVFL-object} is returned when \code{method} is set to \code{"resample"}.
 }
 \description{
 Uses sampling to pre-train sampling distribution of the hidden layers in random vector functional link neural network models.
 }
 \examples{
-N <- 200
+N <- 2000
 p <- 5
 
-X <- matrix(rnorm(N * p), ncol = p) 
-beta <- matrix(runif(p), ncol = 1) 
-y <- exp(X \%*\% beta) + rnorm(p)
+X <- matrix(rnorm(N * p), ncol = p)
+X[, 1] <- sin(X[, 1])
+X[, 2] <- exp(X[, 2])
+X[, 3] <- cos(X[, 3])
+X[, 4] <- X[, 4] * X[, 4]
 
-N_hidden <- 100
-sampleRVFL(X = X, y = y, N_hidden = N_hidden)
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X \%*\% beta + rnorm(N, 0, 0.1)
+
+N_hidden <- 1000
+
+\dontrun{
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, control_sample = list(method = "resample"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, control_sample = list(method = "map"))
+}
 }

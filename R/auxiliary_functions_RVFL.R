@@ -47,7 +47,7 @@ predict.RVFL <- function(object, ...) {
         newdata <- dots$newdata 
     }
     
-    newH <- RVFL:::rvfl_forward(
+    newH <- rvfl_forward(
         X = newdata, 
         W = object$Weights$Hidden, 
         activation = object$activation,

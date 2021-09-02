@@ -11,6 +11,7 @@ Imports:
     Rcpp (>= 1.0.4.6), 
     Rsolnp, 
     stats, 
+    methods,
     graphics, 
     grDevices,
     quadprog

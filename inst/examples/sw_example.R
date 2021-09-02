@@ -7,8 +7,8 @@ y <- X %*% beta + rnorm(p)
 
 N_hidden <- 10
 B <- 100
-bRVFL <- bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
-                 lambda = 0.2, N_features = NULL)
+bRVFL <- bagRVFL(X = X, y = y, 
+                 N_hidden = N_hidden, B = B, lambda = 0.2)
 
 w <- runif(B)
 w <- w / sum(w)

@@ -6,6 +6,7 @@
 #' 
 #' @description A function used to create a control-object for the \link{RVFL} function.
 #' 
+#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
@@ -32,10 +33,44 @@
 #' 
 #' @return A list of control variables.
 #' @export
-control_RVFL <- function(bias_hidden = TRUE, activation = NULL, 
-                         bias_output = TRUE, combine_input = FALSE, 
+control_RVFL <- function(N_hidden, 
+                         bias_hidden = TRUE, activation = NULL, 
+                         bias_output = TRUE, combine_input = TRUE, 
                          include_data = TRUE, N_features = NULL, 
                          rng = "runif", rng_pars = list(min = -1, max = 1)) {
+    if (length(N_hidden) < 1) {
+        stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
+    }
+    
+    if (length(bias_hidden) == 1) {
+        bias_hidden <- rep(bias_hidden, length(N_hidden))
+    } else if (length(bias_hidden) == length(N_hidden)) {
+        bias_hidden <- bias_hidden
+    } else {
+        stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+    }
+    
+    if (is.null(activation)) {
+        activation <- "sigmoid"
+    }
+    
+    if (length(activation) == 1) {
+        activation <- rep(tolower(activation), length(N_hidden))
+    } else if (length(activation) == length(N_hidden)) {
+        activation <- tolower(activation)
+    } else {
+        stop("The 'activation' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+    }
+    
+    if (all(!(activation %in% c("sigmoid", "tanh", "relu", "silu", "softplus", "softsign", "sqnl", "gaussian", "sqrbf", "bentidentity", "identity")))) {
+        stop("Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
+    }
+    
+    rng_arg <- formalArgs(rng)[-which(formalArgs(rng) == "n")]
+    if (!all(rng_arg %in% names(rng_pars))) {
+        stop(paste("The following arguments were not found in 'rng_pars' list:", paste(rng_arg[!(rng_arg %in% names(rng_pars))], collapse = ", ")))
+    }
+    
     return(list(bias_hidden = bias_hidden, activation = activation, 
                 bias_output = bias_output, combine_input = combine_input, 
                 include_data = include_data, N_features = N_features, 
@@ -50,23 +85,14 @@ control_RVFL <- function(bias_hidden = TRUE, activation = NULL,
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
-#' @param ... Additional arguments passed to the \link{control_RVFL} function.
+#' @param control A list of additional arguments passed to the \link{control_RVFL} function.
 #' 
 #' @details The function \code{ELM} is a wrapper for the general \code{RVFL} function without the link between features and targets. Furthermore, notice that \code{dRVFL} is handled by increasing the number of elements passed in \code{N_hidden}.
 #' 
-#' @return An RVFL-object containing the random and fitted weights of the RVFL-model. An RVFL-object contains the following:
-#' \describe{
-#'     \item{\code{data}}{The original data used to estimate the weights.}
-#'     \item{\code{N_hidden}}{The vector of neurons in each layer.}
-#'     \item{\code{activation}}{The vector of the activation functions used in each layer.}
-#'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
-#'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
-#'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
-#'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
-#' }
+#' @return An \link{RVFL-object}.
 #' 
 #' @export
-RVFL <- function(X, y, N_hidden, lambda = 0, ...) {
+RVFL <- function(X, y, N_hidden, lambda = 0, control = list()) {
     UseMethod("RVFL")
 }
 
@@ -76,66 +102,20 @@ RVFL <- function(X, y, N_hidden, lambda = 0, ...) {
 #' @example inst/examples/rvfl_example.R
 #' 
 #' @export
-RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
+RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     ## Creating control object 
-    dots <- list(...)
-    control <- do.call(control_RVFL, dots)
+    control$N_hidden <- N_hidden
+    control <- do.call(control_RVFL, control)
+    
+    #
+    bias_hidden <- control$bias_hidden
+    activation <- control$activation
+    N_features <- control$N_features
+    rng_function <- control$rng
+    rng_pars <- control$rng_pars
     
     ## Checks
-    # Data
-    if (!is.matrix(X)) {
-        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
-        X <- as.matrix(X)
-    }
-    
-    if (!is.matrix(y)) {
-        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
-        y <- as.matrix(y)
-    }
-    
-    if (dim(y)[2] != 1) {
-        warning("More than a single column was detected in 'y', only the first column is used in the model.")
-        y <- matrix(y[, 1], ncol = 1)
-    }
-    
-    if (dim(y)[1] != dim(X)[1]) {
-        stop("The number of rows in 'y' and 'X' do not match.")
-    }
-    
-    # Parameters
-    if (length(N_hidden) < 1) {
-        stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
-    }
-    
-    if (length(control$bias_hidden) == 1) {
-        bias_hidden <- rep(control$bias_hidden, length(N_hidden))
-    }
-    else if (length(control$bias_hidden) == length(N_hidden)) {
-        bias_hidden <- control$bias_hidden
-    }
-    else {
-        stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
-    }
-    
-    # Activation
-    activation <- control$activation
-    if (is.null(activation)) {
-        activation <- "sigmoid"
-    }
-    
-    if (length(activation) == 1) {
-        activation <- rep(tolower(activation), length(N_hidden))
-    }
-    else if (length(activation) == length(N_hidden)) {
-        activation <- tolower(activation)
-    }
-    else {
-        stop("The 'activation' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
-    }
-    
-    if (all(!(activation %in% c("sigmoid", "tanh", "relu", "silu", "softplus", "softsign", "sqnl", "gaussian", "sqrbf", "bentidentity", "identity")))) {
-        stop("Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
-    }
+    dc <- data_checks(y, X)
     
     # Regularisation
     if (is.null(lambda)) {
@@ -152,25 +132,12 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
         warning("The length of 'lambda' was larger than 1; continuing analysis using only the first element.")
     }
     
-    # Trimming
-    if (is.null(control$N_features)) {
+    if (is.null(N_features)) {
         N_features <- dim(X)[2]
-    }
-    else {
-        N_features <- control$N_features
     }
     
     if ((N_features < 1) || (N_features > dim(X)[2])) {
         stop("'N_features' have to be in the interval [1; dim(X)[2]].")
-    }
-    
-    # RNG motor
-    rng_function <- control$rng
-    rng_pars <- control$rng_pars
-    
-    rng_arg <- formalArgs(rng_function)[-which(formalArgs(rng_function) == "n")]
-    if (!all(rng_arg %in% names(rng_pars))) {
-        stop(paste("The following arguments were not found in 'rng_pars' list:", paste(rng_arg[!(rng_arg %in% names(rng_pars))], collapse = ", ")))
     }
     
     ## Initialisation
@@ -233,17 +200,12 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, ...) {
 #' @example inst/examples/rvfl_example.R
 #' 
 #' @export
-ELM <- function(X, y, N_hidden, lambda = 0, ...) {
-    dots <- list(...)
-    control <- do.call(control_RVFL, dots)
-    
-    control$X <- X
-    control$y <- y
+ELM <- function(X, y, N_hidden, lambda = 0, control = list()) {
     control$N_hidden <- N_hidden
-    control$lambda <- lambda
     control$combine_input <- FALSE
     
-    object <- do.call(RVFL, control)
+    elm_object <- list(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
+    object <- do.call(RVFL, elm_object)
     return(object)
 }
     

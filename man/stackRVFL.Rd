@@ -10,11 +10,10 @@ stackRVFL(
   y,
   N_hidden,
   B = 100,
-  folds = 10,
   lambda = 0,
-  N_features = NULL,
-  optimise = TRUE,
-  ...
+  optimise = FALSE,
+  folds = 10,
+  control = list()
 )
 
 \method{stackRVFL}{default}(
@@ -22,11 +21,10 @@ stackRVFL(
   y,
   N_hidden,
   B = 100,
-  folds = 10,
   lambda = 0,
-  N_features = NULL,
-  optimise = TRUE,
-  ...
+  optimise = FALSE,
+  folds = 10,
+  control = list()
 )
 }
 \arguments{
@@ -38,24 +36,16 @@ stackRVFL(
 
 \item{B}{The number of models in the stack.}
 
-\item{folds}{The number of folds used to train the RVFL models.}
-
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
-\item{N_features}{The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).}
+\item{optimise}{TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)?}
 
-\item{optimise}{TRUE/FALSE: Should the stacking weights be optimised (or should the stack just use the average)?}
+\item{folds}{The number of folds used to train the RVFL models.}
 
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{control}{A list of additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the following:
-\describe{
-    \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-    \item{\code{weights}}{A vector of ensemble weights.}
-    \item{\code{method}}{A string indicating the method ('boosting' in this case)}
-}
+An \link{ERVFL-object}.
 }
 \description{
 Use stacking to create ensemble random vector functional link neural network models.
@@ -66,10 +56,10 @@ p <- 5
 
 X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(p)
+y <- X \%*\% beta + rnorm(N)
 
 N_hidden <- 10
 B <- 100
-stackRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
-          lambda = 0.2, N_features = NULL)
+stackRVFL(X = X, y = y, 
+          N_hidden = N_hidden, B = B, lambda = 0.2)
 }

@@ -5,9 +5,9 @@
 \alias{edRVFL.default}
 \title{Ensemble deep random vector functional links}
 \usage{
-edRVFL(X, y, N_hidden, lambda = 0, ...)
+edRVFL(X, y, N_hidden, lambda = 0, control = list())
 
-\method{edRVFL}{default}(X, y, N_hidden, lambda = 0, ...)
+\method{edRVFL}{default}(X, y, N_hidden, lambda = 0, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -18,16 +18,10 @@ edRVFL(X, y, N_hidden, lambda = 0, ...)
 
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
 
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{control}{A list of additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the following:
-\describe{
-    \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-    \item{\code{weights}}{A vector of ensemble weights.}
-    \item{\code{method}}{A string indicating the method ('boosting' in this case)}
-}
+An \link{ERVFL-object}.
 }
 \description{
 Use multiple layers to create deep ensemble random vector functional link neural network models.
@@ -38,7 +32,7 @@ p <- 5
 
 X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(p)
+y <- X \%*\% beta + rnorm(N)
 
 N_hidden <- rep(10, 15)
 edRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)

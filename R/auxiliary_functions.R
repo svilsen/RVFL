@@ -2,6 +2,29 @@
 ####################### AUX #######################
 ###################################################
 
+data_checks <- function(y, X) {
+    if (!is.matrix(X)) {
+        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
+        X <- as.matrix(X)
+    }
+    
+    if (!is.matrix(y)) {
+        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
+        y <- as.matrix(y)
+    }
+    
+    if (dim(y)[2] != 1) {
+        warning("More than a single column was detected in 'y', only the first column is used in the model.")
+        y <- matrix(y[, 1], ncol = 1)
+    }
+    
+    if (dim(y)[1] != dim(X)[1]) {
+        stop("The number of rows in 'y' and 'X' do not match.")
+    }
+    
+    return(NULL)
+}
+
 create_folds <- function(X, folds) {
     index <- sample(nrow(X), nrow(X), replace = FALSE)
     fold_index <- rep(seq_len(folds), each = floor(nrow(X) / folds))

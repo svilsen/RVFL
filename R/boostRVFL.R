@@ -12,19 +12,12 @@
 #' @param B The number of levels used in the boosting tree.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
 #' @param epsilon The learning rate.
-#' @param N_features The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).
-#' @param ... Additional arguments passed to the \link{control_RVFL} function.
+#' @param control A list of additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @return An ERVFL-object containing the following:
-#' \describe{
-#'     \item{\code{data}}{The original data used to estimate the weights.}
-#'     \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-#'     \item{\code{weights}}{A vector of ensemble weights.}
-#'     \item{\code{method}}{A string indicating the method ('boosting' in this case)}
-#' }
+#' @return An \link{ERVFL-object}.
 #' 
 #' @export
-boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N_features = NULL, ...) {
+boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list()) {
     UseMethod("boostRVFL")
 }
 
@@ -34,31 +27,12 @@ boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N_feature
 #' @example inst/examples/boostrvfl_example.R
 #' 
 #' @export
-boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N_features = NULL, ...) {
+boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list()) {
     ## Checks
-    # Data
-    if (!is.matrix(X)) {
-        warning("'X' has to be a matrix... trying to cast 'X' as a matrix.")
-        X <- as.matrix(X)
-    }
-    
-    if (!is.matrix(y)) {
-        warning("'y' has to be a matrix... trying to cast 'y' as a matrix.")
-        y <- as.matrix(y)
-    }
-    
-    if (dim(y)[2] != 1) {
-        warning("More than a single column was detected in 'y', only the first column is used in the model.")
-        y <- matrix(y[, 1], ncol = 1)
-    }
-    
-    if (dim(y)[1] != dim(X)[1]) {
-        stop("The number of rows in 'y' and 'X' do not match.")
-    }
+    dc <- data_checks(y, X)
     
     if (is.null(B)) {
         B <- 10
-        
         warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
     }
     
@@ -75,8 +49,8 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N
         warning("'epsilon' has to be a number between 0 and 1.")
     }
     
-    if (is.null(N_features)) {
-        N_features <- ceiling(dim(X)[2] / 3)
+    if (is.null(control$N_features)) {
+        control$N_features <- ceiling(dim(X)[2] / 3)
     }
     
     ##
@@ -90,7 +64,7 @@ boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, N
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, N_features = N_features, ...)
+        objects[[b]] <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
     }
     
     ##

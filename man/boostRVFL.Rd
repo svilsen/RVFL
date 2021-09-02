@@ -5,27 +5,9 @@
 \alias{boostRVFL.default}
 \title{Boosting random vector functional links}
 \usage{
-boostRVFL(
-  X,
-  y,
-  N_hidden,
-  B = 10,
-  lambda = 0,
-  epsilon = 1,
-  N_features = NULL,
-  ...
-)
+boostRVFL(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list())
 
-\method{boostRVFL}{default}(
-  X,
-  y,
-  N_hidden,
-  B = 10,
-  lambda = 0,
-  epsilon = 1,
-  N_features = NULL,
-  ...
-)
+\method{boostRVFL}{default}(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -40,18 +22,10 @@ boostRVFL(
 
 \item{epsilon}{The learning rate.}
 
-\item{N_features}{The number of features randomly chosen in each iteration (default is \code{ceiling(ncol(X) / 3)}).}
-
-\item{...}{Additional arguments passed to the \link{control_RVFL} function.}
+\item{control}{A list of additional arguments passed to the \link{control_RVFL} function.}
 }
 \value{
-An ERVFL-object containing the following:
-\describe{
-    \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{RVFLmodels}}{A list of \link{RVFL}-objects.}
-    \item{\code{weights}}{A vector of ensemble weights.}
-    \item{\code{method}}{A string indicating the method ('boosting' in this case)}
-}
+An \link{ERVFL-object}.
 }
 \description{
 Use gradient boosting to create ensemble random vector functional link neural network models.
@@ -62,11 +36,11 @@ p <- 5
 
 X <- matrix(rnorm(N * p), ncol = p) 
 beta <- matrix(runif(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(p)
+y <- X \%*\% beta + rnorm(N)
 
 N_hidden <- 10
 B <- 10
 epsilon <- 0.2
-boostRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = 0.2, 
-          epsilon = epsilon, N_features = NULL)
+boostRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
+          lambda = 0.2, epsilon = epsilon)
 }

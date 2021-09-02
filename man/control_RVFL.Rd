@@ -5,10 +5,11 @@
 \title{RVFL control function}
 \usage{
 control_RVFL(
+  N_hidden,
   bias_hidden = TRUE,
   activation = NULL,
   bias_output = TRUE,
-  combine_input = FALSE,
+  combine_input = TRUE,
   include_data = TRUE,
   N_features = NULL,
   rng = "runif",
@@ -16,6 +17,8 @@ control_RVFL(
 )
 }
 \arguments{
+\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+
 \item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
 
 \item{activation}{A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.}
