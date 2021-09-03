@@ -81,7 +81,7 @@ coef.ERVFL <- function(object, ...) {
 #'
 #' @return Depended on '\code{method}' and '\code{type}'. 
 #' 
-#' If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
+#' If '\code{method}' was \code{"bagging"}, \code{"stacking"}, \code{"ed"}, or \code{"resample"}, the '\code{type}' yields the following results: 
 #' \describe{
 #'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the ERVFL-object) sum each observation taken across the bootstrap samples.}
 #'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
@@ -125,8 +125,7 @@ predict.ERVFL <- function(object, ...) {
         y_new <- lapply(seq_along(newO), function(i) newO[[i]] %*% object$OutputWeights[[i]])
         
         y_new <- do.call("cbind", y_new)
-    }
-    else {
+    } else {
         y_new <- vector("list", B)
         for (b in seq_along(y_new)) {
             y_new[[b]] <- predict.RVFL(object = object$RVFLmodels[[b]], newdata = newdata)
@@ -139,21 +138,17 @@ predict.ERVFL <- function(object, ...) {
     if (object$method %in% c("bagging", "stacking", "ed", "resample")) {
         if (type %in% c("a", "all", "f", "full")) {
             return(y_new)
-        }
-        else if (type %in% c("m", "mean", "avg", "average")) {
+        } else if (type %in% c("m", "mean", "avg", "average")) {
             W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
             y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
             return(y_new)
-        }
-        else if (type %in% c("s", "sd", "standarddeviation")) {
+        } else if (type %in% c("s", "sd", "standarddeviation")) {
             y_new <- matrix(apply(y_new, 1, sd), ncol = 1)
             return(y_new)
-        }
-        else {
+        } else {
             stop("The passed value of 'type' was not valid. See '?coef.ERVFL' for valid options of 'type'.")
         }
-    }
-    else {
+    } else {
         y_new <- matrix(apply(y_new, 1, sum), ncol = 1)
         return(y_new)
     }
@@ -197,14 +192,12 @@ plot.ERVFL <- function(x, ...) {
     if (is.null(dots$X_val) && is.null(dots$y_val)) {
         X_val <- x$data$X
         y_val <- x$data$y
-    }
-    else if (is.null(dots$X_val) || is.null(dots$y_val)) {
+    } else if (is.null(dots$X_val) || is.null(dots$y_val)) {
         message("The testing-set was not properly specified, therefore, the training-set is used.")
         
         X_val <- x$data$X
         y_val <- x$data$y
-    }
-    else {
+    } else {
         X_val <- dots$X_val
         y_val <- dots$y_val
     }
@@ -230,28 +223,24 @@ plot.ERVFL <- function(x, ...) {
         plot(x$weights ~ seq(length(x$weights)), pch = 16,
              xlab = "Bootstrap index", ylab = "Weights") 
         dev.flush()
-    }
-    else if (dots$page == 1) {
+    } else if (dots$page == 1) {
         dev.hold()
         plot(y_hat ~ y_val, pch = 16, 
              xlab = "Observed targets", ylab = "Predicted targets")
         abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
         dev.flush()
-    }
-    else if (dots$page == 2) {
+    } else if (dots$page == 2) {
         dev.hold()
         plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
              xlab = "Index", ylab = "Residual") 
         abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
         dev.flush()
-    }
-    else if (dots$page == 3) {
+    } else if (dots$page == 3) {
         dev.hold()
         plot(x$weights ~ seq(length(x$weights)), pch = 16,
              xlab = "Bootstrap index", ylab = "Weights") 
         dev.flush()
-    }
-    else {
+    } else {
         stop("Invalid choice of 'page', it has to take the values 1, 2, 3, or NULL.")
     }
     

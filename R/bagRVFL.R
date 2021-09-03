@@ -47,12 +47,6 @@ bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, control = list(
         X_b <- matrix(X[indices_b, ], ncol = ncol(X))
         y_b <- matrix(y[indices_b], ncol = ncol(y))    
         
-        # rvfl_b <- sampleRVFL(
-        #     X = X_b, y = y_b, N_hidden = N_hidden, 
-        #     control_rvfl = control, 
-        #     control_sample = list(method = "map")
-        # )
-        
         rvfl_b <- RVFL(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
         objects[[b]] <- rvfl_b
     }

@@ -9,7 +9,7 @@ control_RVFL(
   bias_hidden = TRUE,
   activation = NULL,
   bias_output = TRUE,
-  combine_input = TRUE,
+  combine_input = FALSE,
   include_data = TRUE,
   N_features = NULL,
   rng = "runif",

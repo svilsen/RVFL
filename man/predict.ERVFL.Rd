@@ -14,7 +14,7 @@
 \value{
 Depended on '\code{method}' and '\code{type}'. 
 
-If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
+If '\code{method}' was \code{"bagging"}, \code{"stacking"}, \code{"ed"}, or \code{"resample"}, the '\code{type}' yields the following results: 
 \describe{
     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the ERVFL-object) sum each observation taken across the bootstrap samples.}
     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}

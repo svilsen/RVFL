@@ -13,10 +13,9 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X %*% beta + rnorm(N, 0, 1)
 
 N_hidden <- 10
-B <- 100
-bRVFL <- bagRVFL(X = X, y = y, 
-                 N_hidden = N_hidden, B = B, lambda = 0.2)
 
-w <- runif(B)
-w <- w / sum(w)
-set_weights(bRVFL, weights = w)
+## Using L1-norm in the auto-encoder (sparse solution)
+aeRVFL(X = X, y = y, N_hidden = N_hidden, method = "l1")
+
+## Using L2-norm in the auto-encoder (non-sparse solution)
+aeRVFL(X = X, y = y, N_hidden = N_hidden, method = "l2")

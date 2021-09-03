@@ -36,6 +36,10 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, optimise = FA
         folds <- 10
     }
     
+    if (!optimise) {
+        folds <- 1
+    }
+    
     if (is.null(B)) {
         B <- 100
         warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
@@ -81,7 +85,7 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, optimise = FA
             beta_b[[k]] <- estimate_output_weights(Ok, yk, lambda)$beta
         }
         
-        object_b$Weights$Output <- apply(do.call("cbind", beta_b), 1, mean)
+        object_b$Weights$Output <- matrix(apply(do.call("cbind", beta_b), 1, mean), ncol = 1)
         objects[[b]] <- object_b
     }
     
@@ -89,9 +93,8 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, optimise = FA
     if (optimise) {
         C <- do.call("cbind", lapply(objects, predict))
         w <- estimate_weights_stack(C = C, b = y, B = B)
-    }
-    else {
-        w <- 1 / B
+    } else {
+        w <- rep(1 / B, B)
     }
     
     ##

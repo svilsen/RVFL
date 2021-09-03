@@ -35,7 +35,7 @@
 #' @export
 control_RVFL <- function(N_hidden, 
                          bias_hidden = TRUE, activation = NULL, 
-                         bias_output = TRUE, combine_input = TRUE, 
+                         bias_output = TRUE, combine_input = FALSE, 
                          include_data = TRUE, N_features = NULL, 
                          rng = "runif", rng_pars = list(min = -1, max = 1)) {
     if (length(N_hidden) < 1) {
@@ -121,8 +121,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     if (is.null(lambda)) {
         lambda <- 0
         warning("Note: 'lambda' was not supplied and set to 0.")
-    }
-    else if (lambda < 0) {
+    } else if (lambda < 0) {
         lambda <- 0
         warning("'lambda' has to be a real number larger than or equal to 0.")
     }
@@ -140,9 +139,8 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
         stop("'N_features' have to be in the interval [1; dim(X)[2]].")
     }
     
-    ## Initialisation
+    ## Creating random weights
     X_dim <- dim(X)
-    
     W_hidden <- vector("list", length = length(N_hidden))
     for (w in seq_along(W_hidden)) {
         if (w == 1) {
@@ -196,8 +194,6 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
 }
 
 #' @rdname RVFL
-#' 
-#' @example inst/examples/rvfl_example.R
 #' 
 #' @export
 ELM <- function(X, y, N_hidden, lambda = 0, control = list()) {

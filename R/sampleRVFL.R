@@ -218,8 +218,7 @@ sampleRVFL.default <- function(X, y, N_hidden, control_rvfl = list(), control_sa
         )
         
         class(object) <- "RVFL"
-    }
-    else if (control_sample$method == "resample") {
+    } else if (control_sample$method == "resample") {
         ##
         N_simulations <- control_sample$N_simulations
         N_burnin <- control_sample$N_burnin
@@ -260,6 +259,8 @@ sampleRVFL.default <- function(X, y, N_hidden, control_rvfl = list(), control_sa
         )  
         
         class(object) <- "ERVFL"
+    } else {
+        stop("The supplied method is not implemented, please set method to either 'map' or 'resample'.")
     }
     
     return(object)
