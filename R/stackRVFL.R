@@ -52,46 +52,42 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, optimise = FA
     ##
     if (optimise) {
         fold_index <- create_folds(X, folds)
+        C <- matrix(NA, nrow = nrow(X), ncol = B)
     }
     
     objects <- vector("list", B)
     for (b in seq_len(B)) {
         object_b <- RVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
         
-        beta_b <- vector("list", folds)
-        for (k in seq_len(folds)) {
-            if (optimise) {
-                Xk <- matrix(X[-fold_index[[k]], ], ncol = ncol(X))
-                yk <- matrix(y[-fold_index[[k]], ], ncol = ncol(y))
-            } else {
-                Xk <- X
-                yk <- y
-            }
+        if (optimise) {
+            H <- rvfl_forward(X, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
+            H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
+            H <- do.call("cbind", H)
             
-            Hk <- rvfl_forward(Xk, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
-            Hk <- lapply(seq_along(Hk), function(i) matrix(Hk[[i]], ncol = N_hidden[i]))
-            Hk <- do.call("cbind", Hk)
-            
-            ## Estimate parameters in output layer
             if (object_b$Bias$Output) {
-                Hk <- cbind(1, Hk)
+                H <- cbind(1, H)
             }
             
-            Ok <- Hk
+            O <- H
             if (object_b$Combined) {
-                Ok <- cbind(Xk, Hk)
+                O <- cbind(X, H)
             }
             
-            beta_b[[k]] <- estimate_output_weights(Ok, yk, lambda)$beta
+            for (k in seq_len(folds)) {
+                Ok <- matrix(O[-fold_index[[k]], ], ncol = ncol(O))
+                Om <- matrix(O[fold_index[[k]], ], ncol = ncol(O))
+                yk <- matrix(y[-fold_index[[k]], ], ncol = ncol(y))
+                beta_b <- estimate_output_weights(Ok, yk, lambda)$beta
+                
+                C[fold_index[[k]], b] <- Om %*% beta_b
+            }
         }
         
-        object_b$Weights$Output <- matrix(apply(do.call("cbind", beta_b), 1, mean), ncol = 1)
         objects[[b]] <- object_b
     }
     
     ##
     if (optimise) {
-        C <- do.call("cbind", lapply(objects, predict))
         w <- estimate_weights_stack(C = C, b = y, B = B)
     } else {
         w <- rep(1 / B, B)

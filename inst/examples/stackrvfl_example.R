@@ -25,6 +25,6 @@ stackRVFL(X = X, y = y, N_hidden = N_hidden,
 ## Using the optimised weighting of the stack to predict new targets
 \dontrun{
 stackRVFL(X = X, y = y, N_hidden = N_hidden, 
-          B = B, lambda = lambda)
+          B = B, lambda = lambda, optimise = TRUE)
 }
 

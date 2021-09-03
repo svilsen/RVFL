@@ -79,18 +79,18 @@ aeRVFL.default <- function(X, y, N_hidden, lambda = 0, method = "l1", control = 
     H_tilde <- lapply(seq_along(H_tilde), function(i) matrix(H_tilde[[i]], ncol = N_hidden[i]))
     H_tilde <- do.call("cbind", H_tilde)
     
+    X_tilde <- X
+    if (bias_hidden) {
+        X_tilde <- cbind(1, X_tilde)
+    }
+    
     ## Auto-encoder pre-training
     if (method == "l1") {
-        warning("Method not yet implemented, setting 'method = \"l2\"'.")
-        return(aeRVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, method = "l2", control = control))
+        W_tilde <- lasso_ls(H_tilde, X_tilde, tau = 1, max_iterations = 1000, step_shrink = 0.001)$W
+        W_hidden[[1]] <- t(W_tilde)
     } else if (method == "l2") {
         HT_tilde <- t(H_tilde)
         I_tilde <- diag(ncol(H_tilde))
-        X_tilde <- X
-        
-        if (bias_hidden) {
-            X_tilde <- cbind(1, X_tilde)
-        }
         
         W_tilde <- solve(HT_tilde %*% H_tilde + I_tilde) %*% HT_tilde %*% X_tilde
         W_hidden[[1]] <- t(W_tilde)

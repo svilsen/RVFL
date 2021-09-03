@@ -5,9 +5,9 @@
 \alias{estimate_weights.ERVFL}
 \title{Estimate ensemble weights for an ERVFL-object.}
 \usage{
-estimate_weights(object, X_val = NULL, y_val = NULL, trace = 0)
+estimate_weights(object, X_val = NULL, y_val = NULL)
 
-\method{estimate_weights}{ERVFL}(object, X_val = NULL, y_val = NULL, trace = 0)
+\method{estimate_weights}{ERVFL}(object, X_val = NULL, y_val = NULL)
 }
 \arguments{
 \item{object}{An ERVFL-object.}
@@ -15,8 +15,6 @@ estimate_weights(object, X_val = NULL, y_val = NULL, trace = 0)
 \item{X_val}{The validation feature set.}
 
 \item{y_val}{The validation target set.}
-
-\item{trace}{The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0).}
 }
 \value{
 An ERVFL-object.

@@ -248,13 +248,18 @@ plot.ERVFL <- function(x, ...) {
 }
 
 estimate_weights_stack <- function(C, b, B) {
+    # Creating matricies for QP optimisation problem.
+    # NB: diagonal matrix is added to ensure the matrix is invertible.
     D <- t(C) %*% C + diag(1e-8, nrow = ncol(C), ncol = ncol(C))
     d <- t(C) %*% b
     A <- rbind(t(matrix(rep(1, B), ncol = 1)), diag(B), -diag(B))
     b <- c(1, rep(0, B), rep(-1, B))
     
+    # Solution to QP optimisation problem
     w <- solve.QP(D, d, t(A), b, meq = 1)$solution
-    w[w < 0] <- 0
+    
+    # Ensure all weights are >= 1e-8 (some may not be due to machine precision)
+    w[w < 1e-8] <- 1e-8
     w <- w / sum(w)
     
     return(w)
@@ -309,12 +314,11 @@ set_weights.ERVFL <- function(object, weights = NULL) {
 #' @param object An ERVFL-object.
 #' @param X_val The validation feature set.
 #' @param y_val The validation target set.
-#' @param trace The trace of \link{solnp} are printed every '\code{trace}' number of iteration (default 0). 
 #' 
 #' @return An ERVFL-object.
 #' 
 #' @export
-estimate_weights <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
+estimate_weights <- function(object, X_val = NULL, y_val = NULL) {
     UseMethod("estimate_weights")
 }
 
@@ -324,7 +328,7 @@ estimate_weights <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
 #' @example inst/examples/ew_example.R
 #'
 #' @export
-estimate_weights.ERVFL <- function(object, X_val = NULL, y_val = NULL, trace = 0) {
+estimate_weights.ERVFL <- function(object, X_val = NULL, y_val = NULL) {
     if (is.null(X_val) || is.null(y_val)) {
         warning("The validation-set was not properly specified, therefore, the training is used for weight estimation.")
         
