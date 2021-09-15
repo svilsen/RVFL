@@ -49,6 +49,8 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, optimise = FA
         control$N_features <- ceiling(dim(X)[2] / 3)
     }
     
+    control <- do.call(control_RVFL, control)
+    
     ##
     if (optimise) {
         fold_index <- create_folds(X, folds)
@@ -77,7 +79,7 @@ stackRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, optimise = FA
                 Ok <- matrix(O[-fold_index[[k]], ], ncol = ncol(O))
                 Om <- matrix(O[fold_index[[k]], ], ncol = ncol(O))
                 yk <- matrix(y[-fold_index[[k]], ], ncol = ncol(y))
-                beta_b <- estimate_output_weights(Ok, yk, lambda)$beta
+                beta_b <- estimate_output_weights(Ok, yk, control$lnorm, lambda)$beta
                 
                 C[fold_index[[k]], b] <- Om %*% beta_b
             }

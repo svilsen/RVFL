@@ -6,21 +6,17 @@
 
 using namespace Rcpp;
 
-#ifdef RCPP_USE_GLOBAL_ROSTREAM
-Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
-Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
-#endif
-
 // estimate_output_weights
-Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y, const double& lambda);
-RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lambdaSEXP) {
+Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y, const std::string& lnorm, const double& lambda);
+RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lnormSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type O(OSEXP);
     Rcpp::traits::input_parameter< const arma::colvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type lnorm(lnormSEXP);
     Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(estimate_output_weights(O, y, lambda));
+    rcpp_result_gen = Rcpp::wrap(estimate_output_weights(O, y, lnorm, lambda));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -40,7 +36,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RVFL_estimate_output_weights", (DL_FUNC) &_RVFL_estimate_output_weights, 3},
+    {"_RVFL_estimate_output_weights", (DL_FUNC) &_RVFL_estimate_output_weights, 4},
     {"_RVFL_rvfl_forward", (DL_FUNC) &_RVFL_rvfl_forward, 4},
     {NULL, NULL, 0}
 };

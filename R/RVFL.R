@@ -7,6 +7,7 @@
 #' @description A function used to create a control-object for the \link{RVFL} function.
 #' 
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param lnorm A string indicating the regularisation norm used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
@@ -33,13 +34,22 @@
 #' 
 #' @return A list of control variables.
 #' @export
-control_RVFL <- function(N_hidden, 
+control_RVFL <- function(N_hidden, lnorm = NULL,
                          bias_hidden = TRUE, activation = NULL, 
                          bias_output = TRUE, combine_input = FALSE, 
                          include_data = TRUE, N_features = NULL, 
                          rng = "runif", rng_pars = list(min = -1, max = 1)) {
     if (length(N_hidden) < 1) {
         stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
+    }
+    
+    if (is.null(lnorm)) {
+        lnorm <- "l2"
+    }
+    
+    lnorm <- tolower(lnorm)
+    if (!(lnorm %in% c("l1", "l2"))) {
+        stop("'lnorm' has to be either 'l1' or 'l2'.")
     }
     
     if (length(bias_hidden) == 1) {
@@ -71,7 +81,7 @@ control_RVFL <- function(N_hidden,
         stop(paste("The following arguments were not found in 'rng_pars' list:", paste(rng_arg[!(rng_arg %in% names(rng_pars))], collapse = ", ")))
     }
     
-    return(list(bias_hidden = bias_hidden, activation = activation, 
+    return(list(lnorm = lnorm, bias_hidden = bias_hidden, activation = activation, 
                 bias_output = bias_output, combine_input = combine_input, 
                 include_data = include_data, N_features = N_features, 
                 rng = rng, rng_pars = rng_pars))
@@ -108,6 +118,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     control <- do.call(control_RVFL, control)
     
     #
+    lnorm <- control$lnorm
     bias_hidden <- control$bias_hidden
     activation <- control$activation
     N_features <- control$N_features
@@ -175,7 +186,7 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
         O <- cbind(X, H)
     }
     
-    W_output <- estimate_output_weights(O, y, lambda)
+    W_output <- estimate_output_weights(O, y, lnorm, lambda)
     
     ## Return object
     object <- list(

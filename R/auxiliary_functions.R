@@ -26,8 +26,9 @@ data_checks <- function(y, X) {
 }
 
 create_folds <- function(X, folds) {
-    index <- sample(nrow(X), nrow(X), replace = FALSE)
-    fold_index <- rep(seq_len(folds), each = floor(nrow(X) / folds))
+    N <- nrow(X)
+    index <- sample(N, N, replace = FALSE)
+    fold_index <- rep(seq_len(folds), each = floor(N / folds))
     
     if (length(fold_index) < length(index)) {
         fold_index <- c(fold_index, seq_len(folds)[seq_len(length(index) - length(fold_index))])

@@ -54,7 +54,7 @@ model_likelihood <- function(O, y, beta, sigma) {
     return(ll)
 }
 
-metropolis_hastings_sampler <- function(y, X, N_hidden, control_rvfl, control_sample) {
+metropolis_hastings_sampler <- function(y, X, N_hidden, lambda, control_rvfl, control_sample) {
     ##
     N_simulations <- control_sample$N_simulations
     N_burnin <- control_sample$N_burnin
@@ -65,7 +65,7 @@ metropolis_hastings_sampler <- function(y, X, N_hidden, control_rvfl, control_sa
     W_old <- generate_random_weights(X, N_hidden, control_rvfl$bias_hidden)
     O_old <- last_hidden_layer(X = X, N_hidden = N_hidden, W = W_old, control = control_rvfl)
     
-    theta <- estimate_output_weights(O_old, y, 0)
+    theta <- estimate_output_weights(O_old, y, control_rvfl$lnorm, lambda)
     beta <- theta$beta
     sigma <- theta$sigma
     
@@ -166,6 +166,7 @@ control_sampleRVFL <- function(N_simulations = 4000, N_burnin = 1000, N_resample
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param lambda The penalisation constant used when training the output layers of the RVFL.
 #' @param control_rvfl A list of additional arguments passed to the \link{control_RVFL} function.
 #' @param control_sample A list of additional arguments passed to the \link{control_sampleRVFL} function.
 #' 
@@ -183,7 +184,7 @@ sampleRVFL <- function(X, y, N_hidden, control_rvfl = list(), control_sample = l
 #' @example inst/examples/samplervfl_example.R
 #' 
 #' @export
-sampleRVFL.default <- function(X, y, N_hidden, control_rvfl = list(), control_sample = list()) {
+sampleRVFL.default <- function(X, y, N_hidden, lambda, control_rvfl = list(), control_sample = list()) {
     ## Creating control object 
     control_rvfl$N_hidden <- N_hidden
     control_rvfl <- do.call(control_RVFL, control_rvfl)
@@ -194,7 +195,7 @@ sampleRVFL.default <- function(X, y, N_hidden, control_rvfl = list(), control_sa
     
     ## Simulation
     sampled_weights_mh <- metropolis_hastings_sampler(
-        y = y, X = X, N_hidden = N_hidden,
+        y = y, X = X, N_hidden = N_hidden, lambda = lambda,
         control_rvfl = control_rvfl, 
         control_sample = control_sample
     )

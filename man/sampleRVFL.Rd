@@ -7,7 +7,14 @@
 \usage{
 sampleRVFL(X, y, N_hidden, control_rvfl = list(), control_sample = list())
 
-\method{sampleRVFL}{default}(X, y, N_hidden, control_rvfl = list(), control_sample = list())
+\method{sampleRVFL}{default}(
+  X,
+  y,
+  N_hidden,
+  lambda,
+  control_rvfl = list(),
+  control_sample = list()
+)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -19,6 +26,8 @@ sampleRVFL(X, y, N_hidden, control_rvfl = list(), control_sample = list())
 \item{control_rvfl}{A list of additional arguments passed to the \link{control_RVFL} function.}
 
 \item{control_sample}{A list of additional arguments passed to the \link{control_sampleRVFL} function.}
+
+\item{lambda}{The penalisation constant used when training the output layers of the RVFL.}
 }
 \value{
 The return object will depend on the choice of \code{method} passed through the \code{control_sample} argument. 

@@ -27,6 +27,9 @@ edRVFL <- function(X, y, N_hidden, lambda = 0, control = list()) {
 #' @export
 edRVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     ## Checks
+    control$lnorm <- "l2"
+    control <- do.call(control_RVFL, control)
+    
     dc <- data_checks(y, X)
     
     ##
@@ -34,7 +37,7 @@ edRVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     H <- rvfl_forward(X = X, W = deepRVFL$Weights$Hidden, activation = deepRVFL$activation, bias = deepRVFL$Bias$Hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deepRVFL$N_hidden[i]))
     O <- lapply(seq_along(H), function(i) cbind(1, X, H[[i]]))
-    beta <- lapply(seq_along(O), function(i) estimate_output_weights(O[[i]], y, lambda)$beta)
+    beta <- lapply(seq_along(O), function(i) estimate_output_weights(O[[i]], y, control$lnorm, lambda)$beta)
     
     ##
     object <- list(
