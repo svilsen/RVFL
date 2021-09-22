@@ -2,9 +2,17 @@
 % Please edit documentation in R/tuningHyperparameters.R
 \name{tune_hyperparameters}
 \alias{tune_hyperparameters}
-\title{Random vector functional link}
+\title{Hyper-parameter tuning}
 \usage{
-tune_hyperparameters(method, X, y, folds = 10, control = list(), ...)
+tune_hyperparameters(
+  method,
+  X,
+  y,
+  folds = 10,
+  hyperparameters = list(),
+  control = list(),
+  trace = 0
+)
 }
 \arguments{
 \item{method}{}
@@ -15,13 +23,15 @@ tune_hyperparameters(method, X, y, folds = 10, control = list(), ...)
 
 \item{folds}{The number of folds used in k-fold cross-validation.}
 
+\item{hyperparameters}{A named list of hyper-parameters.}
+
 \item{control}{A list of additional arguments passed to the \link{control_RVFL} function.}
 
-\item{...}{}
+\item{trace}{A numeric indicating how often a trace of should be shown (default is 0).}
 }
 \value{
-An object either of \link{RVFL} or \link{ERVFL}.
+An object either of class \link{RVFL} or \link{ERVFL}.
 }
 \description{
-Set-up and estimate weights of a random vector functional link neural network.
+Simple function for hyper-parameter tuning using k-fold cross-validation.
 }
