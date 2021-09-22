@@ -10,9 +10,11 @@
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param folds The number of folds used in k-fold cross-validation.
-#' @param hyperparameters A named list of hyper-parameters.
+#' @param hyperparameters A list of sequences of hyper-parameters.
 #' @param control A list of additional arguments passed to the \link{control_RVFL} function.
 #' @param trace A numeric indicating how often a trace of should be shown (default is 0).
+#' 
+#' @example inst/examples/tuning_example.R
 #' 
 #' @return An object either of class \link{RVFL} or \link{ERVFL}.
 #' 
