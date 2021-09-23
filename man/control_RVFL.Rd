@@ -20,7 +20,7 @@ control_RVFL(
 \arguments{
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{lnorm}{A string indicating the regularisation norm used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).}
+\item{lnorm}{A string indicating the regularisation used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).}
 
 \item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
 

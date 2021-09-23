@@ -5,6 +5,13 @@
 \title{sampleRVFL control function.}
 \usage{
 control_sampleRVFL(
+  N_hidden,
+  lnorm = NULL,
+  bias_hidden = TRUE,
+  activation = NULL,
+  bias_output = TRUE,
+  combine_input = FALSE,
+  include_data = TRUE,
   N_simulations = 4000,
   N_burnin = 1000,
   N_resample = 100,
@@ -14,6 +21,20 @@ control_sampleRVFL(
 )
 }
 \arguments{
+\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+
+\item{lnorm}{A string indicating the regularisation norm used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).}
+
+\item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
+
+\item{activation}{A vector of strings corresponding to activation functions (see \link{control_RVFL} for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.}
+
+\item{bias_output}{TRUE/FALSE: Should a bias be added to the output layer?}
+
+\item{combine_input}{TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?}
+
+\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RVFL.}
+
 \item{N_simulations}{The number of Metropolis-Hastings samples drawn from the posterior.}
 
 \item{N_burnin}{The number of samples used as burn-in during Metropolis-Hastings sampling.}
@@ -35,7 +56,8 @@ A function used to create a control-object for the \link{sampleRVFL} function.
 \details{
 The current choices of \code{method} are:
 \describe{
-    \item{\code{"map"}}{Only the maximum a posterior (MAP) estimate of the weights is returned.}
-    \item{\code{"resampling"}}{The weights are resampled (with replacement) weighted using the unnormalised posterior.}
+    \item{\code{"map"}}{Only the maximum a posterior (MAP) estimate of the weights is returned as an \link{RVFL-object}.}
+    \item{\code{"stack"}}{The weights are resampled (with replacement) weighted using the unnormalised posterior, creating a stacking based \link{ERVFL-object}.}
+    \item{\code{"posterior"}}{The posterior distributions of the weights are returned.}
 }
 }

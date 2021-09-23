@@ -57,3 +57,17 @@ NULL
 #' @name ERVFL-object
 #' @rdname ERVFL-object
 NULL
+
+#' @title An SRVFL-object 
+#' 
+#' @description An SRVFL-object is a list containing the following:
+#' \describe{
+#'     \item{\code{data}}{The original data used to estimate the weights.}
+#'     \item{\code{RVFLmodels}}{A list with each element being an \link{RVFL-object}.}
+#'     \item{\code{weights}}{A vector of ensemble weights.}
+#'     \item{\code{method}}{A string indicating the method.}
+#' }
+#' 
+#' @name SRVFL-object
+#' @rdname SRVFL-object
+NULL

@@ -2,9 +2,9 @@
 ####################### RVFL neural networks AUX #######################
 ########################################################################
 
-#' @title Coefficients of the RVFL object.
+#' @title Coefficients of the RVFL-object.
 #' 
-#' @param object An RVFL-object.
+#' @param object An \link{RVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details No additional arguments are used in this instance.
@@ -18,9 +18,9 @@ coef.RVFL <- function(object, ...) {
     return(object$Weights$Output)
 }
 
-#' @title Predicting targets of an RVFL object.
+#' @title Predicting targets of an RVFL-object.
 #' 
-#' @param object An RVFL-object.
+#' @param object An \link{RVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.
@@ -71,9 +71,9 @@ predict.RVFL <- function(object, ...) {
     return(newy)
 }
 
-#' @title Residuals of the RVFL object.
+#' @title Residuals of the RVFL-object.
 #' 
-#' @param object An RVFL-object.
+#' @param object An \link{RVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details Besides the arguments passed to the '\code{predict}' function, the argument '\code{type}' can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
@@ -117,7 +117,7 @@ residuals.RVFL <- function(object, ...) {
 
 #' @title Diagnostic-plots of an RVFL-object.
 #' 
-#' @param x An RVFL-object.
+#' @param x An \link{RVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occured.  

@@ -7,7 +7,7 @@
 #' @description A function used to create a control-object for the \link{RVFL} function.
 #' 
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param lnorm A string indicating the regularisation norm used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).
+#' @param lnorm A string indicating the regularisation used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?

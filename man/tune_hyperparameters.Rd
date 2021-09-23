@@ -51,7 +51,7 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X \%*\% beta + rnorm(N, 0, 1)
 
 hyperparameters <- list(
-    N_hidden = list(c(100, 100, 50, 50)), 
+    N_hidden = list(c(100, 100, 50, 50), c(100, 10, 10), c(100)), 
     lambda = exp(seq(-12, 4))
 )
 

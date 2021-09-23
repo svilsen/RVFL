@@ -2,9 +2,9 @@
 ####################### ERVFL neural networks AUX #######################
 #########################################################################
 
-#' @title Coefficients of the ERVFL object.
+#' @title Coefficients of the ERVFL-object.
 #' 
-#' @param object An ERVFL-object.
+#' @param object An \link{ERVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{type}' is only used if '\code{method}' was \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
@@ -68,9 +68,9 @@ coef.ERVFL <- function(object, ...) {
     }
 }
 
-#' @title Predicting targets of an ERVFL object.
+#' @title Predicting targets of an ERVFL-object.
 #' 
-#' @param object An ERVFL-object.
+#' @param object An \link{ERVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:
@@ -83,7 +83,7 @@ coef.ERVFL <- function(object, ...) {
 #' 
 #' If '\code{method}' was \code{"bagging"}, \code{"stacking"}, \code{"ed"}, or \code{"resample"}, the '\code{type}' yields the following results: 
 #' \describe{
-#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the ERVFL-object) sum each observation taken across the bootstrap samples.}
+#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{ERVFL-object}) sum each observation taken across the bootstrap samples.}
 #'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
 #'     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 #' }
@@ -154,9 +154,9 @@ predict.ERVFL <- function(object, ...) {
     }
 }
 
-#' @title Residuals of the ERVFL object.
+#' @title Residuals of the ERVFL-object.
 #' 
-#' @param object An ERVFL-object.
+#' @param object An \link{ERVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details No additional arguments are used in this instance.
@@ -176,7 +176,7 @@ residuals.ERVFL <- function(object, ...) {
 
 #' @title Diagnostic-plots of an ERVFL-object.
 #' 
-#' @param x An ERVFL-object.
+#' @param x An \link{ERVFL-object}.
 #' @param ... Additional arguments.
 #' 
 #' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occurred.  
@@ -267,12 +267,12 @@ estimate_weights_stack <- function(C, b, B) {
 
 #' @title Set ensemble weights for an ERVFL-object.
 #' 
-#' @description Manually set ensemble weights for an ERVFL-object.
+#' @description Manually set ensemble weights for an \link{ERVFL-object}.
 #' 
-#' @param object An ERVFL-object.
+#' @param object An \link{ERVFL-object}.
 #' @param weights A vector of ensemble weights.
 #' 
-#' @return An ERVFL-object.
+#' @return An \link{ERVFL-object}.
 #' 
 #' @export
 set_weights <- function(object, weights = NULL) {
@@ -309,13 +309,13 @@ set_weights.ERVFL <- function(object, weights = NULL) {
 
 #' @title Estimate ensemble weights for an ERVFL-object.
 #' 
-#' @description Estimate ensemble weights for an ERVFL-object.
+#' @description Estimate ensemble weights for an \link{ERVFL-object}.
 #' 
-#' @param object An ERVFL-object.
+#' @param object An \link{ERVFL-object}.
 #' @param X_val The validation feature set.
 #' @param y_val The validation target set.
 #' 
-#' @return An ERVFL-object.
+#' @return An \link{ERVFL-object}.
 #' 
 #' @export
 estimate_weights <- function(object, X_val = NULL, y_val = NULL) {

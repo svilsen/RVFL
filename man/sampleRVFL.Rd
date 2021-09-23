@@ -5,16 +5,9 @@
 \alias{sampleRVFL.default}
 \title{Sampling random vector functional links}
 \usage{
-sampleRVFL(X, y, N_hidden, control_rvfl = list(), control_sample = list())
+sampleRVFL(X, y, N_hidden, lambda = 1, control = list())
 
-\method{sampleRVFL}{default}(
-  X,
-  y,
-  N_hidden,
-  lambda,
-  control_rvfl = list(),
-  control_sample = list()
-)
+\method{sampleRVFL}{default}(X, y, N_hidden, lambda = 1, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -23,15 +16,17 @@ sampleRVFL(X, y, N_hidden, control_rvfl = list(), control_sample = list())
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{control_rvfl}{A list of additional arguments passed to the \link{control_RVFL} function.}
-
-\item{control_sample}{A list of additional arguments passed to the \link{control_sampleRVFL} function.}
-
 \item{lambda}{The penalisation constant used when training the output layers of the RVFL.}
+
+\item{control}{A list of additional arguments passed to the \link{control_sampleRVFL} function (includes arguments passed to the \link{control_RVFL} function.).}
 }
 \value{
-The return object will depend on the choice of \code{method} passed through the \code{control_sample} argument. 
-If \code{method} is set to \code{"map"} an \link{RVFL-object} is returned, while an \link{ERVFL-object} is returned when \code{method} is set to \code{"resample"}.
+The return object will depend on the choice of \code{method} passed through the \code{control} argument: 
+\describe{
+    \item{\code{"map"}}{An \link{RVFL-object}.}
+    \item{\code{"stack"}}{An \link{ERVFL-object}.}
+    \item{\code{"posterior"}}{An \link{SRVFL-object}.}
+}
 }
 \description{
 Uses sampling to pre-train sampling distribution of the hidden layers in random vector functional link neural network models.
@@ -51,16 +46,20 @@ X[, 5] <- s^3
 beta <- matrix(rnorm(p), ncol = 1) 
 y <- X \%*\% beta + rnorm(N, 0, 1)
 
-N_hidden <- 1000
+N_hidden <- 10
 
 ## Returning an RVFL object using just the MAP estimate of the weights
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control_sample = list(method = "map"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "map"))
 }
 
-## Returning an ERVFL object resampling weights from the create posterior sample
+## Returning an ERVFL object resampling weights from the created posterior sample
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control_sample = list(method = "resample"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "stack"))
 }
 
+## Returning an SRVFL object of the sampled posterior
+\dontrun{
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "posterior"))
+}
 }
