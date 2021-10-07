@@ -2,12 +2,12 @@
 % Please edit documentation in R/auxiliary_functions_ERVFL.R
 \name{predict.ERVFL}
 \alias{predict.ERVFL}
-\title{Predicting targets of an ERVFL object.}
+\title{Predicting targets of an ERVFL-object.}
 \usage{
 \method{predict}{ERVFL}(object, ...)
 }
 \arguments{
-\item{object}{An ERVFL-object.}
+\item{object}{An \link{ERVFL-object}.}
 
 \item{...}{Additional arguments.}
 }
@@ -16,7 +16,7 @@ Depended on '\code{method}' and '\code{type}'.
 
 If '\code{method}' was \code{"bagging"}, \code{"stacking"}, \code{"ed"}, or \code{"resample"}, the '\code{type}' yields the following results: 
 \describe{
-    \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the ERVFL-object) sum each observation taken across the bootstrap samples.}
+    \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{ERVFL-object}) sum each observation taken across the bootstrap samples.}
     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
 }
@@ -24,7 +24,7 @@ If '\code{method}' was \code{"bagging"}, \code{"stacking"}, \code{"ed"}, or \cod
 If '\code{method}' was \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
 }
 \description{
-Predicting targets of an ERVFL object.
+Predicting targets of an ERVFL-object.
 }
 \details{
 The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:

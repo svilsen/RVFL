@@ -113,7 +113,7 @@ aeRVFL.default <- function(X, y, N_hidden, lambda = 0, method = "l1", control = 
         O <- cbind(X, H)
     }
     
-    W_output <- estimate_output_weights(O, y, lambda)
+    W_output <- estimate_output_weights(O, y, control$lnorm, lambda)
     
     ## Return object
     object <- list(

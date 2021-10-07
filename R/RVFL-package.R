@@ -8,15 +8,17 @@
 #' 
 #' @importFrom Rcpp evalCpp
 #' 
-#' @importFrom stats coef predict runif sd rnorm dnorm
+#' @importFrom stats coef predict runif sd rnorm dnorm quantile
 #' 
 #' @importFrom Rsolnp solnp
 #' 
-#' @importFrom graphics plot abline
+#' @importFrom graphics plot abline boxplot hist
 #' 
 #' @importFrom grDevices dev.hold dev.flush
 #' 
 #' @importFrom quadprog solve.QP
+#' 
+#' @importFrom utils methods
 #' 
 #' @importFrom methods formalArgs
 #' 

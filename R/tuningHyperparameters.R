@@ -6,7 +6,7 @@
 #' 
 #' @description Simple function for hyper-parameter tuning using k-fold cross-validation.
 #' 
-#' @param method 
+#' @param method The RVFL method in need to hyper paramter optimisation.
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param folds The number of folds used in k-fold cross-validation.
@@ -16,7 +16,7 @@
 #' 
 #' @example inst/examples/tuning_example.R
 #' 
-#' @return An object either of class \link{RVFL} or \link{ERVFL}.
+#' @return Either an \link{RVFL-object} or \link{ERVFL-object}.
 #' 
 #' @export
 tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
@@ -39,8 +39,9 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     dc <- data_checks(y, X)
     
     #
-    if (is.null(folds)) {
+    if (is.null(folds) | !is.numeric(folds)) {
         folds <- 10
+        warning("'folds' was either 'NULL' or not numeric... setting 'folds = 10'.") 
     }
     
     if (folds < 1) {
@@ -49,6 +50,11 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     } else if (folds > nrow(X)) {
         folds <- nrow(X)
         warning("'folds' was larger than the number of observations... setting 'folds = nrow(X)'.")
+    }
+    
+    if (is.null(trace) | !is.numeric(trace)) {
+        trace <- 0
+        warning("'trace' was either 'NULL' or not numeric... setting 'trace = 0'.") 
     }
     
     # 

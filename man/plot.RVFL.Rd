@@ -7,7 +7,7 @@
 \method{plot}{RVFL}(x, ...)
 }
 \arguments{
-\item{x}{An RVFL-object.}
+\item{x}{An \link{RVFL-object}.}
 
 \item{...}{Additional arguments.}
 }

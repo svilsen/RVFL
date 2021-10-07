@@ -2,12 +2,12 @@
 % Please edit documentation in R/auxiliary_functions_RVFL.R
 \name{coef.RVFL}
 \alias{coef.RVFL}
-\title{Coefficients of the RVFL object.}
+\title{Coefficients of the RVFL-object.}
 \usage{
 \method{coef}{RVFL}(object, ...)
 }
 \arguments{
-\item{object}{An RVFL-object.}
+\item{object}{An \link{RVFL-object}.}
 
 \item{...}{Additional arguments.}
 }
@@ -15,7 +15,7 @@
 The estimated weights of the output-layer.
 }
 \description{
-Coefficients of the RVFL object.
+Coefficients of the RVFL-object.
 }
 \details{
 No additional arguments are used in this instance.

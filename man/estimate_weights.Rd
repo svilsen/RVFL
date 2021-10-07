@@ -10,17 +10,17 @@ estimate_weights(object, X_val = NULL, y_val = NULL)
 \method{estimate_weights}{ERVFL}(object, X_val = NULL, y_val = NULL)
 }
 \arguments{
-\item{object}{An ERVFL-object.}
+\item{object}{An \link{ERVFL-object}.}
 
 \item{X_val}{The validation feature set.}
 
 \item{y_val}{The validation target set.}
 }
 \value{
-An ERVFL-object.
+An \link{ERVFL-object}.
 }
 \description{
-Estimate ensemble weights for an ERVFL-object.
+Estimate ensemble weights for an \link{ERVFL-object}.
 }
 \examples{
 ### 

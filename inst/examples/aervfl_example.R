@@ -15,7 +15,7 @@ y <- X %*% beta + rnorm(N, 0, 1)
 N_hidden <- 10
 
 ## Using L1-norm in the auto-encoder (sparse solution)
-aeRVFL(X = X, y = y, N_hidden = N_hidden, method = "l1")
+aeRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l1")
 
 ## Using L2-norm in the auto-encoder (non-sparse solution)
-aeRVFL(X = X, y = y, N_hidden = N_hidden, method = "l2")
+aeRVFL(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l2")

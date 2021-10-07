@@ -2,12 +2,12 @@
 % Please edit documentation in R/auxiliary_functions_RVFL.R
 \name{residuals.RVFL}
 \alias{residuals.RVFL}
-\title{Residuals of the RVFL object.}
+\title{Residuals of the RVFL-object.}
 \usage{
 \method{residuals}{RVFL}(object, ...)
 }
 \arguments{
-\item{object}{An RVFL-object.}
+\item{object}{An \link{RVFL-object}.}
 
 \item{...}{Additional arguments.}
 }
@@ -15,7 +15,7 @@
 A vector of residuals of the desired '\code{type}' (see details).
 }
 \description{
-Residuals of the RVFL object.
+Residuals of the RVFL-object.
 }
 \details{
 Besides the arguments passed to the '\code{predict}' function, the argument '\code{type}' can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.

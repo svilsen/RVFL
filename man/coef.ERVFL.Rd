@@ -2,12 +2,12 @@
 % Please edit documentation in R/auxiliary_functions_ERVFL.R
 \name{coef.ERVFL}
 \alias{coef.ERVFL}
-\title{Coefficients of the ERVFL object.}
+\title{Coefficients of the ERVFL-object.}
 \usage{
 \method{coef}{ERVFL}(object, ...)
 }
 \arguments{
-\item{object}{An ERVFL-object.}
+\item{object}{An \link{ERVFL-object}.}
 
 \item{...}{Additional arguments.}
 }
@@ -24,7 +24,7 @@ If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following 
 If '\code{method}' was \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
 }
 \description{
-Coefficients of the ERVFL object.
+Coefficients of the ERVFL-object.
 }
 \details{
 The additional argument '\code{type}' is only used if '\code{method}' was \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.

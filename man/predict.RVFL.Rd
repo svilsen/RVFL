@@ -2,12 +2,12 @@
 % Please edit documentation in R/auxiliary_functions_RVFL.R
 \name{predict.RVFL}
 \alias{predict.RVFL}
-\title{Predicting targets of an RVFL object.}
+\title{Predicting targets of an RVFL-object.}
 \usage{
 \method{predict}{RVFL}(object, ...)
 }
 \arguments{
-\item{object}{An RVFL-object.}
+\item{object}{An \link{RVFL-object}.}
 
 \item{...}{Additional arguments.}
 }
@@ -15,7 +15,7 @@
 A vector of predicted targets.
 }
 \description{
-Predicting targets of an RVFL object.
+Predicting targets of an RVFL-object.
 }
 \details{
 The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.

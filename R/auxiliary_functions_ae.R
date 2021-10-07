@@ -1,11 +1,11 @@
 f <- function(W, H, X) { 
     Xhat <- H %*% W
-    0.5 * norm(Xhat - X, "F")^2 
+    return(0.5 * norm(Xhat - X, "F")^2 )
 }
 
 grad_f <- function(W, H, X){ 
     Xhat <- H %*% W
-    return(t(H) %*% (Xhat - X) )
+    return(t(H) %*% (Xhat - X))
 }
 
 g <- function(W) { 
@@ -56,7 +56,7 @@ lasso_ls <- function(H, X, tau = 1,
         if (backtrack) {
             M <- max(f_values[max(i - w, 1):max(i - 1, 1)])
             backtrack_count <- 0
-            continue <- ((f_new - 1e-12) > (M + t(delta_W) %*% grad_f_old + 0.5 * (norm(delta_W, "f")^2) / tau_i)) && (backtrack_count < 20)
+            continue <- any((f_new - 1e-12) > (M + t(delta_W) %*% grad_f_old + 0.5 * (norm(delta_W, "f")^2) / tau_i)) && (backtrack_count < 20)
             while (continue) {
                 tau_i <- tau_i * step_shrink
                 
@@ -67,8 +67,9 @@ lasso_ls <- function(H, X, tau = 1,
                 f_new <- f(D_new, H, X)
                 delta_W <- W_new - W_old
                 
+                dWGf <- t(delta_W) %*% grad_f_old
                 backtrack_count <- backtrack_count + 1
-                continue <- ((f_new - 1e-12) > (M + t(delta_W) %*% grad_f_old + 0.5 * (norm(delta_W, "f")^2) / tau_i)) && (backtrack_count < 20)
+                continue <- any((f_new - 1e-12) > (M + t(delta_W) %*% grad_f_old + 0.5 * (norm(delta_W, "f")^2) / tau_i)) && (backtrack_count < 20)
             }
             
             backtrack_total <- backtrack_total + backtrack_count
@@ -86,7 +87,7 @@ lasso_ls <- function(H, X, tau = 1,
         grad_f_new <- grad_f(D_new, H, X)
         D_g <- grad_f_new + (W_new_hat - W_old) / tau_i
         inner_prod <- t(c(delta_W)) %*% c(D_g)
-        tau_s <- c(norm(delta_W, "f")^2 / inner_prod)
+        tau_s <- max(c(norm(delta_W, "f")^2 / inner_prod))
         tau_m <- inner_prod / norm(D_g, "f")^2
         tau_m <- max(tau_m, 0)
         

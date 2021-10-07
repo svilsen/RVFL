@@ -202,7 +202,7 @@ predict.SRVFL <- function(object, ...) {
     resample <- sample(x = length(object$Weights), size = N_samples, replace = TRUE, prob = object$Weights)
     y_new <- vector("list", N_samples)
     for (b in seq_along(y_new)) {
-        newH_b <- RVFL:::rvfl_forward(
+        newH_b <- rvfl_forward(
             X = newdata, 
             W = object$Samples$W[[resample[b]]], 
             activation = object$activation,

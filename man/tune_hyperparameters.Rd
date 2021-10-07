@@ -15,7 +15,7 @@ tune_hyperparameters(
 )
 }
 \arguments{
-\item{method}{}
+\item{method}{The RVFL method in need to hyper paramter optimisation.}
 
 \item{X}{A matrix of observed features used to train the parameters of the output layer.}
 
@@ -30,7 +30,7 @@ tune_hyperparameters(
 \item{trace}{A numeric indicating how often a trace of should be shown (default is 0).}
 }
 \value{
-An object either of class \link{RVFL} or \link{ERVFL}.
+Either an \link{RVFL-object} or \link{ERVFL-object}.
 }
 \description{
 Simple function for hyper-parameter tuning using k-fold cross-validation.

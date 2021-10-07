@@ -10,15 +10,15 @@ set_weights(object, weights = NULL)
 \method{set_weights}{ERVFL}(object, weights = NULL)
 }
 \arguments{
-\item{object}{An ERVFL-object.}
+\item{object}{An \link{ERVFL-object}.}
 
 \item{weights}{A vector of ensemble weights.}
 }
 \value{
-An ERVFL-object.
+An \link{ERVFL-object}.
 }
 \description{
-Manually set ensemble weights for an ERVFL-object.
+Manually set ensemble weights for an \link{ERVFL-object}.
 }
 \examples{
 N <- 2000

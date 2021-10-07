@@ -2,7 +2,7 @@
 % Please edit documentation in R/auxiliary_functions_SRVFL.R
 \name{predict.SRVFL}
 \alias{predict.SRVFL}
-\title{Predicting targets of an SRVFL object.}
+\title{Predicting targets of an SRVFL-object.}
 \usage{
 \method{predict}{SRVFL}(object, ...)
 }
@@ -15,7 +15,7 @@
 Either a vector or matrix dependent '\code{type}' (see details).
 }
 \description{
-Predicting targets of an SRVFL object.
+Predicting targets of an SRVFL-object.
 }
 \details{
 The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:

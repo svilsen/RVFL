@@ -2,12 +2,12 @@
 % Please edit documentation in R/auxiliary_functions_ERVFL.R
 \name{residuals.ERVFL}
 \alias{residuals.ERVFL}
-\title{Residuals of the ERVFL object.}
+\title{Residuals of the ERVFL-object.}
 \usage{
 \method{residuals}{ERVFL}(object, ...)
 }
 \arguments{
-\item{object}{An ERVFL-object.}
+\item{object}{An \link{ERVFL-object}.}
 
 \item{...}{Additional arguments.}
 }
@@ -15,7 +15,7 @@
 A vector of raw residuals between the predicted (using \code{type = "mean"}) and observed targets.
 }
 \description{
-Residuals of the ERVFL object.
+Residuals of the ERVFL-object.
 }
 \details{
 No additional arguments are used in this instance.

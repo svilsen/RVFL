@@ -2,7 +2,7 @@
 % Please edit documentation in R/auxiliary_functions_SRVFL.R
 \name{coef.SRVFL}
 \alias{coef.SRVFL}
-\title{Coefficients of an SRVFL object.}
+\title{Coefficients of an SRVFL-object.}
 \usage{
 \method{coef}{SRVFL}(object, ...)
 }
@@ -15,7 +15,7 @@
 The weights indicated by \code{parameter}.
 }
 \description{
-Coefficients of an SRVFL object.
+Coefficients of an SRVFL-object.
 }
 \details{
 The only additional argument is \code{parameter} taking the values \code{"W"}, \code{"beta"}, or \code{"sigma"}.

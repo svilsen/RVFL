@@ -14,13 +14,13 @@ Imports:
     methods,
     graphics, 
     grDevices,
-    quadprog
-LinkingTo: 
-    Rcpp, 
-    RcppArmadillo
+    quadprog,
+    utils
+LinkingTo: Rcpp, RcppArmadillo
 Encoding: UTF-8
 RoxygenNote: 7.1.1
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown, 
+    tinytest
 VignetteBuilder: knitr
