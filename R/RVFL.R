@@ -150,14 +150,14 @@ RVFL.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) 
     if (is.null(lambda) | !is.numeric(lambda)) {
         lambda <- 0
         warning("Note: 'lambda' was not supplied/not numeric and set to 0.")
-    } else if (lambda < 0) {
-        lambda <- 0
-        warning("'lambda' has to be a real number larger than or equal to 0.")
-    }
-    
-    if (length(lambda) > 1) {
+    } else if (length(lambda) > 1) {
         lambda <- lambda[1]
         warning("The length of 'lambda' was larger than 1, only the first element will be used.")
+    }
+    
+    if (lambda < 0) {
+        lambda <- 0
+        warning("'lambda' has to be a real number larger than or equal to 0.")
     }
     
     if (is.null(N_features)) {
