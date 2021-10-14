@@ -17,9 +17,9 @@ Diagnostic-plots of an SRVFL-object.
 \details{
 The additional arguments used by the plot.SRVFL function are: 
 \describe{
-   \item{\code{paramter}}{A character indicating the parameter, either "W", "beta", or "sigma".}
+   \item{\code{parameter}}{A character indicating the parameter, either "W", "beta", or "sigma".}
    \item{\code{N_samples}}{The number of samples drawn from the posterior.}
-   \item{\code{index}}{A vector indicating the layer, neuron, and connection to show when \code{paramter = "W"}.}
+   \item{\code{index}}{A vector indicating the layer, neuron, and connection to show when \code{parameter = "W"}.}
    \item{\code{breaks}}{The number of breaks used in the histogram when \code{paramter = "W"} or \code{"sigma"} (default: \code{"fd"}).}
 }
 }

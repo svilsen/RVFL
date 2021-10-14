@@ -18,7 +18,7 @@
 #'     \item{\code{"all":}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
 #' }
 #' 
-#' If '\code{method}' was \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
+#' If '\code{method}' was \code{"boosting"} or \code{"stacking"}, a matrix is returned corresponding to '\code{type == "all"}'.
 #' 
 #' @rdname coef.ERVFL
 #' @method coef ERVFL
@@ -60,7 +60,7 @@ coef.ERVFL <- function(object, ...) {
             return(beta)
         }
         else {
-            stop("The passed value of 'type' was not valid. See '?coef.ERVFL' for valid options of 'type'.")
+            stop("The value of 'type' was not valid, see '?coef.ERVFL' for valid options of 'type'.")
         }
     }
     else {
@@ -146,7 +146,7 @@ predict.ERVFL <- function(object, ...) {
             y_new <- matrix(apply(y_new, 1, sd), ncol = 1)
             return(y_new)
         } else {
-            stop("The passed value of 'type' was not valid. See '?coef.ERVFL' for valid options of 'type'.")
+            stop("The value of 'type' was not valid, see '?predict.ERVFL' for valid options of 'type'.")
         }
     } else {
         y_new <- matrix(apply(y_new, 1, sum), ncol = 1)
@@ -167,8 +167,7 @@ predict.ERVFL <- function(object, ...) {
 #' @method residuals ERVFL
 #' @export
 residuals.ERVFL <- function(object, ...) {
-    dots <- list(...)
-    y_new <- predict(object)
+    y_new <- predict(object, ...)
     
     r <- y_new - object$data$y
     return(r)
@@ -292,7 +291,7 @@ set_weights.ERVFL <- function(object, weights = NULL) {
     }
     
     if (length(weights) != length(object$weights)) {
-        stop("The number of supplied weights have to be equal to the number of bootstrap samples.")
+        stop("The number of supplied weights have to be equal to the number of ensemble weights.")
     }
     
     if (abs(sum(weights) - 1) > 1e-6) {
@@ -330,7 +329,7 @@ estimate_weights <- function(object, X_val = NULL, y_val = NULL) {
 #' @export
 estimate_weights.ERVFL <- function(object, X_val = NULL, y_val = NULL) {
     if (is.null(X_val) || is.null(y_val)) {
-        warning("The validation-set was not properly specified, therefore, the training is used for weight estimation.")
+        warning("The validation-set was not properly specified, therefore, the training-set is used for weight estimation.")
         
         X_val <- object$data$X
         y_val <- object$data$y

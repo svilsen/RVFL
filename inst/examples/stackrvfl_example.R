@@ -19,12 +19,12 @@ lambda <- 0.2
 ## Using the average of the stack to predict new targets
 \dontrun{
 stackRVFL(X = X, y = y, N_hidden = N_hidden, 
-          B = B, lambda = lambda)
+          lambda = lambda, B = B)
 }
 
 ## Using the optimised weighting of the stack to predict new targets
 \dontrun{
 stackRVFL(X = X, y = y, N_hidden = N_hidden, 
-          B = B, lambda = lambda, optimise = TRUE)
+          lambda = lambda, B = B, optimise = TRUE)
 }
 

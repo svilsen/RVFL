@@ -34,16 +34,20 @@
 #' 
 #' @return A list of control variables.
 #' @export
-control_RVFL <- function(N_hidden, lnorm = NULL,
+control_RVFL <- function(N_hidden = NULL, lnorm = NULL,
                          bias_hidden = TRUE, activation = NULL, 
                          bias_output = TRUE, combine_input = FALSE, 
                          include_data = TRUE, N_features = NULL, 
                          rng = "runif", rng_pars = list(min = -1, max = 1)) {
     if (length(N_hidden) < 1) {
-        stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
+        stop("When the number of hidden layers is 0, or left 'NULL', the RVFL reduces to a linear model, see ?lm.")
     }
     
-    if (is.null(lnorm)) {
+    if (!is.numeric(N_hidden)) {
+        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    }
+    
+    if (is.null(lnorm) | !is.character(lnorm)) {
         lnorm <- "l2"
     }
     
@@ -60,7 +64,21 @@ control_RVFL <- function(N_hidden, lnorm = NULL,
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
-    if (is.null(activation)) {
+    if (!is.logical(bias_output)) {
+        stop("'bias_output' has to be 'TRUE'/'FALSE'.")
+    }
+    
+    
+    if (!is.logical(combine_input)) {
+        stop("'combine_input' has to be 'TRUE'/'FALSE'.")
+    }
+    
+    
+    if (!is.logical(include_data)) {
+        stop("'include_data' has to be 'TRUE'/'FALSE'.")
+    }
+    
+    if (is.null(activation) | !is.character(activation)) {
         activation <- "sigmoid"
     }
     
@@ -97,12 +115,12 @@ control_RVFL <- function(N_hidden, lnorm = NULL,
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param control A list of additional arguments passed to the \link{control_RVFL} function.
 #' 
-#' @details The function \code{ELM} is a wrapper for the general \code{RVFL} function without the link between features and targets. Furthermore, notice that \code{dRVFL} is handled by increasing the number of elements passed in \code{N_hidden}.
+#' @details The function \code{ELM} is a wrapper for the general \code{RVFL} function without the link between features and targets. Furthermore, notice that \code{dRVFL} is handled by increasing the number of elements in the \code{N_hidden} vector.
 #' 
 #' @return An \link{RVFL-object}.
 #' 
 #' @export
-RVFL <- function(X, y, N_hidden, lambda = 0, control = list()) {
+RVFL <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("RVFL")
 }
 
@@ -112,7 +130,7 @@ RVFL <- function(X, y, N_hidden, lambda = 0, control = list()) {
 #' @example inst/examples/rvfl_example.R
 #' 
 #' @export
-RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
+RVFL.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden
     control <- do.call(control_RVFL, control)
@@ -129,9 +147,9 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     dc <- data_checks(y, X)
     
     # Regularisation
-    if (is.null(lambda)) {
+    if (is.null(lambda) | !is.numeric(lambda)) {
         lambda <- 0
-        warning("Note: 'lambda' was not supplied and set to 0.")
+        warning("Note: 'lambda' was not supplied/not numeric and set to 0.")
     } else if (lambda < 0) {
         lambda <- 0
         warning("'lambda' has to be a real number larger than or equal to 0.")
@@ -139,15 +157,20 @@ RVFL.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     
     if (length(lambda) > 1) {
         lambda <- lambda[1]
-        warning("The length of 'lambda' was larger than 1; continuing analysis using only the first element.")
+        warning("The length of 'lambda' was larger than 1, only the first element will be used.")
     }
     
     if (is.null(N_features)) {
-        N_features <- dim(X)[2]
+        N_features <- ncol(X)
+    }
+    
+    if (length(N_features) > 1) {
+        N_features <- N_features[1]
+        warning("The length of 'N_features' was larger than 1, only the first element will be used.")
     }
     
     if ((N_features < 1) || (N_features > dim(X)[2])) {
-        stop("'N_features' have to be in the interval [1; dim(X)[2]].")
+        stop("'N_features' have to be between 1 and the total number of features.")
     }
     
     ## Creating random weights
@@ -215,4 +238,3 @@ ELM <- function(X, y, N_hidden, lambda = 0, control = list()) {
     object <- do.call(RVFL, elm_object)
     return(object)
 }
-    

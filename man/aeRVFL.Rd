@@ -5,9 +5,9 @@
 \alias{aeRVFL.default}
 \title{Random vector functional link}
 \usage{
-aeRVFL(X, y, N_hidden, lambda = 0, method = "l1", control = list())
+aeRVFL(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
 
-\method{aeRVFL}{default}(X, y, N_hidden, lambda = 0, method = "l1", control = list())
+\method{aeRVFL}{default}(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to train the parameters of the output layer.}

@@ -6,9 +6,9 @@
 \alias{ELM}
 \title{Random vector functional link}
 \usage{
-RVFL(X, y, N_hidden, lambda = 0, control = list())
+RVFL(X, y, N_hidden = c(), lambda = NULL, control = list())
 
-\method{RVFL}{default}(X, y, N_hidden, lambda = 0, control = list())
+\method{RVFL}{default}(X, y, N_hidden = c(), lambda = NULL, control = list())
 
 ELM(X, y, N_hidden, lambda = 0, control = list())
 }
@@ -30,7 +30,7 @@ An \link{RVFL-object}.
 Set-up and estimate weights of a random vector functional link neural network.
 }
 \details{
-The function \code{ELM} is a wrapper for the general \code{RVFL} function without the link between features and targets. Furthermore, notice that \code{dRVFL} is handled by increasing the number of elements passed in \code{N_hidden}.
+The function \code{ELM} is a wrapper for the general \code{RVFL} function without the link between features and targets. Furthermore, notice that \code{dRVFL} is handled by increasing the number of elements in the \code{N_hidden} vector.
 }
 \examples{
 N <- 2000

@@ -13,18 +13,22 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X %*% beta + rnorm(N, 0, 1)
 
 N_hidden <- 10
+lambda <- 1
 
 ## Returning an RVFL object using just the MAP estimate of the weights
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "map"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, control = list(method = "map"))
 }
 
 ## Returning an ERVFL object resampling weights from the created posterior sample
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "stack"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, control = list(method = "stack"))
 }
 
 ## Returning an SRVFL object of the sampled posterior
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "posterior"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, control = list(method = "posterior"))
 }

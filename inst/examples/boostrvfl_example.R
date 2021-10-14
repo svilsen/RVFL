@@ -17,6 +17,6 @@ B <- 10
 epsilon <- 0.2
 lambda <- 0.2
 \dontrun{
-boostRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
-          lambda = lambda, epsilon = epsilon)
+boostRVFL(X = X, y = y, N_hidden = N_hidden, 
+          lambda = lambda, B = B, epsilon = epsilon)
 }

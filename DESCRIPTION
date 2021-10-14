@@ -2,14 +2,13 @@ Package: RVFL
 Type: Package
 Title: Random Vector Funtional Link Neural Network Models
 Version: 0.1
-Date: 2020-11-11
+Date: 2021-10-14
 Author: Søren B. Vilsen
 Maintainer: Søren B. Vilsen <svilsen@math.aau.dk>
 Description: Creation, estimation, and prediction of random vector functional link neural networks (RVFL), including popular variants like extreme learning machines (ELM), sparse RVFL (spRVFL), and deep RVFL (dRVFL). It further allows for the creation of ensemble RVFLs like bagging RVFL (bagRVFL), boosting RVFL (boostRVFL), stacking RVFL (stackRVFL), and ensemble deep RVFL (edRVFL).
 License: MIT + file LICENSE
 Imports: 
     Rcpp (>= 1.0.4.6), 
-    Rsolnp, 
     stats, 
     methods,
     graphics, 

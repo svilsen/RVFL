@@ -9,14 +9,14 @@
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param B The number of bootstrap samples.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
+#' @param B The number of bootstrap samples.
 #' @param control A list of additional arguments passed to the \link{control_RVFL} function.
 #' 
 #' @return An \link{ERVFL-object}.
 #' 
 #' @export
-bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, control = list()) {
+bagRVFL <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
     UseMethod("bagRVFL")
 }
 
@@ -26,13 +26,13 @@ bagRVFL <- function(X, y, N_hidden, B = 100, lambda = 0, control = list()) {
 #' @example inst/examples/bagrvfl_example.R
 #' 
 #' @export
-bagRVFL.default <- function(X, y, N_hidden, B = 100, lambda = 0, control = list()) {
+bagRVFL.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
-    if (is.null(B)) {
+    if (is.null(B) | !is.numeric(B)) {
         B <- 100
-        warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
+        warning("Note: 'B' was not supplied, 'B' was set to 100.")
     }
     
     if (is.null(control$N_features)) {

@@ -35,7 +35,7 @@ predict.RVFL <- function(object, ...) {
     
     if (is.null(dots$newdata)) {
         if (is.null(object$data)) {
-            stop("The RVFL-object does not contain any data: \nEither supply 'newdata', or re-create object with 'include_data = TRUE' (default).")
+            stop("The RVFL-object does not contain any data: Either supply 'newdata', or re-create object with 'include_data = TRUE' (default).")
         }
         
         newdata <- object$data$X
@@ -90,22 +90,7 @@ residuals.RVFL <- function(object, ...) {
         type <- "raw"
     }
     
-    if (is.null(dots$newdata)) {
-        if (is.null(object$data)) {
-            stop("The RVFL-object does not contain any data: \nEither supply 'newdata', or re-create RVFL-object with 'include_data = TRUE' (default).")
-        }
-        
-        newdata <- object$data$X
-    }
-    else {
-        if (dim(dots$newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
-            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
-        }
-        
-        newdata <- dots$newdata
-    }
-    
-    newy <- predict.RVFL(object, newdata = newdata, ...)
+    newy <- predict.RVFL(object, ...)
     
     r <- newy - object$data$y
     if (tolower(type) %in% c("standard", "standardised", "rs")) {        
@@ -132,7 +117,7 @@ plot.RVFL <- function(x, ...) {
     dots <- list(...)
     if (is.null(dots$X_val) || is.null(dots$y_val)) {
         if (is.null(x$data)) {
-            stop("The RVFL-object does not contain any data: \nEither supply 'X_val' and 'y_val', or re-create RVFL-object with 'include_data = TRUE' (default).")
+            stop("The RVFL-object does not contain any data: Either supply 'X_val' and 'y_val', or re-create RVFL-object with 'include_data = TRUE' (default).")
         }
         
         X_val <- x$data$X

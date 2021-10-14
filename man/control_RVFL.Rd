@@ -5,7 +5,7 @@
 \title{RVFL control function}
 \usage{
 control_RVFL(
-  N_hidden,
+  N_hidden = NULL,
   lnorm = NULL,
   bias_hidden = TRUE,
   activation = NULL,

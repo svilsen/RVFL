@@ -129,17 +129,17 @@ coef.SRVFL <- function(object, ...) {
         parameter <- tolower(dots$parameter)
     }
     
-    if (parameter == "W") {
+    if (parameter == "w") {
         return(object$Samples$W)
     }
     else if (parameter == "beta") {
-        return(object$Samples$beta)
+        return(object$Samples$Beta)
     }
     else if (parameter == "sigma") {
-        return(object$Samples$sigma)
+        return(object$Samples$Sigma)
     }
     else {
-        stop("The value of 'parameter' was not valid.")
+        stop("The value of 'parameter' was not valid, see '?coef.SRVFL' for valid options of 'parameter'.")
     }
 }
 
@@ -166,7 +166,7 @@ predict.SRVFL <- function(object, ...) {
     
     ##
     type <- dots$type
-    if (is.null(type)) {
+    if (is.null(type) | !is.character(type)) {
         type <- "mean"
     } else {
         type <- tolower(type)
@@ -174,13 +174,13 @@ predict.SRVFL <- function(object, ...) {
     
     ##
     N_samples <- dots$N_samples
-    if (is.null(N_samples)) {
+    if (is.null(N_samples) | !is.numeric(N_samples)) {
         N_samples <- 1000
     }
     
     ##
     p <- dots$p
-    if (is.null(p)) {
+    if (is.null(p) | !is.numeric(p)) {
         p <- 0.95
     }
     
@@ -237,7 +237,7 @@ predict.SRVFL <- function(object, ...) {
         y_new <- t(apply(y_new, 1, quantile, prob = alpha))
         return(y_new)
     } else {
-        stop("The value of 'type' was not valid.")
+        stop("The value of 'type' was not valid, see '?predict.SRVFL' for valid options of 'type'.")
     }
 }
 
@@ -249,9 +249,9 @@ predict.SRVFL <- function(object, ...) {
 #' 
 #' @details The additional arguments used by the plot.SRVFL function are: 
 #' \describe{
-#'    \item{\code{paramter}}{A character indicating the parameter, either "W", "beta", or "sigma".}
+#'    \item{\code{parameter}}{A character indicating the parameter, either "W", "beta", or "sigma".}
 #'    \item{\code{N_samples}}{The number of samples drawn from the posterior.}
-#'    \item{\code{index}}{A vector indicating the layer, neuron, and connection to show when \code{paramter = "W"}.}
+#'    \item{\code{index}}{A vector indicating the layer, neuron, and connection to show when \code{parameter = "W"}.}
 #'    \item{\code{breaks}}{The number of breaks used in the histogram when \code{paramter = "W"} or \code{"sigma"} (default: \code{"fd"}).}
 #' }
 #' 
@@ -265,8 +265,8 @@ plot.SRVFL <- function(x, ...) {
     dots <- list(...)
     if (is.null(dots$parameter)) {
         parameter <- "beta"
-    } else if (dots$parameter %in% c("W", "beta", "sigma")) {
-        parameter <- dots$parameter
+    } else if (tolower(dots$parameter) %in% c("w", "beta", "sigma")) {
+        parameter <- tolower(dots$parameter)
     } 
     
     if (is.null(dots$N_samples)) {
@@ -282,7 +282,7 @@ plot.SRVFL <- function(x, ...) {
     }
     
     resample <- sample(x = length(x$weights), size = N_samples, replace = TRUE, prob = x$weights)
-    if (parameter == "W") {
+    if (parameter == "w") {
         if (is.null(dots$index)) {
             warning("The index of chosen 'W' was not found setting it to c(1, 1, 1).")
             index <- c(1, 1, 1)

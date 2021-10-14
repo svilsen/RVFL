@@ -27,11 +27,11 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     } else {
         method_name <- suppressWarnings(methods(method))
         if (!grepl(pattern = "RVFL", x = method_name[1])) {
-            stop("Only implemented for 'RVFL' and 'ERVFL' methods.")
+            stop("The tuning function is only implemented for 'RVFL' and 'ERVFL' methods.")
         }
         
         if (grepl(pattern = "sampleRVFL", x = method_name[1])) {
-            stop("Support for 'sampleRVFL' is not yet implemented.")
+            warning("Support for 'sampleRVFL' is not implemented.")
         }
     }
     
@@ -40,21 +40,22 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     
     #
     if (is.null(folds) | !is.numeric(folds)) {
-        folds <- 10
-        warning("'folds' was either 'NULL' or not numeric... setting 'folds = 10'.") 
+        stop("'folds' was either 'NULL' or not numeric.") 
     }
     
     if (folds < 1) {
-        folds <- 1
-        warning("'folds' was smaller than 1... setting 'folds = 1'.") 
+        folds <- 3
+        warning("'folds' was smaller than 1, setting 'folds' to 3.")
+    } else if (folds == 1) {
+        warning("'folds' was equal to 1, this is not recommended, as no validation set is generated.")
     } else if (folds > nrow(X)) {
         folds <- nrow(X)
-        warning("'folds' was larger than the number of observations... setting 'folds = nrow(X)'.")
+        warning("'folds' was larger than the number of observations, setting 'folds' equal to the number of observations.")
     }
     
     if (is.null(trace) | !is.numeric(trace)) {
         trace <- 0
-        warning("'trace' was either 'NULL' or not numeric... setting 'trace = 0'.") 
+        warning("'trace' was either 'NULL' or not numeric, setting 'trace' to 0.") 
     }
     
     # 
@@ -83,11 +84,20 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
         
         for (j in seq_along(folds_index)) {
             ##
-            X_train_i <- matrix(X[-folds_index[[j]], ], ncol = ncol(X))
-            y_train_i <- matrix(y[-folds_index[[j]], ], ncol = ncol(y))
-            
-            X_val_i <- matrix(X[folds_index[[j]], ], ncol = ncol(X))
-            y_val_i <- matrix(y[folds_index[[j]], ], ncol = ncol(y))
+            if (folds > 1) {
+                X_train_i <- matrix(X[-folds_index[[j]], ], ncol = ncol(X))
+                y_train_i <- matrix(y[-folds_index[[j]], ], ncol = ncol(y))
+                
+                X_val_i <- matrix(X[folds_index[[j]], ], ncol = ncol(X))
+                y_val_i <- matrix(y[folds_index[[j]], ], ncol = ncol(y))
+            }
+            else {
+                X_train_i <- X
+                y_train_i <- y
+                
+                X_val_i <- X
+                y_val_i <- y
+            }
             
             ##
             model_args_ij <- list(X = X_train_i, y = y_train_i, control = control)
@@ -120,7 +130,7 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     }
     
     model_best <- do.call(method, model_best_args)
-    return(model_ij)
+    return(model_best)
 }
 
 

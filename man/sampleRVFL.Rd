@@ -5,9 +5,9 @@
 \alias{sampleRVFL.default}
 \title{Sampling random vector functional links}
 \usage{
-sampleRVFL(X, y, N_hidden, lambda = 1, control = list())
+sampleRVFL(X, y, N_hidden = c(), lambda = NULL, control = list())
 
-\method{sampleRVFL}{default}(X, y, N_hidden, lambda = 1, control = list())
+\method{sampleRVFL}{default}(X, y, N_hidden = c(), lambda = NULL, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -47,19 +47,23 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X \%*\% beta + rnorm(N, 0, 1)
 
 N_hidden <- 10
+lambda <- 1
 
 ## Returning an RVFL object using just the MAP estimate of the weights
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "map"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, control = list(method = "map"))
 }
 
 ## Returning an ERVFL object resampling weights from the created posterior sample
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "stack"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, control = list(method = "stack"))
 }
 
 ## Returning an SRVFL object of the sampled posterior
 \dontrun{
-sampleRVFL(X = X, y = y, N_hidden = N_hidden, control = list(method = "posterior"))
+sampleRVFL(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, control = list(method = "posterior"))
 }
 }

@@ -21,7 +21,7 @@ If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following 
     \item{\code{"all":}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
 }
 
-If '\code{method}' was \code{"boosting"}, a matrix is returned corresponding to '\code{type == "all"}'.
+If '\code{method}' was \code{"boosting"} or \code{"stacking"}, a matrix is returned corresponding to '\code{type == "all"}'.
 }
 \description{
 Coefficients of the ERVFL-object.

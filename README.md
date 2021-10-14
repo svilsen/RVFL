@@ -1,16 +1,16 @@
 # RVFL
-The `RVFL`-package implements a variaty of Random Vector Functional Link (RVFL) Neural Network. In RVFL neural networks the weights are randomly initialised, but only the weights between last hidden-layer and the output-layer are fitted using the training data. If the activation function of the last hidden-layer is forced to be linear, and the loss-function is the sum of squared errors, then the resulting optimisation problem is equivalent to that of a linear model, making optimisation fast and efficient. 
+The `RVFL`-package implements a variaty of Random Vector Functional Link (RVFL) Neural Network. In RVFL neural networks the weights are randomly initialised, but only the weights between last hidden-layer and the output-layer are fitted using the training data. If the activation function of the last hidden-layer is forced to be linear, and the loss-function is the sum of squared errors, then the resulting optimisation problem is equivalent to that of a linear model, making optimisation fast and efficient. Besides the standard RVFL this package also implements popular variants like extreme learning machines (ELM), sparse RVFL (spRVFL), and deep RVFL (dRVFL). It further allows for the creation of ensemble RVFLs like bagging RVFL (bagRVFL), boosting RVFL (boostRVFL), stacking RVFL (stackRVFL), and ensemble deep RVFL (edRVFL). Lastly, it allows for both L1 and L2 penalisation when estimating the output weights.
 
 ## Installation
 
-The `RVFL`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `Rsolnp`. As the package is not available on CRAN, devtools is needed to install the package from github. 
+The `RVFL`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `quadprog`. As the package is not available on CRAN, devtools is needed to install the package from github. 
 
 From R, run the following commands:  
 
 ```r
 install.packages("Rcpp")
 install.packages("RcppArmadillo")
-install.packages("Rsolnp")
+install.packages("quadprog")
 
 install.packages("devtools")
 devtools::install_github("svilsen/RVFL")
@@ -21,22 +21,19 @@ In the following the data is randomly generated and split into training and vali
 
 ```r
 ## Data set-up
-# Number of observations
-N <- 500
+N <- 2000
+p <- 5
 
-# Number of features
-p <- 50 
+s <- seq(0, pi, length.out = N)
+X <- matrix(NA, ncol = p, nrow = N)
+X[, 1] <- sin(s)
+X[, 2] <- cos(s)
+X[, 3] <- s
+X[, 4] <- s^2
+X[, 5] <- s^3
 
-# Features 
-X <- matrix(rnorm(p * N), ncol = p) 
-
-# Response
-y <- matrix(
-    0.2 * sin(X[, 1]) + 0.8 * exp(X[, 2]) + 2 * cos(X[, 3]) +
-        1.2 * X[, 4] + 0.6 * abs(X[, 5]) + X[, 6:p] %*% rnorm(p - 5) + 
-        rnorm(N, sd = 0.5), 
-    ncol = 1
-)
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X %*% beta + rnorm(N, 0, 1)
 
 ## Split data into training and validtion sets
 proportion_training <- 0.7
@@ -52,15 +49,20 @@ y_train <- matrix(y[index_training, ], ncol = 1)
 y_val <- matrix(y[index_validation, ], ncol = 1)
 
 ## Fitting models
-# Number of hidden-layers and neurons in each layer.
-N_hidden <- 10
-m1 <- RVFL(X = X_train, y = y_train, N_hidden = N_hidden, lambda = 0.3, combine_input = TRUE)
+N_hidden <- c(10, 10)
+lambda <- 0.025
 
-# Number of bootstrap samples
+# RVFL
+m_rvfl <- RVFL(X = X_train, y = y_train, N_hidden = N_hidden, lambda = lambda, 
+               control = list(combine_input = TRUE))
+
+# Bagged RVFL
 B <- 100 
-m2 <- bagRVFL(X = X_train, y = y_train, N_hidden = N_hidden, B = B, lambda = 0.3, combine_input = TRUE, include_data = FALSE)
-m3 <- estimate_weights(m2, X_val = X_val, y_val = y_val)
-
+m_bagrvfl <- bagRVFL(X = X_train, y = y_train, lambda = lambda, N_hidden = N_hidden, B = B, 
+                     control = list(combine_input = TRUE, include_data = FALSE))
+             
+# Bagged RVFL with trained weights        
+m_bagrvfl_ew <- estimate_weights(m_bagrvfl, X_val = X_val, y_val = y_val)
 ```
 
 ## License

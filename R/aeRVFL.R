@@ -16,7 +16,7 @@
 #' @return An \link{RVFL-object}.
 #' 
 #' @export
-aeRVFL <- function(X, y, N_hidden, lambda = 0, method = "l1", control = list()) {
+aeRVFL <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
     UseMethod("aeRVFL")
 }
 
@@ -26,11 +26,11 @@ aeRVFL <- function(X, y, N_hidden, lambda = 0, method = "l1", control = list()) 
 #' @example inst/examples/aervfl_example.R
 #' 
 #' @export
-aeRVFL.default <- function(X, y, N_hidden, lambda = 0, method = "l1", control = list()) {
+aeRVFL.default <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
     ## Creating control object 
     if (length(N_hidden) > 1) {
         N_hidden <- N_hidden[1]
-        warning("More than one hidden was, but this method is designed with a single hidden layer in mind, thus, only the first element is used.")
+        warning("More than one hidden was found, but this method is designed with a single hidden layer in mind, therefore, only the first element 'N_hidden' is used.")
     }
     
     control$N_hidden <- N_hidden
@@ -57,15 +57,20 @@ aeRVFL.default <- function(X, y, N_hidden, lambda = 0, method = "l1", control = 
     
     if (length(lambda) > 1) {
         lambda <- lambda[1]
-        warning("The length of 'lambda' was larger than 1; continuing analysis using only the first element.")
+        warning("The length of 'lambda' was larger than 1, only the first element will be used.")
     }
     
     if (is.null(N_features)) {
-        N_features <- dim(X)[2]
+        N_features <- ncol(X)
+    }
+    
+    if (length(N_features) > 1) {
+        N_features <- N_features[1]
+        warning("The length of 'N_features' was larger than 1, only the first element will be used.")
     }
     
     if ((N_features < 1) || (N_features > dim(X)[2])) {
-        stop("'N_features' have to be in the interval [1; dim(X)[2]].")
+        stop("'N_features' have to be between 1 and the total number of features.")
     }
     
     ## Creating random weights

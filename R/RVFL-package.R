@@ -10,8 +10,6 @@
 #' 
 #' @importFrom stats coef predict runif sd rnorm dnorm quantile
 #' 
-#' @importFrom Rsolnp solnp
-#' 
 #' @importFrom graphics plot abline boxplot hist
 #' 
 #' @importFrom grDevices dev.hold dev.flush

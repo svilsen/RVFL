@@ -5,9 +5,25 @@
 \alias{boostRVFL.default}
 \title{Boosting random vector functional links}
 \usage{
-boostRVFL(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list())
+boostRVFL(
+  X,
+  y,
+  N_hidden = c(),
+  lambda = NULL,
+  B = 10,
+  epsilon = 1,
+  control = list()
+)
 
-\method{boostRVFL}{default}(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list())
+\method{boostRVFL}{default}(
+  X,
+  y,
+  N_hidden = c(),
+  lambda = NULL,
+  B = 10,
+  epsilon = 1,
+  control = list()
+)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -16,9 +32,9 @@ boostRVFL(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list())
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{B}{The number of levels used in the boosting tree.}
-
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
+
+\item{B}{The number of levels used in the boosting tree.}
 
 \item{epsilon}{The learning rate.}
 
@@ -50,7 +66,7 @@ B <- 10
 epsilon <- 0.2
 lambda <- 0.2
 \dontrun{
-boostRVFL(X = X, y = y, N_hidden = N_hidden, B = B, 
-          lambda = lambda, epsilon = epsilon)
+boostRVFL(X = X, y = y, N_hidden = N_hidden, 
+          lambda = lambda, B = B, epsilon = epsilon)
 }
 }

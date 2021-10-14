@@ -9,15 +9,15 @@
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param B The number of levels used in the boosting tree.
 #' @param lambda The penalisation constant used when training the output layers of each RVFL.
+#' @param B The number of levels used in the boosting tree.
 #' @param epsilon The learning rate.
 #' @param control A list of additional arguments passed to the \link{control_RVFL} function.
 #' 
 #' @return An \link{ERVFL-object}.
 #' 
 #' @export
-boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list()) {
+boostRVFL <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
     UseMethod("boostRVFL")
 }
 
@@ -27,16 +27,16 @@ boostRVFL <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control =
 #' @example inst/examples/boostrvfl_example.R
 #' 
 #' @export
-boostRVFL.default <- function(X, y, N_hidden, B = 10, lambda = 0, epsilon = 1, control = list()) {
+boostRVFL.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
-    if (is.null(B)) {
+    if (is.null(B) | !is.numeric(B)) {
         B <- 10
-        warning(paste0("Note: 'B' was not supplied, 'B' was set to ", B, "."))
+        warning("Note: 'B' was not supplied, 'B' was set to 10.")
     }
     
-    if (is.null(epsilon)) {
+    if (is.null(epsilon) | !is.numeric(epsilon)) {
         epsilon <- 1
         warning("Note: 'epsilon' was not supplied and set to 1.")
     }

@@ -8,9 +8,9 @@
 stackRVFL(
   X,
   y,
-  N_hidden,
+  N_hidden = c(),
+  lambda = NULL,
   B = 100,
-  lambda = 0,
   optimise = FALSE,
   folds = 10,
   control = list()
@@ -19,9 +19,9 @@ stackRVFL(
 \method{stackRVFL}{default}(
   X,
   y,
-  N_hidden,
+  N_hidden = c(),
+  lambda = NULL,
   B = 100,
-  lambda = 0,
   optimise = FALSE,
   folds = 10,
   control = list()
@@ -34,9 +34,9 @@ stackRVFL(
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{B}{The number of models in the stack.}
-
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
+
+\item{B}{The number of models in the stack.}
 
 \item{optimise}{TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)?}
 
@@ -72,13 +72,13 @@ lambda <- 0.2
 ## Using the average of the stack to predict new targets
 \dontrun{
 stackRVFL(X = X, y = y, N_hidden = N_hidden, 
-          B = B, lambda = lambda)
+          lambda = lambda, B = B)
 }
 
 ## Using the optimised weighting of the stack to predict new targets
 \dontrun{
 stackRVFL(X = X, y = y, N_hidden = N_hidden, 
-          B = B, lambda = lambda, optimise = TRUE)
+          lambda = lambda, B = B, optimise = TRUE)
 }
 
 }

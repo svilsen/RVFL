@@ -16,5 +16,5 @@ N_hidden <- 100
 B <- 1000
 lambda <- 0.2
 \dontrun{
-bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = lambda)
+bagRVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, B = B)
 }

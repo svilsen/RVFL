@@ -5,9 +5,9 @@
 \alias{bagRVFL.default}
 \title{Bagging random vector functional links.}
 \usage{
-bagRVFL(X, y, N_hidden, B = 100, lambda = 0, control = list())
+bagRVFL(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list())
 
-\method{bagRVFL}{default}(X, y, N_hidden, B = 100, lambda = 0, control = list())
+\method{bagRVFL}{default}(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
@@ -16,9 +16,9 @@ bagRVFL(X, y, N_hidden, B = 100, lambda = 0, control = list())
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{B}{The number of bootstrap samples.}
-
 \item{lambda}{The penalisation constant used when training the output layers of each RVFL.}
+
+\item{B}{The number of bootstrap samples.}
 
 \item{control}{A list of additional arguments passed to the \link{control_RVFL} function.}
 }
@@ -47,6 +47,6 @@ N_hidden <- 100
 B <- 1000
 lambda <- 0.2
 \dontrun{
-bagRVFL(X = X, y = y, N_hidden = N_hidden, B = B, lambda = lambda)
+bagRVFL(X = X, y = y, N_hidden = N_hidden, lambda = lambda, B = B)
 }
 }

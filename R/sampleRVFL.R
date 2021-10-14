@@ -34,37 +34,66 @@ control_sampleRVFL <- function(N_hidden, lnorm = NULL,
                                bias_output = TRUE, combine_input = FALSE, include_data = TRUE,
                                N_simulations = 4000, N_burnin = 1000, N_resample = 100, 
                                tau = 0.01, method = NULL, trace = NULL) {
+    if (is.null(N_simulations) | !is.numeric(N_simulations)) {
+        stop("'N_simulations' has to be numeric.")
+    } 
+    
     if (N_simulations < 1) {
         stop("'N_simulations' has to be larger than 0.")
+    } 
+    
+    if (is.null(N_burnin) | !is.numeric(N_burnin)) {
+        stop("'N_burnin' has to be numeric.")
     } 
     
     if (N_simulations < N_burnin) {
         stop("'N_burnin' has be smaller than 'N_simulations'.")
     }
     
-    if (is.null(method)) {
+    if (is.null(method) | !is.character(method)) {
         method <- "stack"
     }
     
+    if (method %in% c("m", "map", "maxap", "maximumaposterior")) {
+        method <- "map"
+    }
+    else if (method %in% c("stack", "stacking", "averageing")) {
+        method <- "stack"
+    }
+    else if (method %in% c("post", "posterior")) {
+        method <- "posterior"
+    }
+    else {
+        stop("The argument supplied to 'method' is not implemented, please set method to 'map', 'stack', or 'posterior'.")
+    }
+        
     if (method == "stack") {
+        if (is.null(N_resample) | !is.numeric(N_resample)) {
+            stop("'N_resample' has to be numeric.")
+        }
+        
         if (N_resample > (N_simulations - N_burnin)) {
             stop("'N_resample' has be smaller than 'N_simulations - N_burnin'.")
         }
     }
     
-    if (is.null(trace)) {
+    if (is.null(trace) | !is.numeric(trace)) {
         trace <- 0
     }
     
-    if (is.null(tau)) {
+    if (is.null(tau) | !is.numeric(tau)) {
         tau <- 0.01
     } 
     
     if (length(N_hidden) < 1) {
-        stop("When the number of hidden layers is equal to 0, this model reduces to a linear model, ?lm.")
+        stop("When the number of hidden layers is 0, or left 'NULL', the RVFL reduces to a linear model, see ?lm.")
     }
     
-    if (is.null(lnorm)) {
+    if (!is.numeric(N_hidden)) {
+        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    }
+    
+    if (is.null(lnorm) | !is.character(lnorm)) {
         lnorm <- "l2"
     }
     
@@ -81,7 +110,21 @@ control_sampleRVFL <- function(N_hidden, lnorm = NULL,
         stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
     }
     
-    if (is.null(activation)) {
+    if (!is.logical(bias_output)) {
+        stop("'bias_output' has to be 'TRUE'/'FALSE'.")
+    }
+    
+    
+    if (!is.logical(combine_input)) {
+        stop("'combine_input' has to be 'TRUE'/'FALSE'.")
+    }
+    
+    
+    if (!is.logical(include_data)) {
+        stop("'include_data' has to be 'TRUE'/'FALSE'.")
+    }
+    
+    if (is.null(activation) | !is.character(activation)) {
         activation <- "sigmoid"
     }
     
@@ -121,7 +164,7 @@ control_sampleRVFL <- function(N_hidden, lnorm = NULL,
 #' }
 #' 
 #' @export
-sampleRVFL <- function(X, y, N_hidden, lambda = 1, control = list()) {
+sampleRVFL <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("sampleRVFL")
 }
 
@@ -131,7 +174,7 @@ sampleRVFL <- function(X, y, N_hidden, lambda = 1, control = list()) {
 #' @example inst/examples/samplervfl_example.R
 #' 
 #' @export
-sampleRVFL.default <- function(X, y, N_hidden, lambda = 1, control = list()) {
+sampleRVFL.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden
     control <- do.call(control_sampleRVFL, control)
@@ -164,7 +207,7 @@ sampleRVFL.default <- function(X, y, N_hidden, lambda = 1, control = list()) {
         )
         
         class(object) <- "RVFL"
-    } else if (control$method %in% c("stack", "stacking", "averageing")) {
+    } else if (control$method == "stack") {
         ##
         N_simulations <- control$N_simulations
         N_burnin <- control$N_burnin
@@ -212,7 +255,10 @@ sampleRVFL.default <- function(X, y, N_hidden, lambda = 1, control = list()) {
         )  
         
         class(object) <- "ERVFL"
-    } else if (control$method %in% c("post", "posterior")) {
+    } else if (control$method == "posterior") {
+        N_simulations <- control$N_simulations
+        N_burnin <- control$N_burnin
+        
         p <- exp(loglikelihoods - min(loglikelihoods))
         p <- p / sum(p)
         
@@ -240,9 +286,7 @@ sampleRVFL.default <- function(X, y, N_hidden, lambda = 1, control = list()) {
         )
         
         class(object) <- "SRVFL"
-    } else {
-        stop("The argument supplied to 'method' is not implemented, please set method to 'map', 'stack', or 'posterior'.")
-    }
+    } 
     
     return(object)
 }
