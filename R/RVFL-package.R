@@ -34,6 +34,7 @@ NULL
 #'     \item{\code{data}}{The original data used to estimate the weights.}
 #'     \item{\code{N_hidden}}{The vector of neurons in each layer.}
 #'     \item{\code{activation}}{The vector of the activation functions used in each layer.}
+#'     \item{\code{lambda}}{The penalisation constant used when estimating the output weights.}
 #'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
 #'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
 #'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
@@ -63,11 +64,17 @@ NULL
 #' @description An SRVFL-object is a list containing the following:
 #' \describe{
 #'     \item{\code{data}}{The original data used to estimate the weights.}
-#'     \item{\code{RVFLmodels}}{A list with each element being an \link{RVFL-object}.}
-#'     \item{\code{weights}}{A vector of ensemble weights.}
-#'     \item{\code{method}}{A string indicating the method.}
+#'     \item{\code{N_hidden}}{The vector of neurons in each layer.}
+#'     \item{\code{activation}}{The vector of the activation functions used in each layer.}
+#'     \item{\code{lambda}}{The penalisation constant used when estimating the output weights.}
+#'     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
+#'     \item{\code{Samples}}{The sampled hidden weights and corresponding beta and sigma values for every sample.}
+#'     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
+#'     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
+#'     \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
 #' }
 #' 
 #' @name SRVFL-object
 #' @rdname SRVFL-object
 NULL
+
