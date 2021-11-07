@@ -44,7 +44,7 @@ create_folds <- function(X, folds) {
 #' 
 #' @description Simple error functions for finding MSE, RMSE, MAE, and MAPE. 
 #' 
-#' @param object A model object
+#' @param object A model object.
 #' @param X A matrix of observed features.
 #' @param y A vector of observed targets.
 #' 

@@ -1,23 +1,22 @@
-# RVFL
-The `RVFL`-package implements a variaty of Random Vector Functional Link (RVFL) Neural Network. In RVFL neural networks the weights are randomly initialised, but only the weights between last hidden-layer and the output-layer are fitted using the training data. If the activation function of the last hidden-layer is forced to be linear, and the loss-function is the sum of squared errors, then the resulting optimisation problem is equivalent to that of a linear model, making optimisation fast and efficient. Besides the standard RVFL this package also implements popular variants like extreme learning machines (ELM), sparse RVFL (spRVFL), and deep RVFL (dRVFL). It further allows for the creation of ensemble RVFLs like bagging RVFL (bagRVFL), boosting RVFL (boostRVFL), stacking RVFL (stackRVFL), and ensemble deep RVFL (edRVFL). Lastly, it allows for both L1 and L2 penalisation when estimating the output weights.
+# RWNN
+The `RWNN`-package implements a variaty of Random Weight Neural Network (RWNN). In RWNNs the weights are randomly initialised, but only the weights between last hidden-layer and the output-layer are fitted using the training data. If the activation function of the last hidden-layer is forced to be linear, and the loss-function is the sum of squared errors, then the resulting optimisation problem is equivalent to that of a linear model, making optimisation fast and efficient. Besides the standard RWNN this package also implements popular variants like extreme learning machines (ELM), sparse RWNN (spRWNN), and deep RWNN (dRWNN). It further allows for the creation of ensemble RWNNs like bagging RWNN (bagRWNN), boosting RWNN (boostRWNN), stacking RWNN (stackRWNN), and ensemble deep RWNN (edRWNN). Lastly, it allows for both L1 and L2 penalisation when estimating the output weights.
 
 ## Installation
 
-The `RVFL`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `quadprog`. As the package is not available on CRAN, devtools is needed to install the package from github. 
+The `RWNN`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `quadprog`. As the package is not available on CRAN, devtools is needed to install the package from github. 
 
 From R, run the following commands:  
-
 ```r
 install.packages("Rcpp")
 install.packages("RcppArmadillo")
 install.packages("quadprog")
 
 install.packages("devtools")
-devtools::install_github("svilsen/RVFL")
+devtools::install_github("svilsen/RWNN")
 ```
 
 ## Usage
-In the following the data is randomly generated and split into training and validation sets. After which, three models are fitted: (1) a simple RVFL, (2) a bagged RVFL with equal weighting, and (3) a bagged RVFL where the ensemble weights are optimised using the validation set.
+In the following the data is randomly generated and split into training and validation sets. After which, three models are fitted: (1) a simple RWNN, (2) a bagged RWNN with equal weighting, and (3) a bagged RWNN where the ensemble weights are optimised using the validation set.
 
 ```r
 ## Data set-up
@@ -52,17 +51,17 @@ y_val <- matrix(y[index_validation, ], ncol = 1)
 N_hidden <- c(10, 10)
 lambda <- 0.025
 
-# RVFL
-m_rvfl <- RVFL(X = X_train, y = y_train, N_hidden = N_hidden, lambda = lambda, 
+# RWNN
+m_rwnn <- rwnn(X = X_train, y = y_train, N_hidden = N_hidden, lambda = lambda, 
                control = list(combine_input = TRUE))
 
-# Bagged RVFL
+# Bagged RWNN
 B <- 100 
-m_bagrvfl <- bagRVFL(X = X_train, y = y_train, lambda = lambda, N_hidden = N_hidden, B = B, 
-                     control = list(combine_input = TRUE, include_data = FALSE))
+m_bagrwnn <- bag_rwnn(X = X_train, y = y_train, lambda = lambda, N_hidden = N_hidden, B = B,
+                      control = list(combine_input = TRUE, include_data = FALSE))
              
-# Bagged RVFL with trained weights        
-m_bagrvfl_ew <- estimate_weights(m_bagrvfl, X_val = X_val, y_val = y_val)
+# Bagged RWNN with trained weights        
+m_bagrwnn_ew <- estimate_weights(m_bagrwnn, X_val = X_val, y_val = y_val)
 ```
 
 ## License

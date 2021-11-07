@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // estimate_output_weights
 Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y, const std::string& lnorm, const double& lambda);
-RcppExport SEXP _RVFL_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lnormSEXP, SEXP lambdaSEXP) {
+RcppExport SEXP _RWNN_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lnormSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,9 +25,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rvfl_forward
-std::vector<arma::mat> rvfl_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
-RcppExport SEXP _RVFL_rvfl_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
+// rwnn_forward
+std::vector<arma::mat> rwnn_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
+RcppExport SEXP _RWNN_rwnn_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -35,18 +35,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<arma::mat>& >::type W(WSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::string>& >::type activation(activationSEXP);
     Rcpp::traits::input_parameter< const std::vector<bool>& >::type bias(biasSEXP);
-    rcpp_result_gen = Rcpp::wrap(rvfl_forward(X, W, activation, bias));
+    rcpp_result_gen = Rcpp::wrap(rwnn_forward(X, W, activation, bias));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RVFL_estimate_output_weights", (DL_FUNC) &_RVFL_estimate_output_weights, 4},
-    {"_RVFL_rvfl_forward", (DL_FUNC) &_RVFL_rvfl_forward, 4},
+    {"_RWNN_estimate_output_weights", (DL_FUNC) &_RWNN_estimate_output_weights, 4},
+    {"_RWNN_rwnn_forward", (DL_FUNC) &_RWNN_rwnn_forward, 4},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_RVFL(DllInfo *dll) {
+RcppExport void R_init_RWNN(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

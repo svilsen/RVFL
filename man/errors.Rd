@@ -17,7 +17,7 @@ mae(object, X, y)
 mape(object, X, y)
 }
 \arguments{
-\item{object}{A model object}
+\item{object}{A model object.}
 
 \item{X}{A matrix of observed features.}
 

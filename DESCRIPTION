@@ -1,11 +1,11 @@
-Package: RVFL
+Package: RWNN
 Type: Package
-Title: Random Vector Funtional Link Neural Network Models
+Title: Random Weight Neural Networks
 Version: 0.1
-Date: 2021-10-14
+Date: 2021-11-07
 Author: Søren B. Vilsen
 Maintainer: Søren B. Vilsen <svilsen@math.aau.dk>
-Description: Creation, estimation, and prediction of random vector functional link neural networks (RVFL), including popular variants like extreme learning machines (ELM), sparse RVFL (spRVFL), and deep RVFL (dRVFL). It further allows for the creation of ensemble RVFLs like bagging RVFL (bagRVFL), boosting RVFL (boostRVFL), stacking RVFL (stackRVFL), and ensemble deep RVFL (edRVFL).
+Description: Creation, estimation, and prediction of random weight neural networks (RWNN), including popular variants like extreme learning machines (ELM), sparse RWNN (spRWNN), and deep RWNN (dRWNN). It further allows for the creation of ensemble RWNNs like bagging RWNN (bagRWNN), boosting RWNN (boostRWNN), stacking RWNN (stackRWNN), and ensemble deep RWNN (edRWNN).
 License: MIT + file LICENSE
 Imports: 
     Rcpp (>= 1.0.4.6), 

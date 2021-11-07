@@ -12,11 +12,11 @@ X[, 5] <- s^3
 beta <- matrix(rnorm(p), ncol = 1) 
 y <- X %*% beta + rnorm(N, 0, 1)
 
-N_hidden <- 10
-B <- 50
-mm <- bag_rwnn(X = X, y = y, N_hidden = N_hidden,
-              lambda = 0.2, B = B)
-
-w <- runif(B)
-w <- w / sum(w)
-set_weights(mm, weights = w)
+N_hidden <- 100
+B <- 10
+epsilon <- 0.2
+lambda <- 0.2
+\dontrun{
+boost_rwnn(X = X, y = y, N_hidden = N_hidden, 
+           lambda = lambda, B = B, epsilon = epsilon)
+}

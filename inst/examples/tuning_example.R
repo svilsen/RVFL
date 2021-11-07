@@ -20,5 +20,5 @@ hyperparameters <- list(
 folds <- 20
 
 \dontrun{
-tune_hyperparameters(RVFL, X, y, folds, hyperparameters)
+tune_hyperparameters(rwnn, X, y, folds, hyperparameters)
 }

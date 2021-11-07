@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 estimate_output_weights <- function(O, y, lnorm, lambda) {
-    .Call('_RVFL_estimate_output_weights', PACKAGE = 'RVFL', O, y, lnorm, lambda)
+    .Call('_RWNN_estimate_output_weights', PACKAGE = 'RWNN', O, y, lnorm, lambda)
 }
 
-rvfl_forward <- function(X, W, activation, bias) {
-    .Call('_RVFL_rvfl_forward', PACKAGE = 'RVFL', X, W, activation, bias)
+rwnn_forward <- function(X, W, activation, bias) {
+    .Call('_RWNN_rwnn_forward', PACKAGE = 'RWNN', X, W, activation, bias)
 }
 
