@@ -1,10 +1,10 @@
-################################################################################
-####################### Re-sampling ERWNN neural network #######################
-################################################################################
+############################################################################
+####################### Sampling RWNN neural network #######################
+############################################################################
 
-#' @title sample_rwnn control function
+#' @title mh_rwnn control function
 #' 
-#' @description A function used to create a control-object for the \link{sample_rwnn} function.
+#' @description A function used to create a control-object for the \link{mh_rwnn} function.
 #' 
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lnorm A string indicating the regularisation norm used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).
@@ -29,11 +29,11 @@
 #' 
 #' @return A list of control variables.
 #' @export
-control_sample_rwnn <- function(N_hidden, lnorm = NULL,
-                               bias_hidden = TRUE, activation = NULL, 
-                               bias_output = TRUE, combine_input = FALSE, include_data = TRUE,
-                               N_simulations = 4000, N_burnin = 1000, N_resample = 100, 
-                               tau = 0.01, method = NULL, trace = NULL) {
+control_mh_rwnn <- function(N_hidden, lnorm = NULL,
+                            bias_hidden = TRUE, activation = NULL, 
+                            bias_output = TRUE, combine_input = FALSE, include_data = TRUE,
+                            N_simulations = 4000, N_burnin = 1000, N_resample = 100, 
+                            tau = 0.01, method = NULL, trace = NULL) {
     if (is.null(N_simulations) | !is.numeric(N_simulations)) {
         stop("'N_simulations' has to be numeric.")
     } 
@@ -66,7 +66,7 @@ control_sample_rwnn <- function(N_hidden, lnorm = NULL,
     else {
         stop("The argument supplied to 'method' is not implemented, please set method to 'map', 'stack', or 'posterior'.")
     }
-        
+    
     if (method == "stack") {
         if (is.null(N_resample) | !is.numeric(N_resample)) {
             stop("'N_resample' has to be numeric.")
@@ -146,15 +146,15 @@ control_sample_rwnn <- function(N_hidden, lnorm = NULL,
                 tau = tau, method = method, trace = trace))
 }
 
-#' @title Sampling random weight neural networks
+#' @title Metropolis-Hastings sampling random weight neural networks
 #' 
-#' @description Uses sampling to pre-train sampling distribution of the hidden layers in random weight neural network models.
+#' @description Uses Metropolis-Hastings sampling to pre-train sampling distribution of the hidden layers in random weight neural network models.
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of the RWNN.
-#' @param control A list of additional arguments passed to the \link{control_sample_rwnn} function (includes arguments passed to the \link{control_rwnn} function.).
+#' @param control A list of additional arguments passed to the \link{control_mh_rwnn} function (includes arguments passed to the \link{control_rwnn} function.).
 #' 
 #' @return The return object will depend on the choice of \code{method} passed through the \code{control} argument: 
 #' \describe{
@@ -164,20 +164,20 @@ control_sample_rwnn <- function(N_hidden, lnorm = NULL,
 #' }
 #' 
 #' @export
-sample_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
-    UseMethod("sample_rwnn")
+mh_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+    UseMethod("mh_rwnn")
 }
 
-#' @rdname sample_rwnn
-#' @method sample_rwnn default
+#' @rdname mh_rwnn
+#' @method mh_rwnn default
 #' 
-#' @example inst/examples/samplerwnn_example.R
+#' @example inst/examples/mhrwnn_example.R
 #' 
 #' @export
-sample_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden
-    control <- do.call(control_sample_rwnn, control)
+    control <- do.call(control_mh_rwnn, control)
     
     ## Checks
     dc <- data_checks(y, X)
