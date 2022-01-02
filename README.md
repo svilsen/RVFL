@@ -1,10 +1,7 @@
 ---
-title: 'RWNN: Fast and simple non-linear modelling using random weight neural networks
-  in R'
-date: "07 November 2021"
-output:
-  html_document:
-    df_print: paged
+title: 'RWNN: Fast and simple non-linear modelling using random weight neural networks in R'
+date: "01 January 2022"
+output: html_document
 bibliography: inst/paper.bib
 author: Søren B. Vilsen
 ---
