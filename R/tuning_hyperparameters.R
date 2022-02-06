@@ -6,9 +6,11 @@
 #' 
 #' @description Simple function for hyper-parameter tuning using k-fold cross-validation.
 #' 
-#' @param method The RWNN method in need to hyper parameter optimisation.
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
+#' @param method The RWNN method in need to hyper parameter optimisation.
 #' @param folds The number of folds used in k-fold cross-validation.
 #' @param hyperparameters A list of sequences of hyper-parameters.
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
@@ -19,7 +21,15 @@
 #' @return Either an \link{RWNN-object} or \link{ERWNN-object}.
 #' 
 #' @export
-tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+tune_hyperparameters <- function(X, y, formula, data, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+    UseMethod("tune_hyperparameters")
+}
+
+#' @rdname tune_hyperparameters
+#' @method tune_hyperparameters default
+#' 
+#' @export
+tune_hyperparameters.default <- function(X, y, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
     ## Checks
     #
     if (!is.function(method)) {
@@ -60,7 +70,7 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     
     # 
     method_args <- names(formals(method))
-    method_args <- method_args[-which(method_args %in% c("X", "y", "control"))]
+    method_args <- method_args[-which(method_args %in% c("X", "y", "formula", "data", "control"))]
     hyperparameters_args <- names(hyperparameters)
     
     if (!all(method_args %in% hyperparameters_args)) { 
@@ -135,8 +145,33 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
 
 
 
-
-
-
-
+#' @rdname tune_hyperparameters
+#' @method tune_hyperparameters formula
+#' 
+#' @export
+tune_hyperparameters.formula <- function(formula, data, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- tune_hyperparameters(X = X, y = y, method = method, folds = folds, hyperparameters = hyperparameters, control = control, trace = trace)
+    return(mm)
+}
 

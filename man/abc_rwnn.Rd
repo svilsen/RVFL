@@ -2,14 +2,24 @@
 % Please edit documentation in R/abc_rwnn.R
 \name{abc_rwnn}
 \alias{abc_rwnn}
+\alias{abc_rwnn.default}
+\alias{abc_rwnn.formula}
 \title{Approximate Bayesian computation random weight neural networks}
 \usage{
-abc_rwnn(X, y, N_hidden = c(), lambda = NULL, control = list())
+abc_rwnn(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list())
+
+\method{abc_rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, control = list())
+
+\method{abc_rwnn}{formula}(formula, data, N_hidden = c(), lambda = NULL, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
 
 \item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
+
+\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -19,4 +29,26 @@ abc_rwnn(X, y, N_hidden = c(), lambda = NULL, control = list())
 }
 \description{
 Uses approximate Bayesian computation to sample the distribution of the hidden layers in random weight neural network models.
+}
+\examples{
+N <- 2000
+p <- 5
+
+s <- seq(0, pi, length.out = N)
+X <- matrix(NA, ncol = p, nrow = N)
+X[, 1] <- sin(s)
+X[, 2] <- cos(s)
+X[, 3] <- s
+X[, 4] <- s^2
+X[, 5] <- s^3
+
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X \%*\% beta + rnorm(N, 0, 1)
+
+N_hidden <- 10
+lambda <- 1
+
+\dontrun{
+    abc_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda)
+}
 }

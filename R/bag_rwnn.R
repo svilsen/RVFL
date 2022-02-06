@@ -8,6 +8,8 @@
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
 #' @param B The number of bootstrap samples.
@@ -16,7 +18,7 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-bag_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
+bag_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
     UseMethod("bag_rwnn")
 }
 
@@ -61,4 +63,37 @@ bag_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, contr
     
     class(object) <- "ERWNN"
     return(object)
+}
+
+
+#' @rdname bag_rwnn
+#' @method bag_rwnn formula
+#' 
+#' @example inst/examples/bagrwnn_example.R
+#' 
+#' @export
+bag_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- bag_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, B = B, control = control)
+    return(mm)
 }

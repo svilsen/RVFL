@@ -2,12 +2,36 @@
 % Please edit documentation in R/tuning_hyperparameters.R
 \name{tune_hyperparameters}
 \alias{tune_hyperparameters}
+\alias{tune_hyperparameters.default}
+\alias{tune_hyperparameters.formula}
 \title{Hyper-parameter tuning}
 \usage{
 tune_hyperparameters(
-  method,
   X,
   y,
+  formula,
+  data,
+  method,
+  folds = 10,
+  hyperparameters = list(),
+  control = list(),
+  trace = 0
+)
+
+\method{tune_hyperparameters}{default}(
+  X,
+  y,
+  method,
+  folds = 10,
+  hyperparameters = list(),
+  control = list(),
+  trace = 0
+)
+
+\method{tune_hyperparameters}{formula}(
+  formula,
+  data,
+  method,
   folds = 10,
   hyperparameters = list(),
   control = list(),
@@ -15,11 +39,15 @@ tune_hyperparameters(
 )
 }
 \arguments{
-\item{method}{The RWNN method in need to hyper parameter optimisation.}
-
 \item{X}{A matrix of observed features used to train the parameters of the output layer.}
 
 \item{y}{A vector of observed targets used to train the parameters of the output layer.}
+
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
+
+\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
+
+\item{method}{The RWNN method in need to hyper parameter optimisation.}
 
 \item{folds}{The number of folds used in k-fold cross-validation.}
 
@@ -58,6 +86,6 @@ hyperparameters <- list(
 folds <- 20
 
 \dontrun{
-tune_hyperparameters(rwnn, X, y, folds, hyperparameters)
+tune_hyperparameters(X, y, rwnn, folds, hyperparameters)
 }
 }

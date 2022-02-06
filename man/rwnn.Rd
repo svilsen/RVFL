@@ -3,19 +3,23 @@
 \name{rwnn}
 \alias{rwnn}
 \alias{rwnn.default}
-\alias{elm}
+\alias{rwnn.formula}
 \title{Random weight neural networks}
 \usage{
-rwnn(X, y, N_hidden = c(), lambda = NULL, control = list())
+rwnn(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list())
 
 \method{rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, control = list())
 
-elm(X, y, N_hidden, lambda = 0, control = list())
+\method{rwnn}{formula}(formula, data, N_hidden = c(), lambda = NULL, control = list())
 }
 \arguments{
 \item{X}{A matrix of observed features used to train the parameters of the output layer.}
 
 \item{y}{A vector of observed targets used to train the parameters of the output layer.}
+
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
+
+\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -30,9 +34,31 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network.
 }
 \details{
-The function \code{elm} is a wrapper for the general \code{RWNN} function without the link between features and targets. Furthermore, notice that \code{dRWNN} is handled by increasing the number of elements in the \code{N_hidden} vector.
+The deep RWNN is handled by increasing the number of elements in the \code{N_hidden} vector.
 }
 \examples{
+N <- 2000
+p <- 5
+
+s <- seq(0, pi, length.out = N)
+X <- matrix(NA, ncol = p, nrow = N)
+X[, 1] <- sin(s)
+X[, 2] <- cos(s)
+X[, 3] <- s
+X[, 4] <- s^2
+X[, 5] <- s^3
+
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X \%*\% beta + rnorm(N, 0, 1)
+
+## Models with a single hidden layer
+N_hidden <- 100
+elm(X = X, y = y, N_hidden = N_hidden)
+rwnn(X = X, y = y, N_hidden = N_hidden)
+
+## Model with multiple hidden layers
+N_hidden <- c(10, 20, 10, 5)
+rwnn(X = X, y = y, N_hidden = N_hidden)
 N <- 2000
 p <- 5
 

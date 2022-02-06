@@ -152,6 +152,8 @@ control_mh_rwnn <- function(N_hidden, lnorm = NULL,
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of the RWNN.
 #' @param control A list of additional arguments passed to the \link{control_mh_rwnn} function (includes arguments passed to the \link{control_rwnn} function.).
@@ -164,7 +166,7 @@ control_mh_rwnn <- function(N_hidden, lnorm = NULL,
 #' }
 #' 
 #' @export
-mh_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+mh_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("mh_rwnn")
 }
 
@@ -291,3 +293,34 @@ mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list(
     return(object)
 }
 
+#' @rdname mh_rwnn
+#' @method mh_rwnn formula
+#' 
+#' @example inst/examples/mhrwnn_example.R
+#' 
+#' @export
+mh_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- mh_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    return(mm)
+}

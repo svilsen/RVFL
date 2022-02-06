@@ -111,16 +111,18 @@ control_rwnn <- function(N_hidden = NULL, lnorm = NULL,
 #' 
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
-#' @details The function \code{elm} is a wrapper for the general \code{RWNN} function without the link between features and targets. Furthermore, notice that \code{dRWNN} is handled by increasing the number of elements in the \code{N_hidden} vector.
+#' @details The deep RWNN is handled by increasing the number of elements in the \code{N_hidden} vector.
 #' 
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-rwnn <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("rwnn")
 }
 
@@ -228,12 +230,101 @@ rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) 
 }
 
 #' @rdname rwnn
+#' @method rwnn formula
+#' 
+#' @example inst/examples/rwnn_example.R
 #' 
 #' @export
-elm <- function(X, y, N_hidden, lambda = 0, control = list()) {
+rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    return(mm)
+}
+
+
+#' @title Extreme learning machine
+#' 
+#' @description Set-up and estimate weights of an extreme learning machine.
+#' 
+#' @param X A matrix of observed features used to train the parameters of the output layer.
+#' @param y A vector of observed targets used to train the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
+#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param lambda The penalisation constant used when training the output layer.
+#' @param control A list of additional arguments passed to the \link{control_rwnn} function.
+#' 
+#' @details The function \code{elm} is a wrapper for the general \code{RWNN} function without the link between features and targets.
+#' 
+#' @return An \link{RWNN-object}.
+#' 
+#' @export
+elm <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+    UseMethod("elm")
+}
+
+#' @rdname elm
+#' @method elm default
+#' 
+#' @export
+elm.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     control$N_hidden <- N_hidden
     control$combine_input <- FALSE
     
+    elm_object <- list(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
+    object <- do.call(rwnn, elm_object)
+    return(object)
+}
+
+#' @rdname elm
+#' @method elm formula
+#' 
+#' @export
+elm.formula <- function(formula, data, N_hidden, lambda = 0, control = list()) {
+    control$N_hidden <- N_hidden
+    control$combine_input <- FALSE
+    
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
     elm_object <- list(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
     object <- do.call(rwnn, elm_object)
     return(object)

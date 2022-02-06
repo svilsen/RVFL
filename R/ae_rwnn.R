@@ -8,6 +8,8 @@
 #' 
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param method The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).
@@ -16,7 +18,7 @@
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-ae_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+ae_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
     UseMethod("ae_rwnn")
 }
 
@@ -134,4 +136,37 @@ ae_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", 
     
     class(object) <- "RWNN"
     return(object)
+}
+
+
+#' @rdname ae_rwnn
+#' @method ae_rwnn formula
+#' 
+#' @example inst/examples/aerwnn_example.R
+#' 
+#' @export
+ae_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- ae_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, method = method, control = control)
+    return(mm)
 }

@@ -3,16 +3,39 @@
 \name{ae_rwnn}
 \alias{ae_rwnn}
 \alias{ae_rwnn.default}
+\alias{ae_rwnn.formula}
 \title{Auto-encoder pre-trained random weight neural networks}
 \usage{
-ae_rwnn(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
+ae_rwnn(
+  X,
+  y,
+  formula,
+  data,
+  N_hidden = c(),
+  lambda = NULL,
+  method = "l1",
+  control = list()
+)
 
 \method{ae_rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
+
+\method{ae_rwnn}{formula}(
+  formula,
+  data,
+  N_hidden = c(),
+  lambda = NULL,
+  method = "l1",
+  control = list()
+)
 }
 \arguments{
 \item{X}{A matrix of observed features used to train the parameters of the output layer.}
 
 \item{y}{A vector of observed targets used to train the parameters of the output layer.}
+
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
+
+\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -29,6 +52,27 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 }
 \examples{
+N <- 2000
+p <- 5
+
+s <- seq(0, pi, length.out = N)
+X <- matrix(NA, ncol = p, nrow = N)
+X[, 1] <- sin(s)
+X[, 2] <- cos(s)
+X[, 3] <- s
+X[, 4] <- s^2
+X[, 5] <- s^3
+
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X \%*\% beta + rnorm(N, 0, 1)
+
+N_hidden <- 10
+
+## Using L1-norm in the auto-encoder (sparse solution)
+ae_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l1")
+
+## Using L2-norm in the auto-encoder (non-sparse solution)
+ae_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l2")
 N <- 2000
 p <- 5
 

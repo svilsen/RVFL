@@ -3,16 +3,39 @@
 \name{bag_rwnn}
 \alias{bag_rwnn}
 \alias{bag_rwnn.default}
+\alias{bag_rwnn.formula}
 \title{Bagging random weight neural networks}
 \usage{
-bag_rwnn(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list())
+bag_rwnn(
+  X,
+  y,
+  formula,
+  data,
+  N_hidden = c(),
+  lambda = NULL,
+  B = 100,
+  control = list()
+)
 
 \method{bag_rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list())
+
+\method{bag_rwnn}{formula}(
+  formula,
+  data,
+  N_hidden = c(),
+  lambda = NULL,
+  B = 100,
+  control = list()
+)
 }
 \arguments{
 \item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
 
 \item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
+
+\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -29,6 +52,26 @@ An \link{ERWNN-object}.
 Use bootstrap aggregation to reduce the variance of random weight neural network models.
 }
 \examples{
+N <- 2000
+p <- 5
+
+s <- seq(0, pi, length.out = N)
+X <- matrix(NA, ncol = p, nrow = N)
+X[, 1] <- sin(s)
+X[, 2] <- cos(s)
+X[, 3] <- s
+X[, 4] <- s^2
+X[, 5] <- s^3
+
+beta <- matrix(rnorm(p), ncol = 1) 
+y <- X \%*\% beta + rnorm(N, 0, 1)
+
+N_hidden <- 100
+B <- 1000
+lambda <- 0.2
+\dontrun{
+bag_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda, B = B)
+}
 N <- 2000
 p <- 5
 

@@ -8,6 +8,8 @@
 #' 
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN
 #' @param B The number of models in the stack.
@@ -18,7 +20,7 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-stack_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+stack_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
     UseMethod("stack_rwnn")
 }
 
@@ -112,4 +114,37 @@ stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opt
     
     class(object) <- "ERWNN"
     return(object)
+}
+
+
+#' @rdname stack_rwnn
+#' @method stack_rwnn formula
+#' 
+#' @example inst/examples/stackrwnn_example.R
+#' 
+#' @export
+stack_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+    if (missing(formula)) {
+        stop("'formula' needs to be supplied when using 'data'.")
+    }
+    
+    if (missing(data)) {
+        stop("'data' needs to be supplied when using 'formula'.")
+    }
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- stack_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, control = control)
+    return(mm)
 }
