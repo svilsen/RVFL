@@ -14,7 +14,8 @@ control_abc_rwnn(
   include_data = TRUE,
   rng = "runif",
   rng_pars = list(min = -5, max = 5),
-  N_simulations = 4000,
+  N_simulations = 1000,
+  N_max = 10000,
   metric = NULL,
   epsilon = 0.01,
   trace = NULL
@@ -40,6 +41,8 @@ control_abc_rwnn(
 \item{rng_pars}{A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).}
 
 \item{N_simulations}{The number of ABC samples drawn from the posterior.}
+
+\item{N_max}{The maximum number of simulations performed (even if \code{N_simulations} are not reached).}
 
 \item{metric}{A metric function used to compare measured and predicted targets (defaults to the L2-norm). The function needs to take two vectors as input and produce a numeric as output.}
 

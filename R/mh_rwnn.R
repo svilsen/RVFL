@@ -23,7 +23,7 @@
 #' @details The current choices of \code{method} are:
 #' \describe{
 #'     \item{\code{"map"}}{Only the maximum a posterior (MAP) estimate of the weights is returned as an \link{RWNN-object}.}
-#'     \item{\code{"stack"}}{The weights are re-sampled (with replacement) weighted using the unnormalised posterior, creating a stacking based \link{ERWNN-object}.}
+#'     \item{\code{"resample"}}{The weights are re-sampled (with replacement) weighted using the unnormalised posterior, creating a stacking based \link{ERWNN-object}.}
 #'     \item{\code{"posterior"}}{The posterior distributions of the weights are returned.}
 #' }
 #' 
@@ -51,23 +51,23 @@ control_mh_rwnn <- function(N_hidden, lnorm = NULL,
     }
     
     if (is.null(method) | !is.character(method)) {
-        method <- "stack"
+        method <- "resample"
     }
     
     if (method %in% c("m", "map", "maxap", "maximumaposterior")) {
         method <- "map"
     }
-    else if (method %in% c("stack", "stacking", "averageing")) {
-        method <- "stack"
+    else if (method %in% c("resample", "resampling")) {
+        method <- "resample"
     }
     else if (method %in% c("post", "posterior")) {
         method <- "posterior"
     }
     else {
-        stop("The argument supplied to 'method' is not implemented, please set method to 'map', 'stack', or 'posterior'.")
+        stop("The argument supplied to 'method' is not implemented, please set method to 'map', 'resample', or 'posterior'.")
     }
     
-    if (method == "stack") {
+    if (method == "resample") {
         if (is.null(N_resample) | !is.numeric(N_resample)) {
             stop("'N_resample' has to be numeric.")
         }
@@ -161,7 +161,7 @@ control_mh_rwnn <- function(N_hidden, lnorm = NULL,
 #' @return The return object will depend on the choice of \code{method} passed through the \code{control} argument: 
 #' \describe{
 #'     \item{\code{"map"}}{An \link{RWNN-object}.}
-#'     \item{\code{"stack"}}{An \link{ERWNN-object}.}
+#'     \item{\code{"resample"}}{An \link{ERWNN-object}.}
 #'     \item{\code{"posterior"}}{An \link{SRWNN-object}.}
 #' }
 #' 
@@ -212,7 +212,7 @@ mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list(
         )
         
         class(object) <- "RWNN"
-    } else if (control$method == "stack") {
+    } else if (control$method == "resample") {
         ##
         N_simulations <- control$N_simulations
         N_burnin <- control$N_burnin

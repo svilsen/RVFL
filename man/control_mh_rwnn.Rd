@@ -57,7 +57,7 @@ A function used to create a control-object for the \link{mh_rwnn} function.
 The current choices of \code{method} are:
 \describe{
     \item{\code{"map"}}{Only the maximum a posterior (MAP) estimate of the weights is returned as an \link{RWNN-object}.}
-    \item{\code{"stack"}}{The weights are re-sampled (with replacement) weighted using the unnormalised posterior, creating a stacking based \link{ERWNN-object}.}
+    \item{\code{"resample"}}{The weights are re-sampled (with replacement) weighted using the unnormalised posterior, creating a stacking based \link{ERWNN-object}.}
     \item{\code{"posterior"}}{The posterior distributions of the weights are returned.}
 }
 }

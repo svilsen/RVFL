@@ -12,6 +12,7 @@
 #' @param rng A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"runif"}). 
 #' @param rng_pars A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).   
 #' @param N_simulations The number of ABC samples drawn from the posterior.
+#' @param N_max The maximum number of simulations performed (even if \code{N_simulations} are not reached).
 #' @param metric A metric function used to compare measured and predicted targets (defaults to the L2-norm). The function needs to take two vectors as input and produce a numeric as output. 
 #' @param epsilon The maximal metric error allowed for the sample to be kept.
 #' @param trace Show trace every \code{trace} iterations.
@@ -22,7 +23,7 @@ control_abc_rwnn <- function(N_hidden, lnorm = NULL,
                             bias_hidden = TRUE, activation = NULL, 
                             bias_output = TRUE, combine_input = FALSE, include_data = TRUE,
                             rng = "runif", rng_pars = list(min = -5, max = 5),
-                            N_simulations = 4000, metric = NULL,
+                            N_simulations = 1000, N_max = 10000, metric = NULL,
                             epsilon = 0.01, trace = NULL) {
     if (is.null(N_simulations) | !is.numeric(N_simulations)) {
         stop("'N_simulations' has to be numeric.")
@@ -32,12 +33,25 @@ control_abc_rwnn <- function(N_hidden, lnorm = NULL,
         stop("'N_simulations' has to be larger than 0.")
     } 
     
-    if (is.null(metric) || !is.function(metric)) {
+    if (is.null(N_max) | !is.numeric(N_max)) {
+        stop("'N_max' has to be numeric.")
+    } 
+    
+    if (N_max < N_simulations) {
+        stop("'N_max' has to be larger than 'N_simulations'.")
+    } 
+    
+    if (!is.function(metric)) {
+        if (!is.null(metric)) {
+            warning("The provided 'metric' was not a function. It is set to the average Euclidean distance.")
+        }
+        
         metric <- function(x, y) {
             return(sqrt(sum((x - y)^2)))
         }
     }
-    else if (is.function(metric)) {
+    
+    if (is.function(metric)) {
         test_metric <- metric(c(1, 2), c(2, 3))
         if (length(test_metric) > 1) {
             stop("A test was run on the provided 'metric' function resulting in an output of length > 1.")
@@ -116,8 +130,8 @@ control_abc_rwnn <- function(N_hidden, lnorm = NULL,
     
     return(list(lnorm = lnorm, bias_hidden = bias_hidden, activation = activation, 
                 bias_output = bias_output, combine_input = combine_input, include_data = include_data,
-                rng = rng, rng_pars = rng_pars, N_simulations = N_simulations, metric = metric,
-                epsilon = epsilon, trace = trace))
+                rng = rng, rng_pars = rng_pars, N_simulations = N_simulations, N_max = N_max, 
+                metric = metric, epsilon = epsilon, trace = trace))
 }
 
 #' @title Approximate Bayesian computation random weight neural networks
@@ -147,18 +161,39 @@ abc_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list
     ## Control
     control$N_hidden <- N_hidden
     control <- do.call(control_abc_rwnn, control)
+    control_rwnn_ <- control[names(control) %in% names(as.list(args(control_rwnn)))]
     
     ## Checks
     dc <- data_checks(y, X)
     
     ## Simulation
+    m <- 0
     n <- 0
+    
+    metric <- control$metric
+    epsilon <- control$epsilon
+    
     sampled_weights <- vector("list", length(control$N_simulation))
     betas <- vector("list", length(control$N_simulation))
-    sigmas <- vector("list", length(control$N_simulation))
-    while (n < control$N_simulation) {
+    sigmas <- rep(NA, length(control$N_simulation))
+    p <- rep(NA, length(control$N_simulation))
+    while ((n < control$N_simulation) && (m < control$N_max)) {
+        rwnn_n <- rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control_rwnn_)
+        metric_n <- metric(predict(rwnn_n), y)
         
+        if (metric_n < epsilon) {
+            n <- n + 1
+            
+            sampled_weights[[n]] <- rwnn_n$Weights$Hidden
+            betas[[n]] <- rwnn_n$Weights$Output
+            sigmas[n] <- rwnn_n$Sigma$Output
+            p[n] <- 1 / metric_n
+        }
+        
+        m <- m + 1
     }
+    
+    p <- p / sum(p)
     
     ## 
     object <- list(

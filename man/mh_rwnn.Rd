@@ -31,7 +31,7 @@ mh_rwnn(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list())
 The return object will depend on the choice of \code{method} passed through the \code{control} argument: 
 \describe{
     \item{\code{"map"}}{An \link{RWNN-object}.}
-    \item{\code{"stack"}}{An \link{ERWNN-object}.}
+    \item{\code{"resample"}}{An \link{ERWNN-object}.}
     \item{\code{"posterior"}}{An \link{SRWNN-object}.}
 }
 }
