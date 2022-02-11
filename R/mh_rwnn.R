@@ -196,15 +196,18 @@ mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list(
     sigma <- sampled_weights_mh$Sigma
     
     if (control$method == "map") {
-        W_map <- sampled_weights[[which.max(loglikelihoods)]]
+        w_map <- sampled_weights[[which.max(loglikelihoods)]]
+        beta_map <- beta[[which.max(loglikelihoods)]]
+        sigma_map <- sigma[which.max(loglikelihoods)]
+        
         object <- list(
             data = if(control$include_data) list(X = X, y = y) else NULL, 
             N_hidden = N_hidden, 
             activation = control$activation, 
             lambda = 0,
             Bias = list(Hidden = control$bias_hidden, Output = control$bias_output),
-            Weights = list(Hidden = W_map, Output = beta),
-            Sigma = list(Hidden = NA, Output = sigma),
+            Weights = list(Hidden = w_map, Output = beta_map),
+            Sigma = list(Hidden = NA, Output = sigma_map),
             Combined = control$combine_input
         )
         
@@ -222,16 +225,15 @@ mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list(
         resample <- sample(x = N_simulations - N_burnin, size = N_resample, 
                            replace = TRUE, prob = p)
         sampled_weights_re <- sampled_weights[resample]
+        beta_re <- beta[resample]
+        sigma_re <- sigma[resample]
         
         ## RWNN objects
         objects <- vector("list", N_resample) 
         for (i in seq_len(N_resample)) {
             W_i <- sampled_weights_re[[i]]
-            O_i <- last_hidden_layer(X = X, N_hidden = N_hidden, W = W_i, control = control)
-            
-            theta_i <- estimate_output_weights(O_i, y, control$lnorm, lambda)
-            beta_i <- theta_i$beta
-            sigma_i <- theta_i$sigma
+            beta_i <- beta_re[[i]]
+            sigma_i <- sigma_re[i]
             
             object_i <- list(
                 data = NULL, 
@@ -264,24 +266,13 @@ mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list(
         p <- exp(loglikelihoods - min(loglikelihoods))
         p <- p / sum(p)
         
-        betas <- vector("list", N_simulations - N_burnin)
-        sigmas <- rep(NA, N_simulations - N_burnin)
-        for (i in seq_len(N_simulations - N_burnin)) {
-            W_i <- sampled_weights[[i]]
-            O_i <- last_hidden_layer(X = X, N_hidden = N_hidden, W = W_i, control = control)
-            
-            theta_i <- estimate_output_weights(O_i, y, control$lnorm, lambda)
-            betas[[i]] <- theta_i$beta
-            sigmas[i] <- theta_i$sigma
-        }
-        
         object <- list(
             data = list(X = X, y = y), 
             N_hidden = N_hidden, 
             activation = control$activation, 
             lambda = lambda,
             Bias = list(Hidden = control$bias_hidden, Output = control$bias_output),
-            Samples = list(W = sampled_weights, Beta = betas, Sigma = sigmas),
+            Samples = list(W = sampled_weights, Beta = beta, Sigma = sigma),
             Weights = p, 
             method = "posterior",
             Combined = control$combine_input

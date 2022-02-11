@@ -25,10 +25,20 @@ update_random_weights <- function(W_old, tau) {
     W_new <- vector("list", N)
     for (n in seq_len(N)) {
         W_old_n <- W_old[[n]]
-        W_new[[n]] <- W_old_n + matrix(rnorm(length(W_old_n), 0, tau), nrow = nrow(W_old_n), ncol = ncol(W_old_n))
+        W_new[[n]] <- W_old_n + matrix(rnorm(length(W_old_n), 0, abs(W_old_n) * tau), nrow = nrow(W_old_n), ncol = ncol(W_old_n))
     }
     
     return(W_new)
+}
+
+update_beta_weights <- function(beta_old, tau) {
+    beta_new <- beta_old + rnorm(length(beta_old), 0, abs(beta_old) * tau)
+    return(beta_new)
+}
+
+update_sigma <- function(sigma_old, tau) {
+    sigma_new <- sigma_old + rnorm(1, 0, abs(sigma_old) * tau)
+    return(sigma_new)
 }
 
 last_hidden_layer <- function(X, N_hidden, W, control) {
@@ -66,13 +76,15 @@ metropolis_hastings_sampler <- function(y, X, N_hidden, lambda, control) {
     O_old <- last_hidden_layer(X = X, N_hidden = N_hidden, W = W_old, control = control)
     
     theta <- estimate_output_weights(O_old, y, control$lnorm, lambda)
-    beta <- theta$beta
-    sigma <- log(theta$sigma)
+    beta_old <- theta$beta
+    sigma_old <- log(theta$sigma)
     
-    ll_old <- model_likelihood(O_old, y, beta, sigma) 
+    ll_old <- model_likelihood(O_old, y, beta_old, sigma_old) 
     
     ##
     sampled_weights <- vector("list", N_simulations - N_burnin)
+    sampled_betas <- vector("list", N_simulations - N_burnin)
+    sampled_sigma <- rep(NA, N_simulations - N_burnin)
     loglikelihoods <- rep(NA, N_simulations - N_burnin)
     for (i in seq_len(N_simulations)) {
         if ((trace > 0) && ((i == 1) || (i == N_simulations) || ((i %% trace) == 0))) {
@@ -81,19 +93,26 @@ metropolis_hastings_sampler <- function(y, X, N_hidden, lambda, control) {
         
         #
         W_new <- update_random_weights(W_old, tau) 
+        beta_new <- update_beta_weights(beta_old, tau)
+        sigma_new <- update_sigma(sigma_old, tau)
+        
         O_new <- last_hidden_layer(X, N_hidden, W_new, control)
-        ll_new <- model_likelihood(O_new, y, beta, sigma)
+        ll_new <- model_likelihood(O_new, y, beta_new, sigma_new)
         
         #
         mh <- min(ll_new - ll_old, 1)
         u <- runif(1, 0, 1)
         if (mh > log(u)) {
             W_old <- W_new
+            beta_old <- beta_new
+            sigma_old <- sigma_new
             ll_old <- ll_new
         }
         
         if (i > N_burnin) {
             sampled_weights[[i - N_burnin]] <- W_old
+            sampled_betas[[i - N_burnin]] <- beta_old
+            sampled_sigma[i - N_burnin] <- sigma_old
             loglikelihoods[i - N_burnin] <- ll_old
         }
     }
@@ -101,8 +120,8 @@ metropolis_hastings_sampler <- function(y, X, N_hidden, lambda, control) {
     object <- list(
         SampledWeights = sampled_weights, 
         LogLikelihood = loglikelihoods, 
-        Beta = beta,
-        Sigma = exp(sigma)
+        Beta = sampled_betas,
+        Sigma = exp(sampled_sigma)
     )
     
     return(object)
@@ -281,7 +300,7 @@ plot.SRWNN <- function(x, ...) {
         breaks <- dots$breaks
     }
     
-    resample <- sample(x = length(x$weights), size = N_samples, replace = TRUE, prob = x$weights)
+    resample <- sample(x = length(x$Weights), size = N_samples, replace = TRUE, prob = x$Weights)
     if (parameter == "w") {
         if (is.null(dots$index)) {
             warning("The index of chosen 'W' was not found setting it to c(1, 1, 1).")
@@ -294,7 +313,7 @@ plot.SRWNN <- function(x, ...) {
             }
         }
         
-        resampled_parameter <- x$samples$W[resample]
+        resampled_parameter <- x$Samples$W[resample]
         resampled_parameter <- sapply(resampled_parameter, function(yy) yy[[index[1]]][index[3], index[2]])
         
         ln <- paste0(index[3], ",", index[2])
@@ -302,13 +321,13 @@ plot.SRWNN <- function(x, ...) {
         hist(resampled_parameter, breaks = breaks, xlab = bquote("W"[.(ln)]), main = bquote(bold("Histogram of W"[.(ln)])))
         dev.flush()
     } else if (parameter == "sigma") {
-        resampled_parameter <- x$samples$Sigma[resample]
+        resampled_parameter <- x$Samples$Sigma[resample]
         
         dev.hold()
         hist(resampled_parameter, breaks = breaks, xlab = bquote(sigma), main = bquote(bold("Histogram of"~sigma)))
         dev.flush()
     } else if (parameter == "beta") {
-        resampled_parameter <- t(do.call("cbind", x$samples$Beta[resample]))
+        resampled_parameter <- t(do.call("cbind", x$Samples$Beta[resample]))
         
         dev.hold()
         boxplot(resampled_parameter, xlab = bquote(bold(beta)), main = bquote(bold("Boxplots of"~beta)))
