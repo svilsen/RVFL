@@ -8,7 +8,7 @@
 #' 
 #' @importFrom Rcpp evalCpp
 #' 
-#' @importFrom stats coef predict runif sd rnorm dnorm quantile
+#' @importFrom stats coef predict runif sd rnorm dnorm quantile terms model.matrix model.response model.frame as.formula
 #' 
 #' @importFrom graphics plot abline boxplot hist
 #' 

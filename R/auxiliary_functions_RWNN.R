@@ -38,13 +38,25 @@ predict.RWNN <- function(object, ...) {
             stop("The RWNN-object does not contain any data: Either supply 'newdata', or re-create object with 'include_data = TRUE' (default).")
         }
         
-        newdata <- object$data$X
+        newdata <- object$data$X        
     } else {
-        if (dim(dots$newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
-            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        if (is.null(object$formula)) {
+            newdata <- as.matrix(dots$newdata)
+        }
+        else {
+            #
+            newdata <- model.matrix(object$formula, dots$newdata)
+            keep <- which(colnames(newdata) != "(Intercept)")
+            if (any(colnames(newdata) == "(Intercept)")) {
+                newdata <- newdata[, keep]
+            }
+            
+            newdata <- as.matrix(newdata, ncol = length(keep))
         }
         
-        newdata <- dots$newdata 
+        if (dim(newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        }
     }
     
     newH <- rwnn_forward(

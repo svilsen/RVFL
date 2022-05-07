@@ -9,7 +9,7 @@
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
-#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param method The RWNN method in need to hyper parameter optimisation.
 #' @param folds The number of folds used in k-fold cross-validation.
 #' @param hyperparameters A list of sequences of hyper-parameters.
@@ -158,6 +158,10 @@ tune_hyperparameters.formula <- function(formula, data, method, folds = 10, hype
         stop("'data' needs to be supplied when using 'formula'.")
     }
     
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
     #
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
@@ -172,6 +176,7 @@ tune_hyperparameters.formula <- function(formula, data, method, folds = 10, hype
     
     #
     mm <- tune_hyperparameters(X = X, y = y, method = method, folds = folds, hyperparameters = hyperparameters, control = control, trace = trace)
+    mm$formula <- formula
     return(mm)
 }
 

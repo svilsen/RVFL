@@ -210,11 +210,22 @@ predict.SRWNN <- function(object, ...) {
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
     } else {
-        if (dim(dots$newdata)[2] != (dim(object$Samples$W[[1]][[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
-            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        if (is.null(object$formula)) {
+            newdata <- as.matrix(dots$newdata)
+        } else {
+            #
+            newdata <- model.matrix(object$formula, dots$newdata)
+            keep <- which(colnames(newdata) != "(Intercept)")
+            if (any(colnames(newdata) == "(Intercept)")) {
+                newdata <- newdata[, keep]
+            }
+            
+            newdata <- as.matrix(newdata, ncol = length(keep))
         }
         
-        newdata <- dots$newdata 
+        if (dim(newdata)[2] != (dim(object$Samples$W[[1]][[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        }
     }
     
     ##

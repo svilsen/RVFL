@@ -9,7 +9,7 @@
 #' @param X A matrix of observed features used to train the parameters of the output layer.
 #' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
-#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param method The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).
@@ -124,6 +124,7 @@ ae_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", 
     
     ## Return object
     object <- list(
+        formula = NULL,
         data = if(control$include_data) list(X = X, y = y) else NULL, 
         N_hidden = N_hidden, 
         activation = activation, 
@@ -154,6 +155,10 @@ ae_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, method
         stop("'data' needs to be supplied when using 'formula'.")
     }
     
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
     #
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
@@ -168,5 +173,6 @@ ae_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, method
     
     #
     mm <- ae_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, method = method, control = control)
+    mm$formula <- formula
     return(mm)
 }

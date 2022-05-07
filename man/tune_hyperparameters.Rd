@@ -45,7 +45,7 @@ tune_hyperparameters(
 
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{method}{The RWNN method in need to hyper parameter optimisation.}
 

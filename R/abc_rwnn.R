@@ -141,7 +141,7 @@ control_abc_rwnn <- function(N_hidden, lnorm = NULL,
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
-#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of the RWNN.
 #' @param control A list of additional arguments passed to the \link{control_abc_rwnn} function (includes arguments passed to the \link{control_rwnn} function.).
@@ -197,6 +197,7 @@ abc_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list
     
     ## 
     object <- list(
+        formula = NULL,
         data = list(X = X, y = y), 
         N_hidden = N_hidden, 
         activation = control$activation, 
@@ -225,6 +226,10 @@ abc_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, contr
         stop("'data' needs to be supplied when using 'formula'.")
     }
     
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
     #
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
@@ -239,5 +244,6 @@ abc_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, contr
     
     #
     mm <- abc_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    mm$formula <- formula
     return(mm)
 }

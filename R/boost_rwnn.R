@@ -9,7 +9,7 @@
 #' @param X A matrix of observed features used to estimate the parameters of the output layer.
 #' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
-#' @param data A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
 #' @param B The number of levels used in the boosting tree.
@@ -71,6 +71,7 @@ boost_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsi
     
     ##
     object <- list(
+        formula = NULL,
         data = list(X = X, y = y), 
         RWNNmodels = objects, 
         weights = rep(1L / B, B), 
@@ -96,6 +97,10 @@ boost_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B =
         stop("'data' needs to be supplied when using 'formula'.")
     }
     
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
     #
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
@@ -110,5 +115,6 @@ boost_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B =
     
     #
     mm <- boost_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, B = B, epsilon = epsilon, control = control)
+    mm$formula <- formula
     return(mm)
 }

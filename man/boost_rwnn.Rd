@@ -45,7 +45,7 @@ boost_rwnn(
 
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{data}{A data-set (either a \link{data.frame} or a \link{tibble}) used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 

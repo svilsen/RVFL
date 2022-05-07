@@ -37,6 +37,16 @@ create_folds <- function(X, folds) {
     return(unname(split(x = index, f = fold_index)))
 }
 
+strip_terms <- function(formula) {
+    attr_names <- names(attributes(formula))
+    for (i in seq_along(attr_names)) {
+        attr(formula, attr_names[i]) <- NULL
+    }
+    
+    formula <- as.formula(formula)
+    return(formula)
+}
+
 #' @name Errors
 #' @rdname errors 
 #' 

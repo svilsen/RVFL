@@ -105,14 +105,21 @@ predict.ERWNN <- function(object, ...) {
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
     } else {
-        if (dim(dots$newdata)[2] != dim(object$data$X)[2]) {
-            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        if (is.null(object$formula)) {
+            newdata <- as.matrix(dots$newdata)
+        } else {
+            #
+            newdata <- model.matrix(object$formula, dots$newdata)
+            keep <- which(colnames(newdata) != "(Intercept)")
+            if (any(colnames(newdata) == "(Intercept)")) {
+                newdata <- newdata[, keep]
+            }
+            
+            newdata <- as.matrix(newdata, ncol = length(keep))
         }
         
-        newdata <- dots$newdata 
-        
-        if (!is.matrix(newdata)) {
-            newdata <- as.matrix(newdata)
+        if (dim(newdata)[2] != (dim(object$RWNNmodels[[1]]$Weights$Hidden[[1]])[1] - as.numeric(object$RWNNmodels[[1]]$Bias$Hidden[1]))) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
     }
     
@@ -333,7 +340,7 @@ estimate_weights.ERWNN <- function(object, X_val = NULL, y_val = NULL) {
         
         X_val <- object$data$X
         y_val <- object$data$y
-    }
+    } 
     
     B <- length(object$RWNNmodels)
     C <- predict(object, newdata = X_val, type = "full")
