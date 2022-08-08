@@ -150,8 +150,6 @@ control_mh_rwnn <- function(N_hidden, lnorm = NULL,
 #' 
 #' @description Uses Metropolis-Hastings sampling to pre-train sampling distribution of the hidden layers in random weight neural network models.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -166,17 +164,11 @@ control_mh_rwnn <- function(N_hidden, lnorm = NULL,
 #' }
 #' 
 #' @export
-mh_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+mh_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("mh_rwnn")
 }
 
-#' @rdname mh_rwnn
-#' @method mh_rwnn default
-#' 
-#' @example inst/examples/mhrwnn_example.R
-#' 
-#' @export
-mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+mh_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden
     control <- do.call(control_mh_rwnn, control)
@@ -293,13 +285,18 @@ mh_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list(
 #' @example inst/examples/mhrwnn_example.R
 #' 
 #' @export
-mh_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+mh_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -319,7 +316,7 @@ mh_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, contro
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- mh_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    mm <- mh_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
     mm$formula <- formula
     return(mm)
 }

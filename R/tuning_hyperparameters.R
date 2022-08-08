@@ -6,8 +6,6 @@
 #' 
 #' @description Simple function for hyper-parameter tuning using k-fold cross-validation.
 #' 
-#' @param X A matrix of observed features used to train the parameters of the output layer.
-#' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param method The RWNN method in need to hyper parameter optimisation.
@@ -21,15 +19,11 @@
 #' @return Either an \link{RWNN-object} or \link{ERWNN-object}.
 #' 
 #' @export
-tune_hyperparameters <- function(X, y, formula, data, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+tune_hyperparameters <- function(formula, data = NULL, method = NULL, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
     UseMethod("tune_hyperparameters")
 }
 
-#' @rdname tune_hyperparameters
-#' @method tune_hyperparameters default
-#' 
-#' @export
-tune_hyperparameters.default <- function(X, y, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
     ## Checks
     #
     if (!is.function(method)) {
@@ -100,8 +94,7 @@ tune_hyperparameters.default <- function(X, y, method, folds = 10, hyperparamete
                 
                 X_val_i <- matrix(X[folds_index[[j]], ], ncol = ncol(X))
                 y_val_i <- matrix(y[folds_index[[j]], ], ncol = ncol(y))
-            }
-            else {
+            } else {
                 X_train_i <- X
                 y_train_i <- y
                 
@@ -110,7 +103,10 @@ tune_hyperparameters.default <- function(X, y, method, folds = 10, hyperparamete
             }
             
             ##
-            model_args_ij <- list(X = X_train_i, y = y_train_i, control = control)
+            colnames(X_train_i) <- colnames(X_val_i) <- paste0("V", seq_len(dim(X_train_i)[2]))
+            
+            ##
+            model_args_ij <- list(formula = y_train_i ~ X_train_i, control = control)
             model_args_ij <- append(model_args_ij, model_parameters_i)
             
             if (is.list(model_args_ij$N_hidden)) {
@@ -132,30 +128,26 @@ tune_hyperparameters.default <- function(X, y, method, folds = 10, hyperparamete
     }
     
     ##
-    model_best_args <- list(X = X, y = y, control = control)
-    model_best_args <- append(model_best_args, best_model_parameters)
-    
-    if (is.list(model_best_args$N_hidden)) {
-        model_best_args$N_hidden <- model_best_args$N_hidden[[1]]
-    }
-    
-    model_best <- do.call(method, model_best_args)
-    return(model_best)
+    return(best_model_parameters)
 }
-
 
 
 #' @rdname tune_hyperparameters
 #' @method tune_hyperparameters formula
 #' 
 #' @export
-tune_hyperparameters.formula <- function(formula, data, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+tune_hyperparameters.formula <- function(formula, data = NULL, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -175,7 +167,19 @@ tune_hyperparameters.formula <- function(formula, data, method, folds = 10, hype
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- tune_hyperparameters(X = X, y = y, method = method, folds = folds, hyperparameters = hyperparameters, control = control, trace = trace)
+    best_model_parameters <- tune_hyperparameters.matrix(
+        X = X, y = y, method = method, folds = folds, hyperparameters = hyperparameters, 
+        control = control, trace = trace
+    )
+    
+    model_best_args <- list(formula = formula, data = data, control = control)
+    model_best_args <- append(model_best_args, best_model_parameters)
+    
+    if (is.list(model_best_args$N_hidden)) {
+        model_best_args$N_hidden <- model_best_args$N_hidden[[1]]
+    }
+    
+    mm <- do.call(method, model_best_args)
     mm$formula <- formula
     return(mm)
 }

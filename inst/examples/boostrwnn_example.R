@@ -17,6 +17,6 @@ B <- 10
 epsilon <- 0.2
 lambda <- 0.2
 \dontrun{
-boost_rwnn(X = X, y = y, N_hidden = N_hidden, 
+boost_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B, epsilon = epsilon)
 }

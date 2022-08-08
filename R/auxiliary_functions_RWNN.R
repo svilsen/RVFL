@@ -45,7 +45,17 @@ predict.RWNN <- function(object, ...) {
         }
         else {
             #
-            newdata <- model.matrix(object$formula, dots$newdata)
+            formula <- as.formula(object$formula)
+            formula <- strip_terms(delete.response(terms(formula)))
+            
+            #
+            newdata <- dots$newdata
+            if (!is.data.frame(newdata)) {
+                newdata <- as.data.frame(newdata)
+            }
+            
+            #
+            newdata <- model.matrix(formula, newdata)
             keep <- which(colnames(newdata) != "(Intercept)")
             if (any(colnames(newdata) == "(Intercept)")) {
                 newdata <- newdata[, keep]

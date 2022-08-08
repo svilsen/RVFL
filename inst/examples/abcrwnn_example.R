@@ -16,5 +16,5 @@ N_hidden <- 10
 lambda <- 1
 
 \dontrun{
-    abc_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda)
+    abc_rwnn(y ~ X, N_hidden = N_hidden, lambda = lambda)
 }

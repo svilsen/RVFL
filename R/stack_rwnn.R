@@ -6,8 +6,6 @@
 #' 
 #' @description Use stacking to create ensemble random weight neural networks.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -20,17 +18,11 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-stack_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+stack_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
     UseMethod("stack_rwnn")
 }
 
-#' @rdname stack_rwnn
-#' @method stack_rwnn default
-#' 
-#' @example inst/examples/stackrwnn_example.R
-#' 
-#' @export
-stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
@@ -68,7 +60,7 @@ stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opt
     
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        object_b <- rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
+        object_b <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
         
         if (optimise) {
             H <- rwnn_forward(X, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
@@ -124,13 +116,18 @@ stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opt
 #' @example inst/examples/stackrwnn_example.R
 #' 
 #' @export
-stack_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+stack_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -150,7 +147,7 @@ stack_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B =
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- stack_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, control = control)
+    mm <- stack_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, control = control)
     mm$formula <- formula
     return(mm)
 }

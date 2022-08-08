@@ -13,4 +13,4 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X %*% beta + rnorm(N, 0, 1)
 
 N_hidden <- rep(10, 15)
-ed_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
+ed_rwnn(y ~ X, N_hidden = N_hidden, lambda = 0.2)

@@ -2,26 +2,13 @@
 % Please edit documentation in R/tuning_hyperparameters.R
 \name{tune_hyperparameters}
 \alias{tune_hyperparameters}
-\alias{tune_hyperparameters.default}
 \alias{tune_hyperparameters.formula}
 \title{Hyper-parameter tuning}
 \usage{
 tune_hyperparameters(
-  X,
-  y,
   formula,
-  data,
-  method,
-  folds = 10,
-  hyperparameters = list(),
-  control = list(),
-  trace = 0
-)
-
-\method{tune_hyperparameters}{default}(
-  X,
-  y,
-  method,
+  data = NULL,
+  method = NULL,
   folds = 10,
   hyperparameters = list(),
   control = list(),
@@ -30,7 +17,7 @@ tune_hyperparameters(
 
 \method{tune_hyperparameters}{formula}(
   formula,
-  data,
+  data = NULL,
   method,
   folds = 10,
   hyperparameters = list(),
@@ -39,10 +26,6 @@ tune_hyperparameters(
 )
 }
 \arguments{
-\item{X}{A matrix of observed features used to train the parameters of the output layer.}
-
-\item{y}{A vector of observed targets used to train the parameters of the output layer.}
-
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
 \item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
@@ -86,6 +69,6 @@ hyperparameters <- list(
 folds <- 20
 
 \dontrun{
-tune_hyperparameters(X, y, rwnn, folds, hyperparameters)
+tune_hyperparameters(formula = y ~ X, method = rwnn, folds = folds, hyperparameters = hyperparameters)
 }
 }

@@ -20,11 +20,11 @@
 #' @return A list of control variables.
 #' @export
 control_abc_rwnn <- function(N_hidden, lnorm = NULL,
-                            bias_hidden = TRUE, activation = NULL, 
-                            bias_output = TRUE, combine_input = FALSE, include_data = TRUE,
-                            rng = "runif", rng_pars = list(min = -5, max = 5),
-                            N_simulations = 1000, N_max = 10000, metric = NULL,
-                            epsilon = 0.01, trace = NULL) {
+                             bias_hidden = TRUE, activation = NULL, 
+                             bias_output = TRUE, combine_input = FALSE, include_data = TRUE,
+                             rng = "runif", rng_pars = list(min = -5, max = 5),
+                             N_simulations = 1000, N_max = 10000, metric = NULL,
+                             epsilon = 0.01, trace = NULL) {
     if (is.null(N_simulations) | !is.numeric(N_simulations)) {
         stop("'N_simulations' has to be numeric.")
     } 
@@ -138,8 +138,6 @@ control_abc_rwnn <- function(N_hidden, lnorm = NULL,
 #' 
 #' @description Uses approximate Bayesian computation to sample the distribution of the hidden layers in random weight neural network models.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -147,17 +145,11 @@ control_abc_rwnn <- function(N_hidden, lnorm = NULL,
 #' @param control A list of additional arguments passed to the \link{control_abc_rwnn} function (includes arguments passed to the \link{control_rwnn} function.).
 #' 
 #' @export
-abc_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+abc_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("abc_rwnn")
 }
 
-#' @rdname abc_rwnn
-#' @method abc_rwnn default
-#' 
-#' @example inst/examples/abcrwnn_example.R
-#' 
-#' @export
-abc_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+abc_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     ## Control
     control$N_hidden <- N_hidden
     control <- do.call(control_abc_rwnn, control)
@@ -216,14 +208,21 @@ abc_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list
 #' @rdname abc_rwnn
 #' @method abc_rwnn formula
 #' 
+#' @example inst/examples/abcrwnn_example.R
+#' 
 #' @export
-abc_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+abc_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -243,7 +242,7 @@ abc_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, contr
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- abc_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    mm <- abc_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
     mm$formula <- formula
     return(mm)
 }

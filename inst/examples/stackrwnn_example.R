@@ -18,13 +18,13 @@ lambda <- 0.2
 
 ## Using the average of the stack to predict new targets
 \dontrun{
-stack_rwnn(X = X, y = y, N_hidden = N_hidden, 
+stack_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B)
 }
 
 ## Using the optimised weighting of the stack to predict new targets
 \dontrun{
-stack_rwnn(X = X, y = y, N_hidden = N_hidden, 
+stack_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B, optimise = TRUE)
 }
 

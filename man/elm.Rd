@@ -2,21 +2,14 @@
 % Please edit documentation in R/rwnn.R
 \name{elm}
 \alias{elm}
-\alias{elm.default}
 \alias{elm.formula}
 \title{Extreme learning machine}
 \usage{
-elm(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list())
+elm(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
 
-\method{elm}{default}(X, y, N_hidden, lambda = 0, control = list())
-
-\method{elm}{formula}(formula, data, N_hidden, lambda = 0, control = list())
+\method{elm}{formula}(formula, data = NULL, N_hidden, lambda = 0, control = list())
 }
 \arguments{
-\item{X}{A matrix of observed features used to train the parameters of the output layer.}
-
-\item{y}{A vector of observed targets used to train the parameters of the output layer.}
-
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
 \item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
@@ -26,6 +19,10 @@ elm(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list())
 \item{lambda}{The penalisation constant used when training the output layer.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
+
+\item{X}{A matrix of observed features used to train the parameters of the output layer.}
+
+\item{y}{A vector of observed targets used to train the parameters of the output layer.}
 }
 \value{
 An \link{RWNN-object}.

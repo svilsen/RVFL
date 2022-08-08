@@ -2,21 +2,14 @@
 % Please edit documentation in R/abc_rwnn.R
 \name{abc_rwnn}
 \alias{abc_rwnn}
-\alias{abc_rwnn.default}
 \alias{abc_rwnn.formula}
 \title{Approximate Bayesian computation random weight neural networks}
 \usage{
-abc_rwnn(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list())
+abc_rwnn(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
 
-\method{abc_rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, control = list())
-
-\method{abc_rwnn}{formula}(formula, data, N_hidden = c(), lambda = NULL, control = list())
+\method{abc_rwnn}{formula}(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
 }
 \arguments{
-\item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
-
-\item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
-
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
 \item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
@@ -49,6 +42,6 @@ N_hidden <- 10
 lambda <- 1
 
 \dontrun{
-    abc_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda)
+    abc_rwnn(y ~ X, N_hidden = N_hidden, lambda = lambda)
 }
 }

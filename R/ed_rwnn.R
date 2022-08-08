@@ -6,8 +6,6 @@
 #' 
 #' @description Use multiple layers to create deep ensemble random weight neural network models.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -17,17 +15,11 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-ed_rwnn <- function(X, y, formula, data, N_hidden, lambda = 0, control = list()) {
+ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, control = list()) {
     UseMethod("ed_rwnn")
 }
 
-#' @rdname ed_rwnn
-#' @method ed_rwnn default
-#' 
-#' @example inst/examples/edrwnn_example.R
-#' 
-#' @export
-ed_rwnn.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
+ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, control = list()) {
     ## Checks
     control$N_hidden <- N_hidden
     control <- do.call(control_rwnn, control)
@@ -37,7 +29,7 @@ ed_rwnn.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
     dc <- data_checks(y, X)
     
     ##
-    deeprwnn <- rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
+    deeprwnn <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
     H <- rwnn_forward(X = X, W = deeprwnn$Weights$Hidden, activation = deeprwnn$activation, bias = deeprwnn$Bias$Hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$N_hidden[i]))
     O <- lapply(seq_along(H), function(i) cbind(1, X, H[[i]]))
@@ -64,13 +56,18 @@ ed_rwnn.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
 #' @example inst/examples/edrwnn_example.R
 #' 
 #' @export
-ed_rwnn.formula <- function(formula, data, N_hidden, lambda = 0, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -90,7 +87,7 @@ ed_rwnn.formula <- function(formula, data, N_hidden, lambda = 0, control = list(
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- ed_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    mm <- ed_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
     mm$formula <- formula
     return(mm)
 }

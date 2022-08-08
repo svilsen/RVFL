@@ -6,8 +6,6 @@
 #' 
 #' @description Use gradient boosting to create ensemble random weight neural network models.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -19,17 +17,11 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-boost_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
+boost_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
     UseMethod("boost_rwnn")
 }
 
-#' @rdname boost_rwnn
-#' @method boost_rwnn default
-#' 
-#' @example inst/examples/boostrwnn_example.R
-#' 
-#' @export
-boost_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
+boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
@@ -66,7 +58,7 @@ boost_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsi
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- rwnn(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
+        objects[[b]] <- rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
     }
     
     ##
@@ -88,13 +80,18 @@ boost_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsi
 #' @example inst/examples/boostrwnn_example.R
 #' 
 #' @export
-boost_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -114,7 +111,7 @@ boost_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B =
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- boost_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, B = B, epsilon = epsilon, control = control)
+    mm <- boost_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, epsilon = epsilon, control = control)
     mm$formula <- formula
     return(mm)
 }

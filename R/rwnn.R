@@ -109,8 +109,6 @@ control_rwnn <- function(N_hidden = NULL, lnorm = NULL,
 #' 
 #' @description Set-up and estimate weights of a random weight neural network.
 #' 
-#' @param X A matrix of observed features used to train the parameters of the output layer.
-#' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -122,17 +120,11 @@ control_rwnn <- function(N_hidden = NULL, lnorm = NULL,
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("rwnn")
 }
 
-#' @rdname rwnn
-#' @method rwnn default
-#' 
-#' @example inst/examples/rwnn_example.R
-#' 
-#' @export
-rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
+rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden
     control <- do.call(control_rwnn, control)
@@ -236,13 +228,24 @@ rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) 
 #' @example inst/examples/rwnn_example.R
 #' 
 #' @export
-rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                as.data.frame(as.matrix(model.frame(formula)))
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        x_name <- paste0(attr(terms(formula), "term.labels"), ".")
+        colnames(data) <- gsub(x_name, "", colnames(data)) 
+        colnames(data)[1] <- "y"
+        
+        formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
+        formula <- as.formula(formula)
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -262,7 +265,7 @@ rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control =
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- rwnn(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    mm <- rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
     mm$formula = formula
     return(mm)
 }
@@ -285,37 +288,29 @@ rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, control =
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-elm <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, control = list()) {
+elm <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list()) {
     UseMethod("elm")
-}
-
-#' @rdname elm
-#' @method elm default
-#' 
-#' @export
-elm.default <- function(X, y, N_hidden, lambda = 0, control = list()) {
-    control$N_hidden <- N_hidden
-    control$combine_input <- FALSE
-    
-    elm_object <- list(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
-    object <- do.call(rwnn, elm_object)
-    return(object)
 }
 
 #' @rdname elm
 #' @method elm formula
 #' 
 #' @export
-elm.formula <- function(formula, data, N_hidden, lambda = 0, control = list()) {
+elm.formula <- function(formula, data = NULL, N_hidden, lambda = 0, control = list()) {
     control$N_hidden <- N_hidden
     control$combine_input <- FALSE
     
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     #
@@ -332,7 +327,7 @@ elm.formula <- function(formula, data, N_hidden, lambda = 0, control = list()) {
     
     #
     elm_object <- list(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
-    object <- do.call(rwnn, elm_object)
+    object <- do.call(rwnn.matrix, elm_object)
     object$formula <- formula
     return(object)
 }

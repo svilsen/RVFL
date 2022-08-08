@@ -17,18 +17,18 @@ lambda <- 1
 
 ## Returning an RWNN object using just the MAP estimate of the weights
 \dontrun{
-mh_rwnn(X = X, y = y, N_hidden = N_hidden, 
+mh_rwnn(y ~ X, N_hidden = N_hidden, 
         lambda = lambda, control = list(method = "map"))
 }
 
 ## Returning an ERWNN object resampling weights from the created posterior sample
 \dontrun{
-mh_rwnn(X = X, y = y, N_hidden = N_hidden, 
+mh_rwnn(y ~ X, N_hidden = N_hidden, 
         lambda = lambda, control = list(method = "stack"))
 }
 
 ## Returning an SRWNN object of the sampled posterior
 \dontrun{
-mh_rwnn(X = X, y = y, N_hidden = N_hidden, 
+mh_rwnn(y ~ X, N_hidden = N_hidden, 
         lambda = lambda, control = list(method = "posterior"))
 }

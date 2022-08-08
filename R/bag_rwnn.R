@@ -6,8 +6,6 @@
 #' 
 #' @description Use bootstrap aggregation to reduce the variance of random weight neural network models.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
@@ -18,17 +16,11 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-bag_rwnn <- function(X, y, formula, data, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
+bag_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
     UseMethod("bag_rwnn")
 }
 
-#' @rdname bag_rwnn
-#' @method bag_rwnn default
-#' 
-#' @example inst/examples/bagrwnn_example.R
-#' 
-#' @export
-bag_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
+bag_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
@@ -49,7 +41,7 @@ bag_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, contr
         X_b <- matrix(X[indices_b, ], ncol = ncol(X))
         y_b <- matrix(y[indices_b], ncol = ncol(y))    
         
-        rwnn_b <- rwnn(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
+        rwnn_b <- rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
         objects[[b]] <- rwnn_b
     }
     
@@ -73,13 +65,18 @@ bag_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, contr
 #' @example inst/examples/bagrwnn_example.R
 #' 
 #' @export
-bag_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
-    if (missing(formula)) {
-        stop("'formula' needs to be supplied when using 'data'.")
-    }
-    
-    if (missing(data)) {
-        stop("'data' needs to be supplied when using 'formula'.")
+bag_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -99,7 +96,7 @@ bag_rwnn.formula <- function(formula, data, N_hidden = c(), lambda = NULL, B = 1
     y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
     
     #
-    mm <- bag_rwnn(X, y, N_hidden = N_hidden, lambda = lambda, B = B, control = control)
+    mm <- bag_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, control = control)
     mm$formula <- formula
     return(mm)
 }
