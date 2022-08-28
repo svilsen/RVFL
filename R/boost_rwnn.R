@@ -57,7 +57,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- RWNN:::rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
+        objects[[b]] <- rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
     }
     
     ##

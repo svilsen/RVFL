@@ -240,7 +240,7 @@ rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, co
         )
         
         x_name <- paste0(attr(terms(formula), "term.labels"), ".")
-        colnames(data) <- paste0("X", gsub(x_name, "", colnames(data)))
+        colnames(data) <- paste0("V", gsub(x_name, "", colnames(data)))
         colnames(data)[1] <- "y"
         
         formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))

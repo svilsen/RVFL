@@ -13,9 +13,9 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X %*% beta + rnorm(N, 0, 1)
 
 N_hidden <- 100
-B <- 10
-epsilon <- 0.2
-lambda <- 0
+B <- 1000
+epsilon <- 1
+lambda <- 0.1
 \dontrun{
 boost_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B, epsilon = epsilon)
