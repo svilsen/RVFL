@@ -191,17 +191,10 @@ learners):
   gradient boosting).
 \end{itemize}
 
-Two Bayesian sampling approaches have also been implemented using either
-a Metropolis-Hastings or Approximate Bayesian Computation, to sample
-both hidden weights and output weights of the RWNN. This sampling
-process is a posthoc procedure, i.e., it is applied after the initial
-assignment of random weights in the hidden-layers, and estimation of the
-output-weights.
-
 Lastly, the \pkg{RWNN} package also includes a simple method for grid
 based hyperparameter optimisation, where \(k\)-fold cross-validation is
 applied to training-set to find the hyperparameters yielding the
-smallest cross-validation error on the supplied grid.
+smallest cross-validation error on a supplied grid.
 
 The remainder of the paper is structured as follows: Section \ref{RWNN}
 introduces the general idea of RWNNs, this is followed by the method of
@@ -253,40 +246,45 @@ and \(w_{ij}\) is the weight between the \(i\)'th feature and the
 \(J\) neurons the vector, the vector of transformed features of the
 hidden layer, denoted \(\boldsymbol h_{n}\), simplifying the notation of
 Eq. \eqref{eq:hidden} to: \begin{equation}
-\boldsymbol h = \boldsymbol f\left(W X + w_0 \boldsymbol{1}\right),
-\end{equation} where \(\boldsymbol{1}\) is a vector of one's of
-dimension \(J^{k}\).
+\boldsymbol h_n = \boldsymbol f\left(W \boldsymbol{x}_n + w_0 \boldsymbol{1}_{J}\right),
+\end{equation} where \(\boldsymbol{1}_{J}\) is a vector of one's of
+dimension \(J\).
 
-Let \(\boldsymbol d_n = [\boldsymbol h^{(K)}_n \; \boldsymbol x_n]^T\)
-be a stacked vector of the features transformed by the \(K\)
-hidden-layers, and original features. Furthermore, assuming the
-activation in the output-layer is linear, then the predicted response of
-the \(n\)'th observation is: \begin{equation}
-\hat{y}_n = \boldsymbol d^T_n \boldsymbol \beta
+Let \(\boldsymbol d_n = [\boldsymbol h_n \; \boldsymbol x_n]^T\) be a
+stacked vector of the features transformed by the hidden-layer, and
+original features. Furthermore, assuming the activation in the
+output-layer is linear, then the predicted response of the \(n\)'th
+observation is: \begin{equation}
+\hat{y}_n = \boldsymbol d^T_n \boldsymbol \beta.
 \end{equation}
 
-Let \(D\) be the matrix of the concatenated features (i.e.~the \(n\)'th
-row contains \(\boldsymbol d_n\)) and \(\boldsymbol y\) be a vector
-containing the output, then the output-weights \(\boldsymbol \beta\) can
-be found by minimising sum-of-squared errors (SSE): \begin{equation}
-\hat{\boldsymbol{\beta}} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2\Big\}, \label{eq:ssq}
+Given a concatenated matrix of features, \(D\), (i.e.~a matrix whose
+\(n\)'th row contains \(\boldsymbol d_n\)) and \(\boldsymbol y\) be a
+vector containing the output, the output-weights \(\boldsymbol \beta\)
+can be found by minimising sum-of-squared errors (SSE): \begin{equation}
+\hat{\boldsymbol{\beta}} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2\Big\}. \label{eq:ssq}
+\end{equation}
+
+When \(N > p + J\), the solution to this system of equations can be
+found by the normal equation: \begin{equation}
+\hat{\boldsymbol{\beta}}^{(ols)} = (D^T D)^{-1}D^T\boldsymbol{y}. \label{eq:ols}
 \end{equation}
 
 However, in many application the number of concatenated features
 (i.e.~the number of columns of \(D\)) is much bigger than the number of
-observations, i.e.~\((p + J^{(K)}) > N\). The two most common approaches
-to estimating the parameters in cases where \((p + J^{(K)}) > N\) are
-the Moore-Penrose pseudoinverse and regularisation.
+observations, i.e.~\((p + J) >> N\). When this is the case, the two most
+common approaches to estimating the parameters are the Moore-Penrose
+pseudoinverse and regularisation.
 
 When using Moore-Penrose pseudoinverse
 \citep[\citet{PenroseInv}]{BjerhammarInv}, \(D^+\), the solution to the
 optimisation problem is simply: \begin{equation}
-\hat{\boldsymbol \beta}^{(mp)} = D^+ \boldsymbol y.
+\hat{\boldsymbol \beta}^{(p)} = D^+ \boldsymbol y.
 \end{equation}
 
-When regularisation in introduced the SSE, seen in Eq.~\eqref{eq:ssq},
+When regularisation is introduced the SSE, seen in Eq.~\eqref{eq:ssq},
 is penalised by the size of the output-weights. The penalisation is
-either performed using \(\ell_1\) or \(\ell_2\) norm, creating the
+usually performed using \(\ell_1\) or \(\ell_2\) norm, creating the
 following optimisation problem: \begin{equation}
 \hat{\boldsymbol{\beta}} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2  + \lambda||\boldsymbol{\beta}||_q^q \Big\}, \label{eq:rsse}
 \end{equation} where \(q \in \{1, 2\}\) and \(\lambda\) is a
@@ -305,9 +303,12 @@ If \(q = 2\), the optimisation problem in Eq. \eqref{eq:rsse} is
 equivalent to ridge-regression using the concatenated features, instead
 of the input features, and the solution can be found as
 \citep{ridgeReg}: \begin{equation}
-\hat{\boldsymbol \beta}^{(ridge)} = \left(D^TD + \lambda I_{p + J^{(K)}}\right)^{-1}D^T\boldsymbol y,
-\end{equation} where \(I_{p+J^{(K)}}\) is the identity matrix of size
-\(p+J^{(K)}\).
+\hat{\boldsymbol \beta}^{(ridge)} = \left(D^TD + \lambda I_{p + J}\right)^{-1}D^T\boldsymbol y,
+\end{equation} where \(I_{p+J}\) is the identity matrix of size \(p+J\).
+
+\textbf{NB:} Extreme learning machine's (ELM's) are effectively RWNN's
+without the functional link and can, therefore, be trained using exactly
+the same set of equations setting \(\boldsymbol d_n = \boldsymbol h_n\).
 
 \hypertarget{deep-rwnn}{%
 \subsection{Deep RWNN}\label{deep-rwnn}}
@@ -350,17 +351,6 @@ the \(n\)'th observation is: \begin{equation}
 
 \hypertarget{ensemble-deep-rwnn}{%
 \subsection{Ensemble Deep RWNN}\label{ensemble-deep-rwnn}}
-
-\hypertarget{bayesian-methods}{%
-\subsection{Bayesian methods}\label{bayesian-methods}}
-
-\hypertarget{metropolis-hastings-sampling}{%
-\subsubsection{Metropolis-Hastings
-sampling}\label{metropolis-hastings-sampling}}
-
-\hypertarget{approximate-bayesian-computation}{%
-\subsubsection{Approximate Bayesian
-Computation}\label{approximate-bayesian-computation}}
 
 \hypertarget{EX}{%
 \section{Examples}\label{EX}}
