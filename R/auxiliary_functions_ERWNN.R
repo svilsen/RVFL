@@ -107,9 +107,19 @@ predict.ERWNN <- function(object, ...) {
     } else {
         if (is.null(object$formula)) {
             newdata <- as.matrix(dots$newdata)
-        } else {
+        }
+        else {
+            formula <- as.formula(object$formula)
+            formula <- strip_terms(delete.response(terms(formula)))
+            
             #
-            newdata <- model.matrix(object$formula, dots$newdata)
+            newdata <- dots$newdata
+            if (!is.data.frame(newdata)) {
+                newdata <- as.data.frame(newdata)
+            }
+            
+            #
+            newdata <- model.matrix(formula, newdata)
             keep <- which(colnames(newdata) != "(Intercept)")
             if (any(colnames(newdata) == "(Intercept)")) {
                 newdata <- newdata[, keep]
@@ -264,8 +274,9 @@ estimate_weights_stack <- function(C, b, B) {
     # Solution to QP optimisation problem
     w <- solve.QP(D, d, t(A), b, meq = 1)$solution
     
-    # Ensure all weights are >= 1e-8 (some may not be due to machine precision)
-    w[w < 1e-8] <- 1e-8
+    # Ensure all weights are valid (some may not be due to machine precision)
+    w[w < 1e-16] <- 1e-16
+    w[w > (1 - 1e-16)] <- (1 - 1e-16)
     w <- w / sum(w)
     
     return(w)

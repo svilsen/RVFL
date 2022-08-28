@@ -240,7 +240,7 @@ rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, co
         )
         
         x_name <- paste0(attr(terms(formula), "term.labels"), ".")
-        colnames(data) <- gsub(x_name, "", colnames(data)) 
+        colnames(data) <- paste0("X", gsub(x_name, "", colnames(data)))
         colnames(data)[1] <- "y"
         
         formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
@@ -303,15 +303,25 @@ elm.formula <- function(formula, data = NULL, N_hidden, lambda = 0, control = li
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
-                model.matrix(formula)
+                as.data.frame(as.matrix(model.frame(formula)))
             },
             error = function(e) {
                 message("'data' needs to be supplied when using 'formula'.")
             }
         )
         
-        data <- as.data.frame(data)
+        x_name <- paste0(attr(terms(formula), "term.labels"), ".")
+        colnames(data) <- paste0("V", gsub(x_name, "", colnames(data)))
+        colnames(data)[1] <- "y"
+        
+        formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
+        formula <- as.formula(formula)
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
     }
+    
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
     
     #
     X <- model.matrix(formula, data)

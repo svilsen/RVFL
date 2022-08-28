@@ -44,7 +44,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
     }
     
     if (is.null(control$N_features)) {
-        control$N_features <- ceiling(dim(X)[2] / 3)
+        control$N_features <- dim(X)[2] # ceiling(dim(X)[2] / 3)
     }
     
     ##
@@ -53,12 +53,11 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         X_b <- X
         if (b == 1) {
             y_b <- y
-        }
-        else {
+        } else {
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
+        objects[[b]] <- RWNN:::rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
     }
     
     ##
@@ -66,7 +65,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         formula = NULL,
         data = list(X = X, y = y), 
         RWNNmodels = objects, 
-        weights = rep(1L / B, B), 
+        weights = rep(1L, B), 
         method = "boosting"
     )  
     
@@ -84,14 +83,20 @@ boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NU
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
-                model.matrix(formula)
+                as.data.frame(as.matrix(model.frame(formula)))
             },
             error = function(e) {
                 message("'data' needs to be supplied when using 'formula'.")
             }
         )
         
-        data <- as.data.frame(data)
+        x_name <- paste0(attr(terms(formula), "term.labels"), ".")
+        colnames(data) <- paste0("V", gsub(x_name, "", colnames(data)))
+        colnames(data)[1] <- "y"
+        
+        formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
+        formula <- as.formula(formula)
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
     }
     
     # Re-capture feature names when '.' is used in formula interface
