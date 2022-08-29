@@ -43,21 +43,16 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         warning("'epsilon' has to be a number between 0 and 1.")
     }
     
-    if (is.null(control$N_features)) {
-        control$N_features <- dim(X)[2] # ceiling(dim(X)[2] / 3)
-    }
-    
     ##
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        X_b <- X
         if (b == 1) {
             y_b <- y
         } else {
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
+        objects[[b]] <- rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
     }
     
     ##
@@ -65,7 +60,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         formula = NULL,
         data = list(X = X, y = y), 
         RWNNmodels = objects, 
-        weights = rep(1L, B), 
+        weights = c(rep(epsilon, B - 1), 1L), 
         method = "boosting"
     )  
     
@@ -79,7 +74,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
 #' @example inst/examples/boostrwnn_example.R
 #' 
 #' @export
-boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
+boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 0.1, control = list()) {
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
