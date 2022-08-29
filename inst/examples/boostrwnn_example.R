@@ -12,7 +12,7 @@ X[, 5] <- s^3
 beta <- matrix(rnorm(p), ncol = 1) 
 y <- X %*% beta + rnorm(N, 0, 1)
 
-N_hidden <- 100
+N_hidden <- 5
 B <- 1000
 epsilon <- 1
 lambda <- 0.1
