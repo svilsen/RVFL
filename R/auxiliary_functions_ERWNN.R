@@ -105,14 +105,31 @@ predict.ERWNN <- function(object, ...) {
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
     } else {
-        if (dim(dots$newdata)[2] != dim(object$data$X)[2]) {
-            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
+        if (is.null(object$formula)) {
+            newdata <- as.matrix(dots$newdata)
+        }
+        else {
+            formula <- as.formula(object$formula)
+            formula <- strip_terms(delete.response(terms(formula)))
+            
+            #
+            newdata <- dots$newdata
+            if (!is.data.frame(newdata)) {
+                newdata <- as.data.frame(newdata)
+            }
+            
+            #
+            newdata <- model.matrix(formula, newdata)
+            keep <- which(colnames(newdata) != "(Intercept)")
+            if (any(colnames(newdata) == "(Intercept)")) {
+                newdata <- newdata[, keep]
+            }
+            
+            newdata <- as.matrix(newdata, ncol = length(keep))
         }
         
-        newdata <- dots$newdata 
-        
-        if (!is.matrix(newdata)) {
-            newdata <- as.matrix(newdata)
+        if (dim(newdata)[2] != (dim(object$RWNNmodels[[1]]$Weights$Hidden[[1]])[1] - as.numeric(object$RWNNmodels[[1]]$Bias$Hidden[1]))) {
+            stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
     }
     
@@ -257,8 +274,9 @@ estimate_weights_stack <- function(C, b, B) {
     # Solution to QP optimisation problem
     w <- solve.QP(D, d, t(A), b, meq = 1)$solution
     
-    # Ensure all weights are >= 1e-8 (some may not be due to machine precision)
-    w[w < 1e-8] <- 1e-8
+    # Ensure all weights are valid (some may not be due to machine precision)
+    w[w < 1e-16] <- 1e-16
+    w[w > (1 - 1e-16)] <- (1 - 1e-16)
     w <- w / sum(w)
     
     return(w)
@@ -333,7 +351,7 @@ estimate_weights.ERWNN <- function(object, X_val = NULL, y_val = NULL) {
         
         X_val <- object$data$X
         y_val <- object$data$y
-    }
+    } 
     
     B <- length(object$RWNNmodels)
     C <- predict(object, newdata = X_val, type = "full")

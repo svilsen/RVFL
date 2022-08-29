@@ -2,12 +2,12 @@
 % Please edit documentation in R/boost_rwnn.R
 \name{boost_rwnn}
 \alias{boost_rwnn}
-\alias{boost_rwnn.default}
+\alias{boost_rwnn.formula}
 \title{Boosting random weight neural networks}
 \usage{
 boost_rwnn(
-  X,
-  y,
+  formula,
+  data = NULL,
   N_hidden = c(),
   lambda = NULL,
   B = 10,
@@ -15,9 +15,9 @@ boost_rwnn(
   control = list()
 )
 
-\method{boost_rwnn}{default}(
-  X,
-  y,
+\method{boost_rwnn}{formula}(
+  formula,
+  data = NULL,
   N_hidden = c(),
   lambda = NULL,
   B = 10,
@@ -26,9 +26,9 @@ boost_rwnn(
 )
 }
 \arguments{
-\item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -62,11 +62,11 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X \%*\% beta + rnorm(N, 0, 1)
 
 N_hidden <- 100
-B <- 10
-epsilon <- 0.2
-lambda <- 0.2
+B <- 1000
+epsilon <- 1
+lambda <- 0.1
 \dontrun{
-boost_rwnn(X = X, y = y, N_hidden = N_hidden, 
+boost_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B, epsilon = epsilon)
 }
 }

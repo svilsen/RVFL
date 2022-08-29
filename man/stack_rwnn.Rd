@@ -2,12 +2,12 @@
 % Please edit documentation in R/stack_rwnn.R
 \name{stack_rwnn}
 \alias{stack_rwnn}
-\alias{stack_rwnn.default}
+\alias{stack_rwnn.formula}
 \title{Stacking random weight neural networks}
 \usage{
 stack_rwnn(
-  X,
-  y,
+  formula,
+  data = NULL,
   N_hidden = c(),
   lambda = NULL,
   B = 100,
@@ -16,9 +16,9 @@ stack_rwnn(
   control = list()
 )
 
-\method{stack_rwnn}{default}(
-  X,
-  y,
+\method{stack_rwnn}{formula}(
+  formula,
+  data = NULL,
   N_hidden = c(),
   lambda = NULL,
   B = 100,
@@ -28,9 +28,9 @@ stack_rwnn(
 )
 }
 \arguments{
-\item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -71,13 +71,13 @@ lambda <- 0.2
 
 ## Using the average of the stack to predict new targets
 \dontrun{
-stack_rwnn(X = X, y = y, N_hidden = N_hidden, 
+stack_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B)
 }
 
 ## Using the optimised weighting of the stack to predict new targets
 \dontrun{
-stack_rwnn(X = X, y = y, N_hidden = N_hidden, 
+stack_rwnn(y ~ X, N_hidden = N_hidden, 
            lambda = lambda, B = B, optimise = TRUE)
 }
 

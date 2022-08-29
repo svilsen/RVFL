@@ -6,8 +6,8 @@
 #' 
 #' @description Use stacking to create ensemble random weight neural networks.
 #' 
-#' @param X A matrix of observed features used to estimate the parameters of the output layer.
-#' @param y A vector of observed targets used to estimate the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN
 #' @param B The number of models in the stack.
@@ -18,17 +18,11 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-stack_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+stack_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
     UseMethod("stack_rwnn")
 }
 
-#' @rdname stack_rwnn
-#' @method stack_rwnn default
-#' 
-#' @example inst/examples/stackrwnn_example.R
-#' 
-#' @export
-stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
@@ -66,7 +60,7 @@ stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opt
     
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        object_b <- rwnn(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
+        object_b <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
         
         if (optimise) {
             H <- rwnn_forward(X, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
@@ -104,6 +98,7 @@ stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opt
     
     ##
     object <- list(
+        formula = NULL,
         data = list(X = X, y = y), 
         RWNNmodels = objects, 
         weights = w, 
@@ -112,4 +107,53 @@ stack_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opt
     
     class(object) <- "ERWNN"
     return(object)
+}
+
+
+#' @rdname stack_rwnn
+#' @method stack_rwnn formula
+#' 
+#' @example inst/examples/stackrwnn_example.R
+#' 
+#' @export
+stack_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                as.data.frame(as.matrix(model.frame(formula)))
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        x_name <- paste0(attr(terms(formula), "term.labels"), ".")
+        colnames(data) <- paste0("V", gsub(x_name, "", colnames(data)))
+        colnames(data)[1] <- "y"
+        
+        formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
+        formula <- as.formula(formula)
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
+    }
+    
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- stack_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, control = control)
+    mm$formula <- formula
+    return(mm)
 }

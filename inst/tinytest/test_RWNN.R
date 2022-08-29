@@ -35,10 +35,10 @@ set.seed(1)
 m_bagrwnn <- bag_rwnn(X, y, N_hidden, lambda, B = 10)
 
 set.seed(1)
-m_samplerwnn <- sample_rwnn(X, y, N_hidden, lambda, control = list(method = "post"))
+m_mhrwnn <- mh_rwnn(X, y, N_hidden, lambda, control = list(method = "post"))
 
 set.seed(1)
-th <- tune_hyperparameters(rwnn, X, y, folds = 10, hyperparameters = list(lambda = c(0.1, 1, 2), N_hidden = list(c(N_hidden), c(N_hidden, N_hidden))))
+th <- tune_hyperparameters(X, y, rwnn, folds = 10, hyperparameters = list(lambda = c(0.1, 1, 2), N_hidden = list(c(N_hidden), c(N_hidden, N_hidden))))
 
 ######################################
 #       Examining model results      #
@@ -70,7 +70,7 @@ expect_equal(th$N_hidden, 20, tolerance = 1e-7)
 expect_equal(round(mse(th, X, y), 4), 1.0761, tolerance = 1e-7)
 
 #
-expect_equal(round(mse(m_samplerwnn, X, y), 4), 1.076, tolerance = 1e-7)
+expect_equal(round(mse(m_mhrwnn, X, y), 4), 1.0763, tolerance = 1e-4)
 
 
 #################################################
@@ -170,25 +170,25 @@ expect_warning(stack_rwnn(X, y, N_hidden, lambda, B = NULL, optimise = FALSE, fo
 
 
 #
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, method = "bbbbbb")), "The argument supplied to 'method' is not implemented, please set method to 'map', 'stack', or 'posterior'")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, method = "bbbbbb")), "The argument supplied to 'method' is not implemented, please set method to 'map', 'resample', or 'posterior'.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, N_simulations = NULL)), "'N_simulations' has to be numeric.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, N_simulations = NULL)), "'N_simulations' has to be numeric.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, N_simulations = "")), "'N_simulations' has to be numeric.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, N_simulations = "")), "'N_simulations' has to be numeric.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, N_simulations = 0)), "'N_simulations' has to be larger than 0.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, N_simulations = 0)), "'N_simulations' has to be larger than 0.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, N_burnin = NULL)), "'N_burnin' has to be numeric.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, N_burnin = NULL)), "'N_burnin' has to be numeric.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, N_burnin = "")), "'N_burnin' has to be numeric.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, N_burnin = "")), "'N_burnin' has to be numeric.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, N_simulations = 1, N_burnin = 2)), "'N_burnin' has be smaller than 'N_simulations'.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, N_simulations = 1, N_burnin = 2)), "'N_burnin' has be smaller than 'N_simulations'.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, method = "stack", N_resample = NULL)), "'N_resample' has to be numeric.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, method = "resample", N_resample = NULL)), "'N_resample' has to be numeric.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, method = "stack", N_resample = "")), "'N_resample' has to be numeric.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, method = "resample", N_resample = "")), "'N_resample' has to be numeric.")
 
-expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, method = "stack", N_resample = 10000)), "'N_resample' has be smaller than 'N_simulations - N_burnin'.")
+expect_error(do.call("control_mh_rwnn", list(N_hidden = N_hidden, method = "resample", N_resample = 10000)), "'N_resample' has be smaller than 'N_simulations - N_burnin'.")
 
 
 ###########################################################
@@ -196,32 +196,30 @@ expect_error(do.call("control_sample_rwnn", list(N_hidden = N_hidden, method = "
 ###########################################################
 
 #
-expect_error(tune_hyperparameters(""), "'method' has to be a function.")
+expect_error(tune_hyperparameters(X, y, ""), "'method' has to be a function.")
 
-expect_error(tune_hyperparameters(lm), "The tuning function is only implemented for 'RWNN' and 'ERWNN' methods.")
-
-expect_warning(tune_hyperparameters(sample_rwnn), "Support for 'sample_rwnn' is not implemented.")
+expect_error(tune_hyperparameters(X, y, lm), "The tuning function is only implemented for 'RWNN' and 'ERWNN' methods.")
 
 #
-expect_error(tune_hyperparameters(rwnn, X, y, folds = NULL, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was either 'NULL' or not numeric.")
+expect_error(tune_hyperparameters(X, y, rwnn, folds = NULL, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was either 'NULL' or not numeric.")
 
-expect_error(tune_hyperparameters(rwnn, X, y, folds = "NULL", hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was either 'NULL' or not numeric.")
+expect_error(tune_hyperparameters(X, y, rwnn, folds = "NULL", hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was either 'NULL' or not numeric.")
 
-expect_warning(tune_hyperparameters(rwnn, X, y, folds = 0, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was smaller than 1, setting 'folds' to 3.")
+expect_warning(tune_hyperparameters(X, y, rwnn, folds = 0, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was smaller than 1, setting 'folds' to 3.")
 
-expect_warning(tune_hyperparameters(rwnn, X, y, folds = 1, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was equal to 1, this is not recommended, as no validation set is generated.")
+expect_warning(tune_hyperparameters(X, y, rwnn, folds = 1, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was equal to 1, this is not recommended, as no validation set is generated.")
 
-expect_warning(tune_hyperparameters(rwnn, X, y, folds = 2 * N, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was larger than the number of observations, setting 'folds' equal to the number of observations.")
-
-#
-expect_warning(tune_hyperparameters(rwnn, X, y, folds = 10, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda), trace = NULL), "'trace' was either 'NULL' or not numeric, setting 'trace' to 0")
-
-expect_warning(tune_hyperparameters(rwnn, X, y, folds = 10, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda), trace = "NULL"), "'trace' was either 'NULL' or not numeric, setting 'trace' to 0")
+expect_warning(tune_hyperparameters(X, y, rwnn, folds = 2 * N, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda)), "'folds' was larger than the number of observations, setting 'folds' equal to the number of observations.")
 
 #
-expect_error(tune_hyperparameters(rwnn, X, y, folds = 10, hyperparameters = list(N_hidden = list(N_hidden)), trace = 0), "Missing arguments in 'hyperparameters': lambda")
+expect_warning(tune_hyperparameters(X, y, rwnn, folds = 10, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda), trace = NULL), "'trace' was either 'NULL' or not numeric, setting 'trace' to 0")
 
-expect_error(tune_hyperparameters(rwnn, X, y, folds = 10, hyperparameters = list(), trace = 0), "Missing arguments in 'hyperparameters': N_hidden, lambda")
+expect_warning(tune_hyperparameters(X, y, rwnn, folds = 10, hyperparameters = list(N_hidden = list(N_hidden), lambda = lambda), trace = "NULL"), "'trace' was either 'NULL' or not numeric, setting 'trace' to 0")
+
+#
+expect_error(tune_hyperparameters(X, y, rwnn, folds = 10, hyperparameters = list(N_hidden = list(N_hidden)), trace = 0), "Missing arguments in 'hyperparameters': lambda")
+
+expect_error(tune_hyperparameters(X, y, rwnn, folds = 10, hyperparameters = list(), trace = 0), "Missing arguments in 'hyperparameters': N_hidden, lambda")
 
 
 #############################################################
@@ -276,21 +274,21 @@ expect_warning(estimate_weights(m_bagrwnn), "The validation-set was not properly
 ##############################################################
 
 #
-expect_equal(round(coef(m_samplerwnn, parameter = "w")[[1]][[1]][1, 1], 4), -0.3708, tolerance = 1e-7)
+expect_equal(round(coef(m_mhrwnn, parameter = "w")[[1]][[1]][1, 1], 4), -0.526, tolerance = 1e-7)
 
-expect_equal(round(coef(m_samplerwnn, parameter = "beta")[[1]][1, 1], 4), 0.3445, tolerance = 1e-7)
+expect_equal(round(coef(m_mhrwnn, parameter = "beta")[[1]][1, 1], 4), 0.3468, tolerance = 1e-7)
 
-expect_equal(round(coef(m_samplerwnn, parameter = "sigma")[[1]], 4), 1.0428, tolerance = 1e-7)
+expect_equal(round(coef(m_mhrwnn, parameter = "sigma")[[1]], 4), 1.0352, tolerance = 1e-7)
 
-expect_error(coef(m_samplerwnn, parameter = "m"), "The value of 'parameter' was not valid, see '\\?coef.SRWNN' for valid options of 'parameter'.")
+expect_error(coef(m_mhrwnn, parameter = "m"), "The value of 'parameter' was not valid, see '\\?coef.SRWNN' for valid options of 'parameter'.")
 
 #
-expect_equal(round(predict(m_samplerwnn, newdata = matrix(X[1, ], nrow = 1), type = "a"), 4)[1, 1], 0.2863, tolerance = 1e-7)
+expect_equal(round(predict(m_mhrwnn, newdata = matrix(X[1, ], nrow = 1), type = "a"), 4)[1, 1], 0.23, tolerance = 1e-1)
 
-expect_equal(round(predict(m_samplerwnn, newdata = matrix(X[1, ], nrow = 1), type = "m"), 4)[1, ], 0.2876, tolerance = 1e-7)
+expect_equal(round(predict(m_mhrwnn, newdata = matrix(X[1, ], nrow = 1), type = "m"), 4)[1, ], 0.23, tolerance = 1e-1)
 
-expect_equal(unname(round(predict(m_samplerwnn, newdata = matrix(X[1, ], nrow = 1), type = "ci"), 4)[1, ]), c(0.2856, 0.2893), tolerance = 1e-7)
+expect_equal(unname(round(predict(m_mhrwnn, newdata = matrix(X[1, ], nrow = 1), type = "ci"), 4)[1, ]), c(0.16, 0.37), tolerance = 1e-1)
 
-expect_error(predict(m_samplerwnn, type = "hhh"), "The value of 'type' was not valid, see '\\?predict.SRWNN' for valid options of 'type'.")
+expect_error(predict(m_mhrwnn, type = "hhh"), "The value of 'type' was not valid, see '\\?predict.SRWNN' for valid options of 'type'.")
 
 

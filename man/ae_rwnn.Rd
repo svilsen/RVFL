@@ -2,17 +2,31 @@
 % Please edit documentation in R/ae_rwnn.R
 \name{ae_rwnn}
 \alias{ae_rwnn}
-\alias{ae_rwnn.default}
+\alias{ae_rwnn.formula}
 \title{Auto-encoder pre-trained random weight neural networks}
 \usage{
-ae_rwnn(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
+ae_rwnn(
+  formula,
+  data = NULL,
+  N_hidden = c(),
+  lambda = NULL,
+  method = "l1",
+  control = list()
+)
 
-\method{ae_rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
+\method{ae_rwnn}{formula}(
+  formula,
+  data = NULL,
+  N_hidden = c(),
+  lambda = NULL,
+  method = "l1",
+  control = list()
+)
 }
 \arguments{
-\item{X}{A matrix of observed features used to train the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{y}{A vector of observed targets used to train the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -46,8 +60,8 @@ y <- X \%*\% beta + rnorm(N, 0, 1)
 N_hidden <- 10
 
 ## Using L1-norm in the auto-encoder (sparse solution)
-ae_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l1")
+ae_rwnn(y ~ X, N_hidden = N_hidden, lambda = 0.2, method = "l1")
 
 ## Using L2-norm in the auto-encoder (non-sparse solution)
-ae_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l2")
+ae_rwnn(y ~ X, N_hidden = N_hidden, lambda = 0.2, method = "l2")
 }

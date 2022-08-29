@@ -37,7 +37,7 @@ y <- X \%*\% beta + rnorm(N, 0, 1)
 
 N_hidden <- 10
 B <- 50
-mm <- bag_rwnn(X = X, y = y, N_hidden = N_hidden,
+mm <- bag_rwnn(y ~ X, N_hidden = N_hidden,
               lambda = 0.2, B = B)
 
 w <- runif(B)

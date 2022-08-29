@@ -6,9 +6,9 @@
 #' 
 #' @description Simple function for hyper-parameter tuning using k-fold cross-validation.
 #' 
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param method The RWNN method in need to hyper parameter optimisation.
-#' @param X A matrix of observed features used to train the parameters of the output layer.
-#' @param y A vector of observed targets used to train the parameters of the output layer.
 #' @param folds The number of folds used in k-fold cross-validation.
 #' @param hyperparameters A list of sequences of hyper-parameters.
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
@@ -19,7 +19,11 @@
 #' @return Either an \link{RWNN-object} or \link{ERWNN-object}.
 #' 
 #' @export
-tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+tune_hyperparameters <- function(formula, data = NULL, method = NULL, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+    UseMethod("tune_hyperparameters")
+}
+
+tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
     ## Checks
     #
     if (!is.function(method)) {
@@ -60,7 +64,7 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     
     # 
     method_args <- names(formals(method))
-    method_args <- method_args[-which(method_args %in% c("X", "y", "control"))]
+    method_args <- method_args[-which(method_args %in% c("X", "y", "formula", "data", "control"))]
     hyperparameters_args <- names(hyperparameters)
     
     if (!all(method_args %in% hyperparameters_args)) { 
@@ -90,8 +94,7 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
                 
                 X_val_i <- matrix(X[folds_index[[j]], ], ncol = ncol(X))
                 y_val_i <- matrix(y[folds_index[[j]], ], ncol = ncol(y))
-            }
-            else {
+            } else {
                 X_train_i <- X
                 y_train_i <- y
                 
@@ -100,7 +103,10 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
             }
             
             ##
-            model_args_ij <- list(X = X_train_i, y = y_train_i, control = control)
+            colnames(X_train_i) <- colnames(X_val_i) <- paste0("V", seq_len(dim(X_train_i)[2]))
+            
+            ##
+            model_args_ij <- list(formula = y_train_i ~ X_train_i, control = control)
             model_args_ij <- append(model_args_ij, model_parameters_i)
             
             if (is.list(model_args_ij$N_hidden)) {
@@ -122,21 +128,65 @@ tune_hyperparameters <- function(method, X, y, folds = 10, hyperparameters = lis
     }
     
     ##
-    model_best_args <- list(X = X, y = y, control = control)
+    return(best_model_parameters)
+}
+
+
+#' @rdname tune_hyperparameters
+#' @method tune_hyperparameters formula
+#' 
+#' @export
+tune_hyperparameters.formula <- function(formula, data = NULL, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                as.data.frame(as.matrix(model.frame(formula)))
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        x_name <- paste0(attr(terms(formula), "term.labels"), ".")
+        colnames(data) <- paste0("V", gsub(x_name, "", colnames(data)))
+        colnames(data)[1] <- "y"
+        
+        formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
+        formula <- as.formula(formula)
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
+    }
+    
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    best_model_parameters <- tune_hyperparameters.matrix(
+        X = X, y = y, method = method, folds = folds, hyperparameters = hyperparameters, 
+        control = control, trace = trace
+    )
+    
+    model_best_args <- list(formula = formula, data = data, control = control)
     model_best_args <- append(model_best_args, best_model_parameters)
     
     if (is.list(model_best_args$N_hidden)) {
         model_best_args$N_hidden <- model_best_args$N_hidden[[1]]
     }
     
-    model_best <- do.call(method, model_best_args)
-    return(model_best)
+    mm <- do.call(method, model_best_args)
+    mm$formula <- formula
+    return(mm)
 }
-
-
-
-
-
-
-
 

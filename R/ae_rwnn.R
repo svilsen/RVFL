@@ -6,8 +6,8 @@
 #' 
 #' @description Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 #' 
-#' @param X A matrix of observed features used to train the parameters of the output layer.
-#' @param y A vector of observed targets used to train the parameters of the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param method The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).
@@ -16,17 +16,11 @@
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-ae_rwnn <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+ae_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
     UseMethod("ae_rwnn")
 }
 
-#' @rdname ae_rwnn
-#' @method ae_rwnn default
-#' 
-#' @example inst/examples/aerwnn_example.R
-#' 
-#' @export
-ae_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
     ## Creating control object 
     if (length(N_hidden) > 1) {
         N_hidden <- N_hidden[1]
@@ -122,6 +116,7 @@ ae_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", 
     
     ## Return object
     object <- list(
+        formula = NULL,
         data = if(control$include_data) list(X = X, y = y) else NULL, 
         N_hidden = N_hidden, 
         activation = activation, 
@@ -134,4 +129,46 @@ ae_rwnn.default <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", 
     
     class(object) <- "RWNN"
     return(object)
+}
+
+
+#' @rdname ae_rwnn
+#' @method ae_rwnn formula
+#' 
+#' @example inst/examples/aerwnn_example.R
+#' 
+#' @export
+ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+    if (is.null(data)) {
+        data <- tryCatch(
+            expr = {
+                model.matrix(formula)
+            },
+            error = function(e) {
+                message("'data' needs to be supplied when using 'formula'.")
+            }
+        )
+        
+        data <- as.data.frame(data)
+    }
+    # Re-capture feature names when '.' is used in formula interface
+    formula <- terms(formula, data = data)
+    formula <- strip_terms(formula)
+    
+    #
+    X <- model.matrix(formula, data)
+    keep <- which(colnames(X) != "(Intercept)")
+    if (any(colnames(X) == "(Intercept)")) {
+        X <- X[, keep]
+    }
+    
+    X <- as.matrix(X, ncol = length(keep))
+    
+    #
+    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
+    
+    #
+    mm <- ae_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, method = method, control = control)
+    mm$formula <- formula
+    return(mm)
 }

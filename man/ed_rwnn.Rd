@@ -2,17 +2,17 @@
 % Please edit documentation in R/ed_rwnn.R
 \name{ed_rwnn}
 \alias{ed_rwnn}
-\alias{ed_rwnn.default}
+\alias{ed_rwnn.formula}
 \title{Ensemble deep random weight neural networks}
 \usage{
-ed_rwnn(X, y, N_hidden, lambda = 0, control = list())
+ed_rwnn(formula, data = NULL, N_hidden, lambda = 0, control = list())
 
-\method{ed_rwnn}{default}(X, y, N_hidden, lambda = 0, control = list())
+\method{ed_rwnn}{formula}(formula, data = NULL, N_hidden, lambda = 0, control = list())
 }
 \arguments{
-\item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
@@ -42,5 +42,5 @@ beta <- matrix(rnorm(p), ncol = 1)
 y <- X \%*\% beta + rnorm(N, 0, 1)
 
 N_hidden <- rep(10, 15)
-ed_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
+ed_rwnn(y ~ X, N_hidden = N_hidden, lambda = 0.2)
 }
