@@ -103,7 +103,7 @@ tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameter
             }
             
             ##
-            colnames(X_train_i) <- colnames(X_val_i) <- paste0("V", seq_len(dim(X_train_i)[2]))
+            #colnames(X_train_i) <- colnames(X_val_i) <- paste0("V", seq_len(dim(X_train_i)[2]))
             
             ##
             model_args_ij <- list(formula = y_train_i ~ X_train_i, control = control)
