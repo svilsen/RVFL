@@ -44,7 +44,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
     }
     
     if (is.null(control$N_features)) {
-        control$N_features <- dim(X)[2] # ceiling(dim(X)[2] / 3)
+        control$N_features <- dim(X)[2] 
     }
     
     ##
@@ -65,7 +65,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         formula = NULL,
         data = list(X = X, y = y), 
         RWNNmodels = objects, 
-        weights = rep(1L, B), 
+        weights = c(rep(epsilon, B - 1), 1),
         method = "boosting"
     )  
     

@@ -166,7 +166,9 @@ predict.ERWNN <- function(object, ...) {
             stop("The value of 'type' was not valid, see '?predict.ERWNN' for valid options of 'type'.")
         }
     } else {
-        y_new <- matrix(apply(y_new, 1, sum), ncol = 1)
+        W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
+        y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
+        #y_new <- matrix(apply(y_new, 1, sum), ncol = 1)
         return(y_new)
     }
 }
