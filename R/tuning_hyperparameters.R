@@ -33,10 +33,6 @@ tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameter
         if (!grepl(pattern = "rwnn", x = method_name[1])) {
             stop("The tuning function is only implemented for 'RWNN' and 'ERWNN' methods.")
         }
-        
-        if (grepl(pattern = "sample_rwnn", x = method_name[1])) {
-            warning("Support for 'sample_rwnn' is not implemented.")
-        }
     }
     
     #

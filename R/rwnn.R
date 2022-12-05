@@ -79,7 +79,7 @@ control_rwnn <- function(N_hidden = NULL, lnorm = NULL,
     }
     
     if (is.null(activation) | !is.character(activation)) {
-        activation <- "sigmoid"
+        activation <- "silu"
     }
     
     if (length(activation) == 1) {
