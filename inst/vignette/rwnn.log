@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2022.8.28)  28 AUG 2022 18:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2022.7.21)  10 OCT 2022 16:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -557,9 +557,9 @@ Language: english 2017/06/06 v3.3r English support from the babel system
 Package babel Info: Hyphen rules for 'canadian' set to \l@english
 (babel)             (\language0). Reported on input line 102.
 Package babel Info: Hyphen rules for 'australian' set to \l@ukenglish
-(babel)             (\language80). Reported on input line 105.
+(babel)             (\language63). Reported on input line 105.
 Package babel Info: Hyphen rules for 'newzealand' set to \l@ukenglish
-(babel)             (\language80). Reported on input line 108.
+(babel)             (\language63). Reported on input line 108.
 ))) (/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2021/10/15 v2.17l AMS math features
 \@mathmargin=\skip60
@@ -1034,7 +1034,7 @@ Package rerunfilecheck Info: File `rwnn.out' has not changed.
 Here is how much of TeX's memory you used:
  22972 strings out of 478287
  426604 string characters out of 5849289
- 696689 words of memory out of 5000000
+ 696690 words of memory out of 5000000
  40640 multiletter control sequences out of 15000+600000
  568894 words of font info for 84 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
