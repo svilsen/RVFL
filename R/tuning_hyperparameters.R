@@ -19,7 +19,7 @@
 #' @return Either an \link{RWNN-object} or \link{ERWNN-object}.
 #' 
 #' @export
-tune_hyperparameters <- function(formula, data = NULL, method = NULL, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+tune_hyperparameters <- function(formula, method, data = NULL, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
     UseMethod("tune_hyperparameters")
 }
 
@@ -99,9 +99,6 @@ tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameter
             }
             
             ##
-            #colnames(X_train_i) <- colnames(X_val_i) <- paste0("V", seq_len(dim(X_train_i)[2]))
-            
-            ##
             model_args_ij <- list(formula = y_train_i ~ X_train_i, control = control)
             model_args_ij <- append(model_args_ij, model_parameters_i)
             
@@ -110,7 +107,7 @@ tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameter
             }
             
             ##
-            model_ij <- do.call(method, model_args_ij)
+            model_ij <- suppressWarnings(do.call(method, model_args_ij))
             
             ##
             model_error_ij <- mse(model_ij, X_val_i, y_val_i) 
@@ -132,7 +129,7 @@ tune_hyperparameters.matrix <- function(X, y, method, folds = 10, hyperparameter
 #' @method tune_hyperparameters formula
 #' 
 #' @export
-tune_hyperparameters.formula <- function(formula, data = NULL, method, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
+tune_hyperparameters.formula <- function(formula, method, data = NULL, folds = 10, hyperparameters = list(), control = list(), trace = 0) {
     if (is.null(data)) {
         data <- tryCatch(
             expr = {

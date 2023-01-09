@@ -7,8 +7,8 @@
 \usage{
 tune_hyperparameters(
   formula,
+  method,
   data = NULL,
-  method = NULL,
   folds = 10,
   hyperparameters = list(),
   control = list(),
@@ -17,8 +17,8 @@ tune_hyperparameters(
 
 \method{tune_hyperparameters}{formula}(
   formula,
-  data = NULL,
   method,
+  data = NULL,
   folds = 10,
   hyperparameters = list(),
   control = list(),
@@ -28,9 +28,9 @@ tune_hyperparameters(
 \arguments{
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
-
 \item{method}{The RWNN method in need to hyper parameter optimisation.}
+
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
 \item{folds}{The number of folds used in k-fold cross-validation.}
 
@@ -47,20 +47,6 @@ Either an \link{RWNN-object} or \link{ERWNN-object}.
 Simple function for hyper-parameter tuning using k-fold cross-validation.
 }
 \examples{
-N <- 2000
-p <- 5
-
-s <- seq(0, pi, length.out = N)
-X <- matrix(NA, ncol = p, nrow = N)
-X[, 1] <- sin(s)
-X[, 2] <- cos(s)
-X[, 3] <- s
-X[, 4] <- s^2
-X[, 5] <- s^3
-
-beta <- matrix(rnorm(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(N, 0, 1)
-
 hyperparameters <- list(
     N_hidden = list(c(100, 100, 50, 50), c(100, 10, 10), c(100)), 
     lambda = exp(seq(-8, 2))
@@ -69,6 +55,11 @@ hyperparameters <- list(
 folds <- 20
 
 \dontrun{
-tune_hyperparameters(formula = y ~ X, method = rwnn, folds = folds, hyperparameters = hyperparameters, trace = 1)
+tune_hyperparameters(
+    y ~ ., data = example_data, 
+    rwnn, 
+    folds = folds, hyperparameters = hyperparameters, 
+    trace = 1
+)
 }
 }

@@ -47,27 +47,13 @@ An \link{ERWNN-object}.
 Use gradient boosting to create ensemble random weight neural network models.
 }
 \examples{
-N <- 2000
-p <- 5
-
-s <- seq(0, pi, length.out = N)
-X <- matrix(NA, ncol = p, nrow = N)
-X[, 1] <- sin(s)
-X[, 2] <- cos(s)
-X[, 3] <- s
-X[, 4] <- s^2
-X[, 5] <- s^3
-
-beta <- matrix(rnorm(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(N, 0, 1)
-
 N_hidden <- 5
 B <- 1000
 epsilon <- 0.1
 lambda <- 0.1
 
 \dontrun{
-boost_rwnn(y ~ X, N_hidden = N_hidden, 
+boost_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, 
            lambda = lambda, B = B, epsilon = epsilon)
 }
 }

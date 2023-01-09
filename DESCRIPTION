@@ -2,7 +2,7 @@ Package: RWNN
 Type: Package
 Title: Random Weight Neural Networks
 Version: 0.2
-Date: 2022-08-28
+Date: 2022-12-05
 Author: Søren B. Vilsen
 Maintainer: Søren B. Vilsen <svilsen@math.aau.dk>
 Description: Creation, estimation, and prediction of random weight neural networks (RWNN), including popular variants like extreme learning machines (ELM), sparse RWNN (spRWNN), and deep RWNN (dRWNN). It further allows for the creation of ensemble RWNNs like bagging RWNN (bagRWNN), boosting RWNN (boostRWNN), stacking RWNN (stackRWNN), and ensemble deep RWNN (edRWNN).
@@ -23,3 +23,6 @@ Suggests:
     rmarkdown, 
     tinytest
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
+LazyData: true

@@ -8,7 +8,7 @@
 #' 
 #' @importFrom Rcpp evalCpp
 #' 
-#' @importFrom stats coef predict runif sd rnorm dnorm quantile terms model.matrix model.response model.frame as.formula
+#' @importFrom stats coef predict runif sd rnorm dnorm quantile terms model.matrix model.response model.frame as.formula delete.response
 #' 
 #' @importFrom graphics plot abline boxplot hist
 #' 
@@ -58,3 +58,8 @@ NULL
 #' @name ERWNN-object
 #' @rdname ERWNN-object
 NULL
+
+#' @title Example data
+#' 
+#' @description Data generated using a simple non-linear function with 5 inputs and 1 output.
+"example_data"

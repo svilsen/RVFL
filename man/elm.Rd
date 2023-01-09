@@ -19,10 +19,6 @@ elm(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
 \item{lambda}{The penalisation constant used when training the output layer.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
-
-\item{X}{A matrix of observed features used to train the parameters of the output layer.}
-
-\item{y}{A vector of observed targets used to train the parameters of the output layer.}
 }
 \value{
 An \link{RWNN-object}.
