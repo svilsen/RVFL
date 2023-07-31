@@ -15,5 +15,5 @@
 Diagnostic-plots of an RWNN-object
 }
 \details{
-The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occured.
+The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.
 }

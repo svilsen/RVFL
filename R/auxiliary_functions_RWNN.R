@@ -127,7 +127,7 @@ residuals.RWNN <- function(object, ...) {
 #' @param x An \link{RWNN-object}.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional arguments used by the function are '\code{X_val}' and '\code{y_val}', i.e. the features and targets of the validation-set. These are helpful when analysing whether overfitting of model has occured.  
+#' @details The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.
 #' 
 #' @rdname plot.RWNN
 #' @method plot RWNN
@@ -137,47 +137,51 @@ residuals.RWNN <- function(object, ...) {
 #' @export
 plot.RWNN <- function(x, ...) {
     dots <- list(...)
-    if (is.null(dots$X_val) || is.null(dots$y_val)) {
+    if (is.null(dots$newdata)) {
         if (is.null(x$data)) {
-            stop("The RWNN-object does not contain any data: Either supply 'X_val' and 'y_val', or re-create RWNN-object with 'include_data = TRUE' (default).")
+            stop("The RWNN-object does not contain any data. Use the 'newdata' argument, or re-create 'RWNN-object' setting 'include_data = TRUE'.")
         }
         
-        X_val <- x$data$X
-        y_val <- x$data$y
+        X_new <- x$data$X
+        y_new <- x$data$y
+        y_hat <- predict(x, newdata = X_new)
     }
     else {
-        X_val <- dots$X_val
-        y_val <- dots$y_val
+        newdata <- dots$newdata
+        y_new <- newdata[, rownames(attr(terms(x$formula), "factors"))[attr(terms(x$formula), "response")]]
+        y_hat <- predict(x, newdata = newdata)
     }
-    
-    y_hat <- predict(x, newdata = X_val)
     
     if (is.null(dots$page)) {
         dev.hold()
-        plot(y_hat ~ y_val, pch = 16, 
+        plot(y_hat ~ y_new, pch = 16, 
              xlab = "Observed targets", ylab = "Predicted targets")
-        abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+        abline(0, 1, col = "black", lwd = 3)
+        abline(0, 1, col = "dodgerblue", lwd = 2)
         dev.flush()
         
         readline(prompt = "Press [ENTER] for next plot...")
         dev.hold()
-        plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
+        plot(I(y_hat - y_new) ~ seq(length(y_new)), pch = 16,
              xlab = "Index", ylab = "Residual") 
-        abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+        abline(0, 0, col = "black", lwd = 3)
+        abline(0, 0, col = "dodgerblue", lwd = 2)
         dev.flush()
     }
     else if (dots$page == 1) {
         dev.hold()
-        plot(y_hat ~ y_val, pch = 16, 
+        plot(y_hat ~ y_new, pch = 16, 
              xlab = "Observed targets", ylab = "Predicted targets")
-        abline(0, 1, col = "dodgerblue", lty = "dashed", lwd = 2)
+        abline(0, 1, col = "black", lwd = 3)
+        abline(0, 1, col = "dodgerblue", lwd = 2)
         dev.flush()
     }
     else if (dots$page == 2) {
         dev.hold()
-        plot(I(y_hat - y_val) ~ seq(length(y_val)), pch = 16,
+        plot(I(y_hat - y_new) ~ seq(length(y_new)), pch = 16,
              xlab = "Index", ylab = "Residual") 
-        abline(0, 0, col = "dodgerblue", lty = "dashed", lwd = 2)
+        abline(0, 0, col = "black", lwd = 3)
+        abline(0, 0, col = "dodgerblue", lwd = 2)
         dev.flush()
     }
     else {

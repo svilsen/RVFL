@@ -1,6 +1,6 @@
-######################################################################################
+##################################################################################
 ####################### AE pre-trained RWNN neural network #######################
-######################################################################################
+##################################################################################
 
 #' @title Auto-encoder pre-trained random weight neural networks
 #' 
@@ -43,15 +43,15 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
     # Regularisation
     if (is.null(lambda)) {
         lambda <- 0
-        warning("Note: 'lambda' was not supplied and set to 0.")
+        warning("Note: 'lambda' is set to '0', as it was not supplied.")
     } else if (lambda < 0) {
         lambda <- 0
-        warning("'lambda' has to be a real number larger than or equal to 0.")
+        warning("'lambda' has to be a real number larger than or equal to '0'.")
     }
     
     if (length(lambda) > 1) {
         lambda <- lambda[1]
-        warning("The length of 'lambda' was larger than 1, only the first element will be used.")
+        warning("The length of 'lambda' was larger than 1; only the first element will be used.")
     }
     
     if (is.null(N_features)) {
@@ -60,11 +60,11 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
     
     if (length(N_features) > 1) {
         N_features <- N_features[1]
-        warning("The length of 'N_features' was larger than 1, only the first element will be used.")
+        warning("The length of 'N_features' was larger than 1; only the first element will be used.")
     }
     
     if ((N_features < 1) || (N_features > dim(X)[2])) {
-        stop("'N_features' have to be between 1 and the total number of features.")
+        stop("'N_features' have to be between '1' and the total number of features.")
     }
     
     ## Creating random weights
@@ -94,7 +94,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
         W_tilde <- solve(HT_tilde %*% H_tilde + I_tilde) %*% HT_tilde %*% X_tilde
         W_hidden[[1]] <- t(W_tilde)
     } else {
-        stop("Method not implemented, please set method to either \"l1\" or \"l2\".")
+        stop("Method not implemented; set method to either \"l1\" or \"l2\".")
     }
     
     ## Values of last hidden layer (after pre-training)
@@ -151,6 +151,7 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
         
         data <- as.data.frame(data)
     }
+    
     # Re-capture feature names when '.' is used in formula interface
     formula <- terms(formula, data = data)
     formula <- strip_terms(formula)

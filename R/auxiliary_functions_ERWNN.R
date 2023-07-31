@@ -313,50 +313,14 @@ set_weights.ERWNN <- function(object, weights = NULL) {
         stop("The number of supplied weights have to be equal to the number of ensemble weights.")
     }
     
-    if (abs(sum(weights) - 1) > 1e-6) {
-        stop("The weights have to sum to 1.")
-    }
-    
     if (any(weights > 1) || any(weights < 0)) {
         stop("All weights have to be between 0 and 1.")
     }
     
+    if (abs(sum(weights) - 1) > 1e-6) {
+        stop("The weights have to sum to 1.")
+    }
+    
     object$weights <- weights
-    return(object)
-}
-
-#' @title Estimate ensemble weights for an ERWNN-object
-#' 
-#' @description Estimate ensemble weights for an \link{ERWNN-object}.
-#' 
-#' @param object An \link{ERWNN-object}.
-#' @param X_val The validation feature set.
-#' @param y_val The validation target set.
-#' 
-#' @return An \link{ERWNN-object}.
-#' 
-#' @export
-estimate_weights <- function(object, X_val = NULL, y_val = NULL) {
-    UseMethod("estimate_weights")
-}
-
-#' @rdname estimate_weights
-#' @method estimate_weights ERWNN
-#' 
-#' @example inst/examples/ew_example.R
-#'
-#' @export
-estimate_weights.ERWNN <- function(object, X_val = NULL, y_val = NULL) {
-    if (is.null(X_val) || is.null(y_val)) {
-        warning("The validation-set was not properly specified, therefore, the training-set is used for weight estimation.")
-        
-        X_val <- object$data$X
-        y_val <- object$data$y
-    } 
-    
-    B <- length(object$RWNNmodels)
-    C <- predict(object, newdata = X_val, type = "full")
-    
-    object$weights <- estimate_weights_stack(C = C, b = y_val, B = B)
     return(object)
 }

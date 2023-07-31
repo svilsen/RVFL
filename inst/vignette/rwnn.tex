@@ -149,9 +149,9 @@ been included:
   simplified version of an RWNN without a link between the input and
   output layer.
 \item
-  \textbf{deep RWNN} \citep{Henriquez2018}: An RWNN with multiple hidden
-  layers, where the output of each hidden-layer is included as features
-  in the model.
+  \textbf{deep RWNN} \citep[\citet{Shi2021}]{Henriquez2018}: An RWNN
+  with multiple hidden layers, where the output of each hidden-layer is
+  included as features in the model.
 \item
   \textbf{sparse RWNN} \citep{Zhang2019}: Applies sparse auto-encoder
   (\(\ell_1\) regularised) pre-training to reduce the number non-zero
@@ -186,10 +186,16 @@ learners):
   an element, \(k\), of the series is trained on the residual of the
   previous \((k - 1)\) RWNN's. It further allows for manipulation of the
   learning rate used to improve the generalisation of the boosted model.
-  Lastly, like the implemented bagging method, the number of features
-  used in each iteration can be chosen at random (also called stochastic
+  Note: like the implemented bagging method, the number of features used
+  in each iteration can be chosen at random (also called stochastic
   gradient boosting).
 \end{itemize}
+
+As RWNN's will inevitably include a lot of randomly generated and
+ultimately useless features, to improve their computational and memory
+efficiency, the \pkg{RWNN} package also includes methods for pruning the
+number of weights and neurons using mutual information, Fisher
+information, and magnitude.
 
 Lastly, the \pkg{RWNN} package also includes a simple method for grid
 based hyperparameter optimisation, where \(k\)-fold cross-validation is
@@ -219,13 +225,13 @@ original and random non-linear transformation of the features). Using
 this simplification, the estimation of the output-weights simplifies
 greatly if the activation between the concatenated layer and the output
 is linear (i.e.~the identity function), as estimating of the
-output-weights becomes equivalent to estimating the weights in a
+output-weights becomes equivalent to estimating the weights in
 (regularised) multiple linear regression. The general structure of an
 RWNN with a single hidden-layer can be seen in Figure \ref{fig:rwnn},
 where the dashed lines are used to indicate the functional link.
 
 \begin{CodeChunk}
-\begin{figure}
+\begin{figure}[ht!]
 
 {\centering \includegraphics[width=0.6\linewidth]{./Figures/RWNN} 
 
@@ -269,7 +275,7 @@ Three approaches to estimating output-weights can be found in Section
 hidden-weights.
 
 \hypertarget{HST}{%
-\subsubsection{Determining hidden-weights}\label{HST}}
+\subsubsection{Sampling hidden-weights}\label{HST}}
 
 \hypertarget{EST}{%
 \subsubsection{Estimating output-weights}\label{EST}}
@@ -286,11 +292,12 @@ found by the normal equation: \begin{equation}
 \hat{\boldsymbol{\beta}}^{(ols)} = (D^T D)^{-1}D^T\boldsymbol{y}. \label{eq:ols}
 \end{equation}
 
-However, in many application the number of concatenated features
-(i.e.~the number of columns of \(D\)) is much bigger than the number of
-observations, i.e.~\((p + J) >> N\). When this is the case, the two most
-common approaches to estimating the parameters are the Moore-Penrose
-pseudoinverse and regularisation.
+However, when the number of concatenated features (i.e.~the number of
+columns of \(D\)) is bigger than the number of observations,
+i.e.~\((p + J) >> N\), this optimisation problem becomes ill-posed. In
+this is the case, the two most common approaches to estimating the
+parameters of the RWNN are the Moore-Penrose pseudoinverse and
+regularisation.
 
 When using Moore-Penrose pseudoinverse
 \citep[\citet{PenroseInv}]{BjerhammarInv}, \(D^+\), the solution to the
@@ -298,7 +305,7 @@ optimisation problem is simply: \begin{equation}
 \hat{\boldsymbol \beta}^{(pseudo)} = D^+ \boldsymbol y.
 \end{equation}
 
-When regularisation is introduced the SSE, seen in Eq.~\eqref{eq:ssq},
+When regularisation is introduced, the SSE, seen in Eq.~\eqref{eq:ssq},
 is penalised by the size of the output-weights. The penalisation is
 usually performed using either the \(\ell_1\) or \(\ell_2\)-norm,
 creating the following optimisation problem: \begin{equation}
@@ -308,13 +315,6 @@ penalisation constant. The penalisation constant should be chosen such
 that it minimises the out-of-sample error (using e.g.~\(k\)-fold
 cross-validation during training process).
 
-\underline{\textbf{When} $\boldsymbol{q = 1}$}:\newline The optimisation
-problem in Eq. \eqref{eq:rsse} is equivalent to lasso-regression
-\citep[\citet{TibLasso}]{SanLasso}. Unlike ridge-regression (\(q = 2\))
-it is not possible to find a closed form solution of the lasso estimated
-output-weights, \(\hat{\boldsymbol{\beta}}^{(lasso)}\), however, they
-can be found by using coordinate descent \citep{CoordLasso}.
-
 \underline{\textbf{When} $\boldsymbol{q = 2}$}:\newline The optimisation
 problem in Eq. \eqref{eq:rsse} is equivalent to performing
 ridge-regression on the concatenated features, instead of the input
@@ -323,49 +323,86 @@ features, and the solution can be found as \citep{ridgeReg}:
 \hat{\boldsymbol \beta}^{(ridge)} = \left(D^TD + \lambda I_{p + J}\right)^{-1}D^T\boldsymbol y,
 \end{equation} where \(I_{p+J}\) is the identity matrix of size \(p+J\).
 
+\underline{\textbf{When} $\boldsymbol{q = 1}$}:\newline The optimisation
+problem in Eq. \eqref{eq:rsse} is equivalent to lasso-regression
+\citep[\citet{TibLasso}]{SanLasso}. Unlike ridge-regression (\(q = 2\))
+it is not possible to find a closed form solution of the lasso estimated
+output-weights, \(\hat{\boldsymbol{\beta}}^{(lasso)}\), however, they
+can be found by using coordinate descent \citep{CoordLasso}.
+
 \textbf{NB:} Extreme learning machine's (ELMs) are effectively RWNNs
 without the functional link and can, therefore, be trained using exactly
 the same set of equations by setting
 \(\boldsymbol d_n = \boldsymbol h_n\).
 
-\hypertarget{deep-rwnn}{%
-\subsection{Deep RWNN}\label{deep-rwnn}}
-
-When extending a neural network with a single hidden-layer to a network
-with \(K\) hidden-layers, the governing equation in Eq.
-\eqref{eq:hidden} barely changes. Assuming \(h_{ni}^{(0)}\) is the
-\(i\)'th feature \(x_{ni}\) and that the number of neurons in the
-\(k\)'th layer is \(J^{(k)}\), then the output of the \(j\)'th neuron in
-the \(k\)'th layer for the \(n\)'th observation, is given by:
-\begin{equation}
-h_{nj}^{(k)} = f^{(k)}\left(\sum_{i = 1}^{J^{(k - 1)}} w^{(k)}_{ij} h_{ni}^{(k - 1)} + w^{(k)}_{0}\right), \label{eq:hidden2}
-\end{equation} where \(f^{(k)}\) is the activation function,
-\(w^{(k)}_0\) is the bias, and \(w^{(k)}_{ij}\) is the weight between
-the \(i\)'th neuron and the \(j\)'th neuron in the \(k\)'th layer for
-\(k = 1, ..., K\). Using vector notation this can be simplified greatly
-to: \begin{equation}
-\boldsymbol h_n^{(k)} = \boldsymbol f^{(k)}\left(W^{(k)} \boldsymbol{h}^{(k)} + w^{(k)}_0 \boldsymbol{1}_{k}\right),
-\end{equation} where \(\boldsymbol{1}_k\) is a vector of one's of
-dimension \(J^{k}\).
+\hypertarget{deepRWNN}{%
+\subsection{Deep RWNN}\label{deepRWNN}}
 
 Extending an RWNN with a single hidden-layer into a network with \(K\)
 hidden-layers can be approached in two slightly different ways: (1)
 concatenating only the output of the last hidden-layer with the
-features, or (2) concatenating the outputs of all \(K\) hidden-layers
-with the features. Thus, the difference between these two approaches is
-in the construction of the matrix rows of the matrix \(D\), which can be
-made as (1)
-\(\boldsymbol{d}_n = [\boldsymbol h_n^{(K)} \; \boldsymbol x_n]^T\), and
+features, or (2) concatenating the outputs of all of the \(K\)
+hidden-layers with the original features. Furthermore, when extending an
+RWNN with a single hidden-layer to a network with \(K\) hidden-layers,
+the governing equation, seen in Eq. \eqref{eq:hidden}, barely changes.
+That is, assuming \(h_{ni}^{(0)}\) is the \(i\)'th feature \(x_{ni}\)
+and that the number of neurons in the \(k\)'th layer is \(J^{(k)}\),
+then the output of the \(j\)'th neuron in the \(k\)'th layer for the
+\(n\)'th observation, is given by: \begin{equation}
+h_{nj}^{(k)} = f^{(k)}\left(\sum_{i = 1}^{J^{(k - 1)}} w^{(k)}_{ij} h_{ni}^{(k - 1)} + w^{(k)}_{0}\right), \label{eq:hidden2}
+\end{equation} where \(f^{(k)}\) is the activation function,
+\(w^{(k)}_0\) is the bias, and \(w^{(k)}_{ij}\) is the weight between
+the \(i\)'th neuron and the \(j\)'th neuron in the \(k\)'th layer for
+\(k = 1, ..., K\). Using vector notation this is simplified as:
+\begin{equation}
+\boldsymbol h_n^{(k)} = \boldsymbol f^{(k)}\left(W^{(k)} \boldsymbol{h}^{(k)} + w^{(k)}_0 \boldsymbol{1}_{k}\right),
+\end{equation} where \(\boldsymbol{1}_k\) is a vector of one's of
+dimension \(J^{k}\).
+
+If follows from the construction of the deep RWNN's that the main
+difference is in the construction of the concatenated matrix \(D\), whos
+rows can be made as (1)
+\(\boldsymbol{d}_n = [\boldsymbol h_n^{(K)} \; \boldsymbol x_n]^T\), or
 (2)
 \(\boldsymbol{d}_n = [\boldsymbol h_n^{(1)} \; \boldsymbol h_n^{(2)} \; \cdots \; \boldsymbol h_n^{(K)} \; \boldsymbol x_n]^T\),
-respectively.
+respectively. The graphical interpretation of the difference between the
+two approaches can be seen in Figure \ref{fig:deeprwnn} on panels (a)
+and (b), respectively. Both approaches have been implemented in the
+\pkg{RWNN} package.
 
-Both approaches have been implemented in the \pkg{RWNN} package allowing
-the user to specify the activation function in each of the
-hidden-layers.
+It follows that estimating the output-weights of this deep RWNN, given a
+matrix of the concatenated features, is equivalent to that of the RWNN
+with a single hidden-layer. This makes estimating the weights fast and
+efficient even for deeper structures.
+
+Lastly, the \pkg{RWNN} package allows the user to specify the activation
+function in each of the \(K\) hidden-layers.
+
+\begin{CodeChunk}
+\begin{figure}[ht!]
+
+{\centering \includegraphics[width=0.45\linewidth]{./Figures/deepRWNN} \includegraphics[width=0.45\linewidth]{./Figures/deepRWNNalt} 
+
+}
+
+\caption[Graph representation of a deep random weight neural network (RWNN) with funcitonal link between the input-layer, intermediate hidden-layers, and the output-layer]{Graph representation of a deep random weight neural network (RWNN) with funcitonal link between the input-layer, intermediate hidden-layers, and the output-layer.}\label{fig:deeprwnn}
+\end{figure}
+\end{CodeChunk}
 
 \hypertarget{sparse-rwnn}{%
 \subsection{Sparse RWNN}\label{sparse-rwnn}}
+
+\hypertarget{pre-trained-using-an-auto-encoder}{%
+\subsubsection{Pre-trained using an
+auto-encoder}\label{pre-trained-using-an-auto-encoder}}
+
+\hypertarget{pruning-using-fisher-information}{%
+\subsubsection{Pruning using Fisher
+information}\label{pruning-using-fisher-information}}
+
+\hypertarget{pruning-using-mutual-information}{%
+\subsubsection{Pruning using mutual
+information}\label{pruning-using-mutual-information}}
 
 \hypertarget{ensemble-methods}{%
 \subsection{Ensemble methods}\label{ensemble-methods}}

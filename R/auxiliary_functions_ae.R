@@ -22,10 +22,7 @@ prox_g <- function(W, tau) {
     return(sign(W) * W_tau)
 }
 
-lasso_ls <- function(H, X, tau = 1, 
-                     max_iterations = 1000, 
-                     w = 10, step_shrink = 0.001,
-                     backtrack = TRUE, tolerance = 1e-12) {
+lasso_ls <- function(H, X, tau = 1, max_iterations = 1000, w = 10, step_shrink = 0.001, backtrack = TRUE, tolerance = 1e-12) {
     tau_values <- rep(NA, max_iterations)
     f_values <- rep(NA, max_iterations)
     objective <- rep(NA, max_iterations + 1)

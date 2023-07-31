@@ -7,12 +7,12 @@
 #' @description Simple function for hyper-parameter tuning using k-fold cross-validation.
 #' 
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
+#' @param method The RWNN method in need of hyper-parameter optimisation.
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param method The RWNN method in need to hyper parameter optimisation.
 #' @param folds The number of folds used in k-fold cross-validation.
-#' @param hyperparameters A list of sequences of hyper-parameters.
+#' @param hyperparameters A list of sequences of hyper-parameters to be tested.
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
-#' @param trace A numeric indicating how often a trace of should be shown (default is 0).
+#' @param trace A numeric indicating how often a trace should be shown (default is 0).
 #' 
 #' @example inst/examples/tuning_example.R
 #' 

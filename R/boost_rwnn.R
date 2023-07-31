@@ -27,20 +27,20 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
     
     if (is.null(B) | !is.numeric(B)) {
         B <- 10
-        warning("Note: 'B' was not supplied, 'B' was set to 10.")
+        warning("Note: 'B' was set to '10', as it was not supplied.")
     }
     
     if (is.null(epsilon) | !is.numeric(epsilon)) {
         epsilon <- 1
-        warning("Note: 'epsilon' was not supplied and set to 1.")
+        warning("Note: 'epsilon' was set to '1', as it was not supplied.")
     }
     else if (epsilon > 1) {
         epsilon <- 1
-        warning("'epsilon' has to be a number between 0 and 1.")
+        warning("'epsilon' has to be a number between '0' and '1'.")
     }
     else if (epsilon < 0) {
         epsilon <- 0
-        warning("'epsilon' has to be a number between 0 and 1.")
+        warning("'epsilon' has to be a number between '0' and '1'.")
     }
     
     if (is.null(control$N_features)) {

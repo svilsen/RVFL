@@ -109,7 +109,6 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
     return(object)
 }
 
-
 #' @rdname stack_rwnn
 #' @method stack_rwnn formula
 #' 

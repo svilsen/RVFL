@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2022.7.21)  9 JAN 2023 12:35
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2022.7.21)  24 MAR 2023 12:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -699,7 +699,7 @@ LaTeX Info: Redefining \nameref on input line 76.
 \@outlinefile=\write5
 \openout5 = `rwnn.out'.
 
-<jsslogo.jpg, id=63, 540.0175pt x 393.47pt>
+<jsslogo.jpg, id=75, 540.0175pt x 393.47pt>
 File: jsslogo.jpg Graphic file (type jpg)
 <use jsslogo.jpg>
 Package pdftex.def Info: jsslogo.jpg  used on input line 76.
@@ -851,6 +851,12 @@ Package xcolor Warning: Incompatible color definition on input line 152.
 Package xcolor Warning: Incompatible color definition on input line 152.
 
 
+Package xcolor Warning: Incompatible color definition on input line 152.
+
+
+Package xcolor Warning: Incompatible color definition on input line 152.
+
+
 Package xcolor Warning: Incompatible color definition on input line 156.
 
 
@@ -875,25 +881,22 @@ Package xcolor Warning: Incompatible color definition on input line 179.
 Package xcolor Warning: Incompatible color definition on input line 179.
 
 
-Package xcolor Warning: Incompatible color definition on input line 200.
+Package xcolor Warning: Incompatible color definition on input line 206.
 
 
-Package xcolor Warning: Incompatible color definition on input line 204.
+Package xcolor Warning: Incompatible color definition on input line 210.
 
 
-Package xcolor Warning: Incompatible color definition on input line 205.
+Package xcolor Warning: Incompatible color definition on input line 211.
 
 
-Package xcolor Warning: Incompatible color definition on input line 224.
+Package xcolor Warning: Incompatible color definition on input line 230.
 
-<./Figures/RWNN.pdf, id=141, 556.21854pt x 296.23007pt>
+<./Figures/RWNN.pdf, id=155, 556.21854pt x 296.23007pt>
 File: ./Figures/RWNN.pdf Graphic file (type pdf)
 <use ./Figures/RWNN.pdf>
-Package pdftex.def Info: ./Figures/RWNN.pdf  used on input line 230.
+Package pdftex.def Info: ./Figures/RWNN.pdf  used on input line 236.
 (pdftex.def)             Requested size: 265.59494pt x 141.45656pt.
-
-Package xcolor Warning: Incompatible color definition on input line 252.
-
 
 Overfull \hbox (5.47499pt too wide) has occurred while \output is active
 [] \T1/lmr/m/n/10.95 3
@@ -901,7 +904,10 @@ Overfull \hbox (5.47499pt too wide) has occurred while \output is active
 
 [3]
 
-Package xcolor Warning: Incompatible color definition on input line 268.
+Package xcolor Warning: Incompatible color definition on input line 258.
+
+
+Package xcolor Warning: Incompatible color definition on input line 274.
 
 
 Overfull \hbox (5.47499pt too wide) has occurred while \output is active
@@ -910,40 +916,19 @@ Overfull \hbox (5.47499pt too wide) has occurred while \output is active
 
 [4 <./Figures/RWNN.pdf>]
 
-Package xcolor Warning: Incompatible color definition on input line 296.
+Package xcolor Warning: Incompatible color definition on input line 303.
 
 
-Package xcolor Warning: Incompatible color definition on input line 296.
+Package xcolor Warning: Incompatible color definition on input line 303.
 
 
-Package xcolor Warning: Incompatible color definition on input line 296.
+Package xcolor Warning: Incompatible color definition on input line 303.
 
 
-Package xcolor Warning: Incompatible color definition on input line 296.
+Package xcolor Warning: Incompatible color definition on input line 303.
 
 
-Package xcolor Warning: Incompatible color definition on input line 301.
-
-
-Package xcolor Warning: Incompatible color definition on input line 312.
-
-
-Package xcolor Warning: Incompatible color definition on input line 313.
-
-
-Package xcolor Warning: Incompatible color definition on input line 313.
-
-
-Package xcolor Warning: Incompatible color definition on input line 313.
-
-
-Package xcolor Warning: Incompatible color definition on input line 313.
-
-
-Package xcolor Warning: Incompatible color definition on input line 316.
-
-
-Package xcolor Warning: Incompatible color definition on input line 316.
+Package xcolor Warning: Incompatible color definition on input line 308.
 
 
 Package xcolor Warning: Incompatible color definition on input line 319.
@@ -955,14 +940,61 @@ Package xcolor Warning: Incompatible color definition on input line 321.
 Package xcolor Warning: Incompatible color definition on input line 321.
 
 
-Package xcolor Warning: Incompatible color definition on input line 336.
+Package xcolor Warning: Incompatible color definition on input line 327.
+
+
+Package xcolor Warning: Incompatible color definition on input line 328.
+
+
+Package xcolor Warning: Incompatible color definition on input line 328.
+
+
+Package xcolor Warning: Incompatible color definition on input line 328.
+
+
+Package xcolor Warning: Incompatible color definition on input line 328.
+
+
+Package xcolor Warning: Incompatible color definition on input line 331.
+
+
+Package xcolor Warning: Incompatible color definition on input line 331.
+
+
+Package xcolor Warning: Incompatible color definition on input line 347.
 
 
 Overfull \hbox (5.47499pt too wide) has occurred while \output is active
 [] \T1/lmr/m/n/10.95 5
  []
 
-[5] (./rwnn.bbl
+[5]
+
+Package xcolor Warning: Incompatible color definition on input line 369.
+
+<./Figures/deepRWNN.pdf, id=246, 932.02806pt x 480.31236pt>
+File: ./Figures/deepRWNN.pdf Graphic file (type pdf)
+<use ./Figures/deepRWNN.pdf>
+Package pdftex.def Info: ./Figures/deepRWNN.pdf  used on input line 384.
+(pdftex.def)             Requested size: 199.19283pt x 102.6495pt.
+<./Figures/deepRWNNalt.pdf, id=247, 932.02806pt x 480.31236pt>
+File: ./Figures/deepRWNNalt.pdf Graphic file (type pdf)
+<use ./Figures/deepRWNNalt.pdf>
+Package pdftex.def Info: ./Figures/deepRWNNalt.pdf  used on input line 384.
+(pdftex.def)             Requested size: 199.19283pt x 102.6495pt.
+(./rwnn.bbl
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+\T1/lmr/m/n/10.95 6 []
+ []
+
+[6 <./Figures/deepRWNN.pdf> <./Figures/deepRWNNalt.pdf
+
+pdfTeX warning: pdflatex (file ./Figures/deepRWNNalt.pdf): PDF inclusion: multi
+ple pdfs with page group included in a single page
+>]
 
 Package xcolor Warning: Incompatible color definition on input line 22.
 
@@ -976,10 +1008,10 @@ Package xcolor Warning: Incompatible color definition on input line 30.
 
 
 Overfull \hbox (5.47499pt too wide) has occurred while \output is active
-\T1/lmr/m/n/10.95 6 []
+[] \T1/lmr/m/n/10.95 7
  []
 
-[6]
+[7]
 
 Package xcolor Warning: Incompatible color definition on input line 65.
 
@@ -994,46 +1026,46 @@ Package xcolor Warning: Incompatible color definition on input line 90.
 
 )
 
-Package xcolor Warning: Incompatible color definition on input line 396.
+Package xcolor Warning: Incompatible color definition on input line 433.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 396--396
+Underfull \hbox (badness 10000) in paragraph at lines 433--433
 
  []
 
 LaTeX Font Info:    Font shape `T1/pzc/m/n' in size <13> not available
-(Font)              Font shape `T1/pzc/m/it' tried instead on input line 396.
+(Font)              Font shape `T1/pzc/m/it' tried instead on input line 433.
 
-Package xcolor Warning: Incompatible color definition on input line 396.
-
-
-Package xcolor Warning: Incompatible color definition on input line 396.
+Package xcolor Warning: Incompatible color definition on input line 433.
 
 
-Package xcolor Warning: Incompatible color definition on input line 396.
+Package xcolor Warning: Incompatible color definition on input line 433.
 
 
-Overfull \hbox (5.47499pt too wide) has occurred while \output is active
-[] \T1/lmr/m/n/10.95 7
- []
+Package xcolor Warning: Incompatible color definition on input line 433.
 
-[7]
+
 Overfull \hbox (5.47499pt too wide) has occurred while \output is active
 \T1/lmr/m/n/10.95 8 []
  []
 
-[8] (./rwnn.aux)
+[8]
+Overfull \hbox (5.47499pt too wide) has occurred while \output is active
+[] \T1/lmr/m/n/10.95 9
+ []
+
+[9] (./rwnn.aux)
 Package rerunfilecheck Info: File `rwnn.out' has not changed.
-(rerunfilecheck)             Checksum: 6F87809A3DB59F3566AA29BE2E2DC0F8;2252.
+(rerunfilecheck)             Checksum: 5FEB707DC3C6A490FFAB939936D3770B;3098.
  ) 
 Here is how much of TeX's memory you used:
- 22988 strings out of 478287
- 426931 string characters out of 5849289
- 696784 words of memory out of 5000000
- 40647 multiletter control sequences out of 15000+600000
+ 23023 strings out of 478287
+ 428080 string characters out of 5849289
+ 697081 words of memory out of 5000000
+ 40670 multiletter control sequences out of 15000+600000
  568894 words of font info for 84 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,9n,103p,386b,449s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,9n,103p,386b,453s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dv
 ips/lm/lm-mathsy.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/s
 hare/texmf/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm
@@ -1053,10 +1085,10 @@ nts/type1/public/lm/lmssbx10.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10
 .pfb></usr/share/texmf/fonts/type1/public/lm/lmsy6.pfb></usr/share/texmf/fonts/
 type1/public/lm/lmsy8.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></
 usr/share/texlive/texmf-dist/fonts/type1/urw/zapfchan/uzcmi8a.pfb>
-Output written on rwnn.pdf (8 pages, 439817 bytes).
+Output written on rwnn.pdf (9 pages, 477681 bytes).
 PDF statistics:
- 400 PDF objects out of 1000 (max. 8388607)
- 331 compressed objects within 4 object streams
- 81 named destinations out of 1000 (max. 500000)
- 135 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 483 PDF objects out of 1000 (max. 8388607)
+ 395 compressed objects within 4 object streams
+ 92 named destinations out of 1000 (max. 500000)
+ 169 words of extra memory for PDF output out of 10000 (max. 10000000)
 

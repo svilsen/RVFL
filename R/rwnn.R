@@ -143,7 +143,7 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
     # Regularisation
     if (is.null(lambda) | !is.numeric(lambda)) {
         lambda <- 0
-        warning("Note: 'lambda' was not supplied/not numeric and set to 0.")
+        warning("Note: 'lambda' was not supplied/not numeric. It is set to 0.")
     } else if (length(lambda) > 1) {
         lambda <- lambda[1]
         warning("The length of 'lambda' was larger than 1, only the first element will be used.")
@@ -217,6 +217,24 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, control = list()) {
         Sigma = list(Hidden = NA, Output = W_output$sigma),
         Combined = control$combine_input
     )
+    
+    ## Reducing last layer in RWNN when using lasso
+    if (FALSE) {
+        if (lnorm == "l1") {
+            N <- dim(O)[1]
+            p <- length(object$Weights$Output)
+            
+            converged <- FALSE
+            size_output <- dim(object$Weights$Output)[1]
+            while (!converged) {
+                object <- reduce_network_lasso(object, control)
+                converged <- size_output == dim(object$Weights$Output)[1]
+                size_output <- dim(object$Weights$Output)[1]
+            }
+            
+            object$Sigma$Output <- ((N - p) / (N - length(object$Weights$Output))) * object$Sigma$Output
+        }
+    }
     
     class(object) <- "RWNN"
     return(object)

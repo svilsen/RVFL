@@ -21,7 +21,7 @@ double rho(const arma::mat & O, const arma::colvec & y, const arma::colvec & bet
 
 arma::colvec coordinate_descent(const arma::mat & O, const arma::colvec & y, 
                                 const double & lambda, const arma::colvec & beta0, 
-                                const int & N, const int & p, const bool & trace) {
+                                const int & N, const int & p) {
     arma::colvec z(p, arma::fill::ones);
     for (int n = 0; n < N; n++) {
         const arma::colvec o = arma::trans(O.row(n));
@@ -67,18 +67,46 @@ Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y, 
     
     arma::colvec beta;
     if (lambda < 1e-8) {
-        const arma::mat Op = arma::pinv(O); 
-        beta = Op * y;  
+        arma::mat Op;
+        if (p <= N) {
+            arma::mat Q, R;
+            arma::qr_econ(Q, R, O);
+            
+            const arma::mat & Ri = arma::inv(R);
+            const arma::mat & QT = arma::trans(Q);
+            
+            Op = Ri * QT; 
+        }
+        else {
+            Op = arma::pinv(O); 
+        }
+        
+        beta = Op * y;
     }
     else if (lnorm == "l2") {
-        const arma::mat Op = arma::inv(arma::trans(O) * O + lambda * arma::eye(p, p)) * arma::trans(O);
+        arma::mat Op;
+        const arma::mat & OT = arma::trans(O);
+        
+        if (p > N) {
+            const arma::mat & Ip = lambda * arma::eye(p, p);
+            const arma::mat & OTO = OT * O;
+            const arma::mat & Oi = arma::inv(OTO + Ip);
+            Op = Oi * OT;
+        }
+        else {
+            const arma::mat & IN = lambda * arma::eye(N, N);
+            const arma::mat & OOT = O * OT;
+            const arma::mat & Oi = arma::inv(OOT + IN);
+            Op = OT * Oi;
+        }
+        
         beta = Op * y;  
     }
     else {
         const arma::mat Op = arma::pinv(O); 
         const arma::colvec beta0 = Op * y;  
         
-        beta = coordinate_descent(O, y, lambda, beta0, N, p, true);  
+        beta = coordinate_descent(O, y, lambda, beta0, N, p);  
     }
     
     const arma::colvec residual = y - O * beta; 
