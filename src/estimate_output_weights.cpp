@@ -3,53 +3,55 @@
 //[[Rcpp::depends(RcppArmadillo)]]
 //[[Rcpp::plugins(cpp11)]]
 
-double rss(const arma::mat & O, const arma::colvec & y, const double & lambda, const arma::colvec & beta) {
-    const arma::colvec residual = y - O * beta;
+double rss(const arma::mat & O, const arma::mat & y, const double & lambda, const arma::mat & beta) {
+    const arma::mat residual = y - O * beta;
     const double rss = arma::as_scalar(arma::trans(residual) * residual);
-    const double l1 = arma::sum(arma::abs(beta));
+    const double l1 = arma::accu(arma::abs(beta));
     return rss + lambda * l1;
 }
 
-double rho(const arma::mat & O, const arma::colvec & y, const arma::colvec & beta, const int & j) {
-    arma::colvec beta_j = beta;
-    beta_j[j] = 0.0; 
+double rho(const arma::mat & O, const arma::mat & y, const arma::mat & beta, const int & j, const int & k) {
+    arma::mat beta_jk = beta;
+    beta_jk(j, k) = 0.0; 
     
-    const arma::colvec residual = (y - O * beta_j);
-    const double z = arma::as_scalar(arma::trans(O.col(j)) * residual);
+    const arma::mat residual = (y - O * beta_jk);
+    const double z = arma::as_scalar(arma::accu(arma::trans(O.col(j)) * residual));
     return z;
 }
 
-arma::colvec coordinate_descent(const arma::mat & O, const arma::colvec & y, 
-                                const double & lambda, const arma::colvec & beta0, 
-                                const int & N, const int & p) {
-    arma::colvec z(p, arma::fill::ones);
+arma::mat coordinate_descent(const arma::mat & O, const arma::mat & y, 
+                                const double & lambda, const arma::mat & beta0, 
+                                const int & N, const int & p, const int & d) {
+    arma::mat z(p, d, arma::fill::ones);
     for (int n = 0; n < N; n++) {
-        const arma::colvec o = arma::trans(O.row(n));
+        const arma::mat o = arma::trans(O.row(n));
         z += o % o;
     }
     
     int i = 0;
     bool converged = false;
     double e_old, e_new = HUGE_VAL;
-    arma::colvec beta = beta0;
+    arma::mat beta = beta0;
     while (!converged) {
         e_old = e_new;
         e_new = 0.0;
         for (int j = 0; j < p; j++) {
-            double beta_j = beta[j];
-            double rho_j = rho(O, y, beta, j);
-            if (rho_j < (-lambda / 2.0)) {
-                beta[j] = (rho_j + lambda / 2.0) / z[j];
-            }
-            else if (rho_j > (lambda / 2.0)) {
-                beta[j] = (rho_j - lambda / 2.0) / z[j];
-            }
-            else {
-                beta[j] = 0.0;
-            }
-            
-            if (std::abs(beta[j] - beta_j) > e_new) {
-                e_new = std::abs(beta[j] - beta_j);
+            for (int k = 0; k < d; k++) {
+                double beta_jk = beta(j, k);
+                double rho_jk = rho(O, y, beta, j, k);
+                if (rho_jk < (-lambda / 2.0)) {
+                    beta(j, k) = (rho_jk + lambda / 2.0) / z(j, k);
+                }
+                else if (rho_jk > (lambda / 2.0)) {
+                    beta(j, k) = (rho_jk - lambda / 2.0) / z(j, k);
+                }
+                else {
+                    beta(j, k) = 0.0;
+                }
+                
+                if (std::abs(beta[j] - beta_jk) > e_new) {
+                    e_new = std::abs(beta[j] - beta_jk);
+                }
             }
         }
         
@@ -61,11 +63,12 @@ arma::colvec coordinate_descent(const arma::mat & O, const arma::colvec & y,
 }
 
 //[[Rcpp::export]]
-Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y, const std::string & lnorm, const double & lambda) {
+Rcpp::List estimate_output_weights(const arma::mat & O, const arma::mat & y, const std::string & lnorm, const double & lambda) {
     const int & N = O.n_rows;
     const int & p = O.n_cols;
+    const int & d = y.n_cols;
     
-    arma::colvec beta;
+    arma::mat beta;
     if (lambda < 1e-8) {
         arma::mat Op;
         if (p <= N) {
@@ -87,7 +90,7 @@ Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y, 
         arma::mat Op;
         const arma::mat & OT = arma::trans(O);
         
-        if (p > N) {
+        if (p <= N) {
             const arma::mat & Ip = lambda * arma::eye(p, p);
             const arma::mat & OTO = OT * O;
             const arma::mat & Oi = arma::inv(OTO + Ip);
@@ -104,13 +107,13 @@ Rcpp::List estimate_output_weights(const arma::mat & O, const arma::colvec & y, 
     }
     else {
         const arma::mat Op = arma::pinv(O); 
-        const arma::colvec beta0 = Op * y;  
+        const arma::mat beta0 = Op * y;  
         
-        beta = coordinate_descent(O, y, lambda, beta0, N, p);  
+        beta = coordinate_descent(O, y, lambda, beta0, N, p, d);  
     }
     
-    const arma::colvec residual = y - O * beta; 
-    const double sigma_squared = arma::as_scalar(arma::trans(residual) * residual / (N - p));
+    const arma::mat residual = y - O * beta; 
+    const double sigma_squared = arma::as_scalar(arma::accu(arma::trans(residual) * residual / (N - p)));
     return Rcpp::List::create(
         Rcpp::Named("beta") = beta,
         Rcpp::Named("sigma") = std::sqrt(sigma_squared)

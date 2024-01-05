@@ -13,6 +13,7 @@ An RWNN-object is a list containing the following:
     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
     \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
-    \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
+    \item{\code{Type}}{A string indicating the type of modelling problem.}
+    \item{\code{Combined}}{A list of two \code{TRUE/FALSE} values stating whether the direct links were made to the input, and whether the output of each hidden layer was combined to make the prediction.}
 }
 }

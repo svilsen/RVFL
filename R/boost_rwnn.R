@@ -12,16 +12,18 @@
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
 #' @param B The number of levels used in the boosting tree.
 #' @param epsilon The learning rate.
+#' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.
+#' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-boost_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
+boost_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
     UseMethod("boost_rwnn")
 }
 
-boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, control = list()) {
+boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
     ## Checks
     dc <- data_checks(y, X)
     
@@ -56,13 +58,19 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
             y_b <- y_b - epsilon * predict(objects[[b - 1]])
         }
         
-        objects[[b]] <- rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, control = control)
+        if (is.null(method)) {
+            objects[[b]] <- rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+        }
+        else {
+            objects[[b]] <- ae_rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+        }
+        
     }
     
     ##
     object <- list(
         formula = NULL,
-        data = list(X = X, y = y), 
+        data = list(X = X, y = y, C = colnames(y)), 
         RWNNmodels = objects, 
         weights = c(rep(epsilon, B - 1), 1L), 
         method = "boosting"
@@ -78,7 +86,17 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
 #' @example inst/examples/boostrwnn_example.R
 #' 
 #' @export
-boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 0.1, control = list()) {
+boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
+    # Checks for 'N_hidden'
+    if (length(N_hidden) < 1) {
+        stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
+    }
+    
+    if (!is.numeric(N_hidden)) {
+        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    }
+    
+    # Checks for 'data'
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
@@ -98,6 +116,14 @@ boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NU
         warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
     }
     
+    # Checks for 'method'
+    if (!is.null(method)) {
+        method <- tolower(method)
+        if (!(method %in% c("l1", "l2"))) {
+            stop("'method' has to be set to 'NULL', 'l1', or 'l2'.")
+        }
+    }
+    
     # Re-capture feature names when '.' is used in formula interface
     formula <- terms(formula, data = data)
     formula <- strip_terms(formula)
@@ -106,16 +132,50 @@ boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NU
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
     if (any(colnames(X) == "(Intercept)")) {
-        X <- X[, keep]
+        X <- X[, keep, drop = FALSE]
     }
     
-    X <- as.matrix(X, ncol = length(keep))
+    #
+    y <- model.response(model.frame(formula, data))
+    if (is.null(type)) {
+        if (class(y) == "numeric") {
+            type <- "regression"
+            
+            if (all(abs(y - round(y)) < 1e-8)) {
+                warning("The response consists of only integers, is this a classification problem?")
+            }
+        }
+        else if (class(y) %in% c("factor", "character", "logical")) {
+            type <- "classification"
+        }
+    }
+    
+    y <- as.matrix(y, nrow = nrow(data))
+    
+    # Change output based on 'type'
+    if (tolower(type) %in% c("c", "class", "classification")) {
+        type <- "classification"
+        
+        y_names <- sort(unique(y))
+        y <- factor(y, levels = y_names)
+        y <- model.matrix(~ 0 + y)
+        
+        attr(y, "assign") <- NULL
+        attr(y, "contrasts") <- NULL
+        
+        y <- 2 * y - 1
+        
+        colnames(y) <- paste(y_names, sep = "")
+    } 
+    else if (tolower(type) %in% c("r", "reg", "regression")) {
+        type <- "regression"
+    }
+    else {
+        stop("'type' has not been correctly specified, it needs to be set to either 'regression' or 'classification'.")
+    }
     
     #
-    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
-    
-    #
-    mm <- boost_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, epsilon = epsilon, control = control)
+    mm <- boost_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, epsilon = epsilon, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

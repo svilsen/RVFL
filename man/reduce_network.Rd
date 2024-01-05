@@ -4,22 +4,39 @@
 \alias{reduce_network}
 \alias{reduce_network.RWNN}
 \alias{reduce_network.ERWNN}
-\title{Reduce random weight neural network}
+\title{Reduce the weights of a random weight neural network}
 \usage{
-reduce_network(object, type = "FI")
+reduce_network(object, method = NULL, p = 0.1)
 
-\method{reduce_network}{RWNN}(object, type = "FI")
+\method{reduce_network}{RWNN}(object, method = NULL, p = 0.1)
 
-\method{reduce_network}{ERWNN}(object, type = "FI")
+\method{reduce_network}{ERWNN}(object, method = NULL, p = 0.1)
 }
 \arguments{
 \item{object}{An \link{RWNN-object} or \link{ERWNN-object}.}
 
-\item{type}{A string setting the method used to reduce the network.}
+\item{method}{A string setting the method used to reduce the network (see details).}
+
+\item{p}{The fraction indicating which proportion of weights should be removed during reduction.}
 }
 \value{
-A reduce \link{RWNN-object}.
+A reduced object.
 }
 \description{
-.
+Methods for reducing the number of weights in random weight neural network based on magnitude, Fisher information, entropy, and zero-value output.
+}
+\details{
+...
+}
+\examples{
+m <- rwnn(y ~ ., data = example_data, N_hidden = 10, lambda = 200, control = list(lnorm = "l1"))
+
+m |> 
+    reduce_network(method = "lamp", p = 0.1) |> 
+    (\(x) x$Weights)()
+
+m |> 
+    reduce_network(method = "lamp", p = 0.1) |>
+    reduce_network(method = "last") |> 
+    (\(x) x$Weights)()
 }

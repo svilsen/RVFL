@@ -11,6 +11,7 @@ ae_rwnn(
   N_hidden = c(),
   lambda = NULL,
   method = "l1",
+  type = NULL,
   control = list()
 )
 
@@ -20,6 +21,7 @@ ae_rwnn(
   N_hidden = c(),
   lambda = NULL,
   method = "l1",
+  type = NULL,
   control = list()
 )
 }
@@ -34,6 +36,8 @@ ae_rwnn(
 
 \item{method}{The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).}
 
+\item{type}{A string indicating whether this is a regression or classification problem.}
+
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }
 \value{
@@ -43,13 +47,15 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 }
 \examples{
-\dontrun{
 N_hidden <- 10
 
 ## Using L1-norm in the auto-encoder (sparse solution)
+\dontrun{
 ae_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = 0.2, method = "l1")
+}
 
 ## Using L2-norm in the auto-encoder (non-sparse solution)
+\dontrun{
 ae_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = 0.2, method = "l2")
 }
 }

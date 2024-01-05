@@ -6,35 +6,38 @@
 \usage{
 control_rwnn(
   N_hidden = NULL,
+  N_features = NULL,
   lnorm = NULL,
   bias_hidden = TRUE,
-  activation = NULL,
   bias_output = TRUE,
+  activation = NULL,
   combine_input = FALSE,
+  combine_hidden = TRUE,
   include_data = TRUE,
-  N_features = NULL,
-  rng = "runif",
+  rng = "orthogonal",
   rng_pars = list(min = -1, max = 1)
 )
 }
 \arguments{
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
+\item{N_features}{The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function.}
+
 \item{lnorm}{A string indicating the regularisation used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).}
 
 \item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
 
-\item{activation}{A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.}
-
 \item{bias_output}{TRUE/FALSE: Should a bias be added to the output layer?}
 
-\item{combine_input}{TRUE/FALSE: Should the input and hidden layer be combined for the output of each hidden layer?}
+\item{activation}{A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.}
+
+\item{combine_input}{TRUE/FALSE: Should the input be included to predict the output?}
+
+\item{combine_hidden}{TRUE/FALSE: Should all hidden layers be combined to predict the output?}
 
 \item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RWNN.}
 
-\item{N_features}{The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function.}
-
-\item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"runif"}).}
+\item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"orthogonal"}).}
 
 \item{rng_pars}{A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).}
 }
@@ -53,9 +56,9 @@ The possible activation functions supplied to '\code{activation}' are:
     \item{\code{"silu"}}{\deqn{a(x) = \frac{x}{1 + \exp(-x)}}}
     \item{\code{"softplus"}}{\deqn{a(x) = \log(1 + \exp(x))}}
     \item{\code{"softsign"}}{\deqn{a(x) = \frac{x}{1 + |x|)}}}
-    \item{\code{"sqnl"}}{\deqn{a(x) = -1, if x < -2, a(x) = x + \frac{x^2}{4}, if -2 \le x < 0, a(x) = x - \frac{x^2}{4}, if 0 \le x \le 2, and a(x) = 2, if x > 2}}
+    \item{\code{"sqnl"}}{\deqn{a(x) = -1\text{, if }x < -2\text{, }a(x) = x + \frac{x^2}{4}\text{, if }-2 \le x < 0\text{, }a(x) = x - \frac{x^2}{4}\text{, if }0 \le x \le 2\text{, and } a(x) = 2\text{, if }x > 2}}
     \item{\code{"gaussian"}}{\deqn{a(x) = \exp(x^2)}}
-    \item{\code{"sqrbf"}}{\deqn{a(x) = 0, if |x| \ge 2, a(x) = \frac{(2 - |x|)^2}{2}, if 1 < |x| < 2, and a(x) = 1 - \frac{x^2}{2}, if |x| \le 1}}
+    \item{\code{"sqrbf"}}{\deqn{a(x) = 1 - \frac{x^2}{2}\text{, if }|x| \le 1\text{, }a(x) = \frac{(2 - |x|)^2}{2}\text{, if }1 < |x| < 2\text{, and }a(x) = 0\text{, if }|x| \ge 2}}
     \item{\code{"bentidentity"}}{\deqn{a(x) = \frac{\sqrt{x^2 + 1} - 1}{2} + x}}
     \item{\code{"identity"}}{\deqn{a(x) = x}}
 }

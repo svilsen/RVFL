@@ -10,26 +10,30 @@
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
+#' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, control = list()) {
+ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, type = NULL, control = list()) {
     UseMethod("ed_rwnn")
 }
 
-ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, control = list()) {
+ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, type = NULL, control = list()) {
     ## Checks
     control$N_hidden <- N_hidden
     control <- do.call(control_rwnn, control)
+    
+    #
     lnorm <- control$lnorm
     control$lnorm <- "l2"
     
+    #
     dc <- data_checks(y, X)
     
-    ##
-    deeprwnn <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, control = control)
+    ## 
+    deeprwnn <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
     H <- rwnn_forward(X = X, W = deeprwnn$Weights$Hidden, activation = deeprwnn$activation, bias = deeprwnn$Bias$Hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$N_hidden[i]))
     O <- lapply(seq_along(H), function(i) cbind(1, X, H[[i]]))
@@ -38,7 +42,7 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, control = list()) {
     ##
     object <- list(
         formula = NULL,
-        data = list(X = X, y = y), 
+        data = list(X = X, y = y, C = colnames(y)), 
         RWNNmodels = deeprwnn, 
         OutputWeights = beta,
         weights = rep(1L / length(N_hidden), length(N_hidden)), 
@@ -56,7 +60,17 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, control = list()) {
 #' @example inst/examples/edrwnn_example.R
 #' 
 #' @export
-ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, control = list()) {
+ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, type = NULL, control = list()) {
+    # Checks for 'N_hidden'
+    if (length(N_hidden) < 1) {
+        stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
+    }
+    
+    if (!is.numeric(N_hidden)) {
+        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    }
+    
+    # Checks for 'data'
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
@@ -84,16 +98,50 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, control 
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
     if (any(colnames(X) == "(Intercept)")) {
-        X <- X[, keep]
+        X <- X[, keep, drop = FALSE]
     }
     
-    X <- as.matrix(X, ncol = length(keep))
+    #
+    y <- model.response(model.frame(formula, data))
+    if (is.null(type)) {
+        if (class(y) == "numeric") {
+            type <- "regression"
+            
+            if (all(abs(y - round(y)) < 1e-8)) {
+                warning("The response consists of only integers, is this a classification problem?")
+            }
+        }
+        else if (class(y) %in% c("factor", "character", "logical")) {
+            type <- "classification"
+        }
+    }
+    
+    y <- as.matrix(y, nrow = nrow(data))
+    
+    # Change output based on 'type'
+    if (tolower(type) %in% c("c", "class", "classification")) {
+        type <- "classification"
+        
+        y_names <- sort(unique(y))
+        y <- factor(y, levels = y_names)
+        y <- model.matrix(~ 0 + y)
+        
+        attr(y, "assign") <- NULL
+        attr(y, "contrasts") <- NULL
+        
+        y <- 2 * y - 1
+        
+        colnames(y) <- paste(y_names, sep = "")
+    } 
+    else if (tolower(type) %in% c("r", "reg", "regression")) {
+        type <- "regression"
+    }
+    else {
+        stop("'type' has not been correctly specified, it needs to be set to either 'regression' or 'classification'.")
+    }
     
     #
-    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
-    
-    #
-    mm <- ed_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, control = control)
+    mm <- ed_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

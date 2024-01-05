@@ -2,30 +2,14 @@
 ####################### RWNN neural networks AUX #######################
 ########################################################################
 
-#' @title Coefficients of the RWNN-object
-#' 
-#' @param object An \link{RWNN-object}.
-#' @param ... Additional arguments.
-#' 
-#' @details No additional arguments are used in this instance.
-#' 
-#' @return The estimated weights of the output-layer.
-#' 
-#' @rdname coef.RWNN
-#' @method coef RWNN
-#' @export
-coef.RWNN <- function(object, ...) {
-    return(object$Weights$Output)
-}
-
 #' @title Predicting targets of an RWNN-object
 #' 
 #' @param object An \link{RWNN-object}.
 #' @param ... Additional arguments.
 #' 
-#' @details The only additional argument used by the function is '\code{newdata}', which expects a matrix with the same number of features (columns) as in the original data.
+#' @details The additional arguments used by the function are '\code{newdata}' and '\code{class}'. The argument '\code{newdata}' expects a \link{matrix} or \link{data.frame} with the same features (columns) as in the original data. While the '\code{class}' argument can be set to \code{"classify"}. If \code{class == "classify"} additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
 #' 
-#' @return A vector of predicted targets.
+#' @return A vector of predicted values.
 #' 
 #' @rdname predict.RWNN
 #' @method predict RWNN
@@ -58,10 +42,8 @@ predict.RWNN <- function(object, ...) {
             newdata <- model.matrix(formula, newdata)
             keep <- which(colnames(newdata) != "(Intercept)")
             if (any(colnames(newdata) == "(Intercept)")) {
-                newdata <- newdata[, keep]
+                newdata <- newdata[, keep, drop = FALSE]
             }
-            
-            newdata <- as.matrix(newdata, ncol = length(keep))
         }
         
         if (dim(newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
@@ -77,7 +59,11 @@ predict.RWNN <- function(object, ...) {
     )
     
     newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$N_hidden[i]))
-    newH <- do.call("cbind", newH)
+    if (object$Combined$Hidden) { 
+        newH <- do.call("cbind", newH)
+    } else {
+        newH <- newH[[length(newH)]]
+    }
     
     ## Estimate parameters in output layer
     if (object$Bias$Output) {
@@ -85,41 +71,20 @@ predict.RWNN <- function(object, ...) {
     }
     
     newO <- newH
-    if (object$Combined) {
+    if (object$Combined$Input) {
         newO <- cbind(newH, newdata)
     }
     
     newy <- newO %*% object$Weights$Output
+    
+    if (object$Type %in% c("c", "class", "classification")) {
+        if (dots[["class"]] %in% c("c", "class", "classify")) {
+            newp <- list(y = newy, C = object$data$C, t = dots[["t"]], b = dots[["b"]])
+            newy <- do.call(classify, newp)
+        }
+    }
+    
     return(newy)
-}
-
-#' @title Residuals of the RWNN-object
-#' 
-#' @param object An \link{RWNN-object}.
-#' @param ... Additional arguments.
-#' 
-#' @details Besides the arguments passed to the '\code{predict}' function, the argument '\code{type}' can be supplied defining the type of residual returned by the function. Currently only \code{"rs"} (standardised residuals), and \code{"raw"} (default) are implemented.
-#'
-#' @return A vector of residuals of the desired '\code{type}' (see details). 
-#'
-#' @rdname residuals.RWNN
-#' @method residuals RWNN
-#' @export
-residuals.RWNN <- function(object, ...) {
-    dots <- list(...)
-    type <- dots$type
-    if (is.null(type)) {
-        type <- "raw"
-    }
-    
-    newy <- predict.RWNN(object, ...)
-    
-    r <- newy - object$data$y
-    if (tolower(type) %in% c("standard", "standardised", "rs")) {        
-        r <- r / object$Sigma$Output
-    }
-    
-    return(r)
 }
 
 #' @title Diagnostic-plots of an RWNN-object
@@ -144,12 +109,16 @@ plot.RWNN <- function(x, ...) {
         
         X_new <- x$data$X
         y_new <- x$data$y
-        y_hat <- predict(x, newdata = X_new)
+        y_hat <- predict(x, newdata = X_new, classify = dots$classify)
     }
     else {
         newdata <- dots$newdata
         y_new <- newdata[, rownames(attr(terms(x$formula), "factors"))[attr(terms(x$formula), "response")]]
-        y_hat <- predict(x, newdata = newdata)
+        y_hat <- predict(x, newdata = newdata, classify = dots$classify)
+    }
+    
+    if (object$Type %in% c("c", "class", "classification")) {
+        warning("The following figures are meant as diagnostic plots for models of the type 'regression', not the type 'classification'.")
     }
     
     if (is.null(dots$page)) {
@@ -190,3 +159,4 @@ plot.RWNN <- function(x, ...) {
     
     return(invisible(NULL))
 }
+

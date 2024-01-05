@@ -11,20 +11,21 @@
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param method The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).
+#' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-ae_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+ae_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
     UseMethod("ae_rwnn")
 }
 
-ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
     ## Creating control object 
     if (length(N_hidden) > 1) {
         N_hidden <- N_hidden[1]
-        warning("More than one hidden was found, but this method is designed with a single hidden layer in mind, therefore, only the first element 'N_hidden' is used.")
+        warning("More than one hidden-layer was found, however, this method is only designed for a single hidden-layer, therefore, only the first element 'N_hidden' is used.")
     }
     
     control$N_hidden <- N_hidden
@@ -68,10 +69,25 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
     }
     
     ## Creating random weights
-    nr_connections <- N_hidden * (dim(X)[2] + as.numeric(bias_hidden))
-    rng_pars$n <- nr_connections
-    random_weights <- do.call(rng_function, rng_pars)
-    W_hidden <- list(matrix(random_weights, ncol = N_hidden))
+    nr_rows <- (X_dim[2] + as.numeric(bias_hidden[1]))
+    
+    if (is.character(rng_function)) {
+        if (rng_function %in% c("o", "orto", "orthogonal")) {
+            random_weights <- (rng_pars$max - rng_pars$min) * random_orthonormal(1, nr_rows, X, W_hidden, N_hidden, activation, bias_hidden) + rng_pars$min
+        }
+        else if (rng_function %in% c("h", "halt", "halton")) {
+            random_weights <- (rng_pars$max - rng_pars$min) * halton(nr_rows, N_hidden[1], init = TRUE) + rng_pars$min
+        }
+        else if (rng_function %in% c("s", "sobo", "sobol")) {
+            random_weights <- (rng_pars$max - rng_pars$min) * sobol(nr_rows, N_hidden[1], init = TRUE) + rng_pars$min
+        }
+    }
+    else {
+        rng_pars$n <- N_hidden[1] * nr_rows
+        random_weights <- matrix(do.call(rng_function, rng_pars), ncol = N_hidden[1]) 
+    }
+    
+    W_hidden <- list(random_weights)
     
     ## Values of last hidden layer (before pre-training)
     H_tilde <- rwnn_forward(X = X, W = W_hidden, activation = activation, bias = bias_hidden)
@@ -100,7 +116,13 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
     ## Values of last hidden layer (after pre-training)
     H <- rwnn_forward(X, W_hidden, activation, bias_hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
-    H <- do.call("cbind", H)
+    
+    if (control$combine_hidden){
+        H <- do.call("cbind", H)
+    }
+    else {
+        H <- H[[length(H)]]
+    }
     
     ## Estimate parameters in output layer
     if (control$bias_output) {
@@ -117,14 +139,15 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
     ## Return object
     object <- list(
         formula = NULL,
-        data = if(control$include_data) list(X = X, y = y) else NULL, 
+        data = if(control$include_data) list(X = X, y = y, C = colnames(y)) else NULL, 
         N_hidden = N_hidden, 
         activation = activation, 
         lambda = lambda,
         Bias = list(Hidden = bias_hidden, Output = control$bias_output),
         Weights = list(Hidden = W_hidden, Output = W_output$beta),
         Sigma = list(Hidden = NA, Output = W_output$sigma),
-        Combined = control$combine_input
+        Type = type,
+        Combined = list(Input = control$combine_input, Hidden = control$combine_hidden)
     )
     
     class(object) <- "RWNN"
@@ -138,7 +161,17 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", c
 #' @example inst/examples/aerwnn_example.R
 #' 
 #' @export
-ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method = "l1", control = list()) {
+ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
+    # Checks for 'N_hidden'
+    if (length(N_hidden) < 1) {
+        stop("When the number of hidden-layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
+    }
+    
+    if (!is.numeric(N_hidden)) {
+        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    }
+    
+    # Checks for 'data'
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
@@ -152,6 +185,12 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
         data <- as.data.frame(data)
     }
     
+    # Checks for 'method'
+    method <- tolower(method)
+    if (!(method %in% c("l1", "l2"))) {
+        stop("'method' has to be set to 'l1' or 'l2'.")
+    }
+
     # Re-capture feature names when '.' is used in formula interface
     formula <- terms(formula, data = data)
     formula <- strip_terms(formula)
@@ -160,16 +199,50 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
     X <- model.matrix(formula, data)
     keep <- which(colnames(X) != "(Intercept)")
     if (any(colnames(X) == "(Intercept)")) {
-        X <- X[, keep]
+        X <- X[, keep, drop = FALSE]
     }
     
-    X <- as.matrix(X, ncol = length(keep))
+    #
+    y <- model.response(model.frame(formula, data))
+    if (is.null(type)) {
+        if (class(y) == "numeric") {
+            type <- "regression"
+            
+            if (all(abs(y - round(y)) < 1e-8)) {
+                warning("The response consists of only integers, is this a classification problem?")
+            }
+        }
+        else if (class(y) %in% c("factor", "character", "logical")) {
+            type <- "classification"
+        }
+    }
+    
+    y <- as.matrix(y, nrow = nrow(data))
+    
+    # Change output based on 'type'
+    if (tolower(type) %in% c("c", "class", "classification")) {
+        type <- "classification"
+        
+        y_names <- sort(unique(y))
+        y <- factor(y, levels = y_names)
+        y <- model.matrix(~ 0 + y)
+        
+        attr(y, "assign") <- NULL
+        attr(y, "contrasts") <- NULL
+        
+        y <- 2 * y - 1
+        
+        colnames(y) <- paste(y_names, sep = "")
+    } 
+    else if (tolower(type) %in% c("r", "reg", "regression")) {
+        type <- "regression"
+    }
+    else {
+        stop("'type' has not been correctly specified, it needs to be set to either 'regression' or 'classification'.")
+    }
     
     #
-    y <- as.matrix(model.response(model.frame(formula, data)), nrow = nrow(data))
-    
-    #
-    mm <- ae_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, method = method, control = control)
+    mm <- ae_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

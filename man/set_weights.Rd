@@ -5,9 +5,9 @@
 \alias{set_weights.ERWNN}
 \title{Set ensemble weights for an ERWNN-object}
 \usage{
-set_weights(object, weights = NULL)
+set_weights(object, weights)
 
-\method{set_weights}{ERWNN}(object, weights = NULL)
+\method{set_weights}{ERWNN}(object, weights)
 }
 \arguments{
 \item{object}{An \link{ERWNN-object}.}

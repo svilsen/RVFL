@@ -30,6 +30,10 @@ cases of these networks. Besides a general purpose implementation of
 random weight neural networks, the \pkg{RWNN} package also includes
 common variants such as deep RWNN and sparse RWNN, as well as ensemble
 methods using random weight neural networks as the base learner.
+Furhtermore, the \pkg{RWNN} packages also includes more sophisticated
+methods for initialising the random weights, as well as methods for
+pruning both the number of weights and the number of neurons in the
+network.
 }
 
 \Keywords{random weight neural networks, regularisation, ensemble
@@ -132,13 +136,13 @@ as the tolerance of the Moore-Penrose inversion used to estimate the
 output-weights.
 
 \pkg{RWNN} is a general purpose implementation of RWNNs in \proglang{R}
-\citep{R} focusing on regression problems. The \pkg{RWNN} package allows
-the user to create an RWNN of any depth, set the number of neurons and
-activation functions in each layer, choose the sampling distribution of
-the randomly assigned weights, and choose whether the output weights
-should be estimated by either Moore-Penrose inversion,
-\(\ell_1\)-regularisation, or \(\ell_2\)-regularisation. The RWNN is
-implemented in C++ through \pkg{Rcpp} and \pkg{RcppArmadillo}; along
+\citep{R} focusing on both regression and classification problems. The
+\pkg{RWNN} package allows the user to create an RWNN of any depth, set
+the number of neurons and activation functions in each layer, choose the
+sampling distribution of the randomly assigned weights, and choose
+whether the output weights should be estimated by either Moore-Penrose
+inversion, \(\ell_1\)-regularisation, or \(\ell_2\)-regularisation. RWNN
+is implemented in C++ through \pkg{Rcpp} and \pkg{RcppArmadillo}; along
 with the standard RWNN implementation the following variants have also
 been included:
 
@@ -191,16 +195,15 @@ learners):
   gradient boosting).
 \end{itemize}
 
-As RWNN's will inevitably include a lot of randomly generated and
-ultimately useless features, to improve their computational and memory
-efficiency, the \pkg{RWNN} package also includes methods for pruning the
-number of weights and neurons using mutual information, Fisher
-information, and magnitude.
+As RWNN's will inevitably include a lot of randomly generated features,
+to improve their computational and memory efficiency, the \pkg{RWNN}
+package also includes methods for pruning the number of weights and
+neurons using magnitude, mutual information, and Fisher information.
 
 Lastly, the \pkg{RWNN} package also includes a simple method for grid
 based hyperparameter optimisation, where \(k\)-fold cross-validation is
-applied to training-set to find the hyperparameters yielding the
-smallest cross-validation error on a supplied grid (similar to the
+applied to the training-set to find the hyperparameters yielding the
+smallest cross-validation error on a user defined grid (similar to the
 \pkg{tune} function found in the package \pkg{e1071}).
 
 The remainder of the paper is structured as follows: Section \ref{RWNN}
@@ -249,14 +252,14 @@ Given a sample of \(N\) observations,
 \(\boldsymbol x_n\) is \(p\) dimensional vector of features and \(y_n\)
 is the output of observation \(n\), then the output of the \(j\)'th
 neuron of the hidden layer: \begin{equation}
-h_{nj} = f\left(\sum_{i = 1}^p w_{ij} x_{ni} + w_{0}\right), \label{eq:hidden}
-\end{equation} \(f\) is the activation function, \(w_0\) is the bias,
-and \(w_{ij}\) is the weight between the \(i\)'th feature and the
+    h_{nj} = f\left(\sum_{i = 1}^p w_{ij} x_{ni} + w_{0}\right), \label{eq:hidden}
+\end{equation} where \(f\) is the activation function, \(w_0\) is the
+bias, and \(w_{ij}\) is the weight between the \(i\)'th feature and the
 \(j\)'th neuron in \(n\)'th observation. If the hidden-layer contains
-\(J\) neurons the vector, the vector of transformed features of the
-hidden layer, denoted \(\boldsymbol h_{n}\), simplifying the notation of
-Eq. \eqref{eq:hidden} to: \begin{equation}
-\boldsymbol h_n = \boldsymbol f\left(W \boldsymbol{x}_n + w_0 \boldsymbol{1}_{J}\right),
+\(J\) neurons, then the vector of transformed features of the hidden
+layer, denoted \(\boldsymbol h_{n}\), can be simplified to:
+\begin{equation} 
+    \boldsymbol h_n = \boldsymbol f\left(W \boldsymbol{x}_n + w_0 \boldsymbol{1}_{J}\right), 
 \end{equation} where \(\boldsymbol{1}_{J}\) is a vector of one's of
 dimension \(J\).
 
@@ -265,75 +268,117 @@ stacked vector of the features transformed by the hidden-layer, and
 original features. Furthermore, assuming the activation in the
 output-layer is linear, then the expected response of the \(n\)'th
 observation is: \begin{equation}
-\hat{y}_n = \boldsymbol d^T_n \boldsymbol \beta.
+    \hat{y}_n = \boldsymbol d^T_n \boldsymbol \beta.
 \end{equation}
 
 That is, if weights of the hidden-layer can be assumed to be known, then
 the expected response of an RWNN is identical to that of a linear model.
-Three approaches to estimating output-weights can be found in Section
-\ref{EST}, however, first it is necessary to decide how to determine the
-hidden-weights.
+The \pkg{RWNN} package implements three approaches to estimating
+output-weights, as outlined in Section \ref{EST}, however, before the
+output-weights can be estimated it is necessary to determine how to find
+the weights of the hidden-layer.
 
 \hypertarget{HST}{%
 \subsubsection{Sampling hidden-weights}\label{HST}}
 
+In an RWNN, the standard approach to determining the weights between in
+input- and hidden-layer, is to sample the weights randomly from a
+uniform distribution limited to an appropriate interval for the given
+activation function. However, as shown by \citep{Wang2017}, using a
+complete random initialisation might not be the best approach when
+generating these weights, as it tends to lead to a large number of
+neurons in the hidden-layer. Therefore, Wang and Liu introduced two
+alternatives to the random initialisation: quasi-random numbers, and
+random orthogonal projections. The three methods have all been
+implemented in the \pkg{RWNN} package, and are outlined below:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Random initialisation}: The weights between the input- and
+  hidden-layer, \(w_{ij}\), are sampled independently from the same
+  distribution, \(\mathcal D(\theta)\). The \pkg{RWNN} package is set-up
+  to facilitate the use of any (including user defined) distribution to
+  sample these weights. However, if nothing is specified, it defaults to
+  a uniform distribution on the interval \([-1;1]\),
+  i.e.~\(w_{ij}\sim\mathcal U([-1;1])\) for all \(i\) and \(j\).
+\item
+  \textbf{Quasi-random initialisation}: Quasi-random numbers have the
+  distinct advantage, when compared to \emph{true} random numbers, that
+  they will cover the domain of interest faster and more evenly. Thus,
+  when using quasi-random numbers, the space can be more effectively
+  explored, leading to a higher performance using less neurons in the
+  hidden-layer. The \pkg{RWNN} package allows for the use of Halton and
+  Sobol' sequences to generate quasi-random numbers by using the
+  \proglang{R} package: \pkg{randtoolbox} \citep{randtoolbox}. If
+  nothing is specified, it defaults to creating quasi-random numbers on
+  the cube \([-1;1] \times [-1;1]\).
+\item
+  \textbf{Random orthogonal initialisation} (default): The idea is
+  similar to that of random initialisation, but instead of using the
+  randomly initialized weights directly, it uses an orthonormal basis of
+  the sampled weights. The method used in the \pkg{RWNN} package
+  corresponds to Algorithm 1 of \citep{Wang2017}.
+\end{itemize}
+
 \hypertarget{EST}{%
 \subsubsection{Estimating output-weights}\label{EST}}
 
-Given a concatenated matrix of features, \(D\), (i.e.~a matrix whose
-\(n\)'th row contains \(\boldsymbol d_n\)) and \(\boldsymbol y\) be a
-vector containing the output, the output-weights \(\boldsymbol \beta\)
-can be found by minimising sum-of-squared errors (SSE): \begin{equation}
-\hat{\boldsymbol{\beta}} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2\Big\}. \label{eq:ssq}
+Given a concatenated matrix of features, \(D\), (i.e.~a matrix where the
+\(n\)'th row contains \(\boldsymbol d_n\)) and a vector containing the
+output, \(\boldsymbol y\), the output-weights \(\boldsymbol \beta\) can
+be found by minimising sum-of-squared errors (SSE): \begin{equation}
+    \hat{\boldsymbol{\beta}} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2\Big\}. \label{eq:ssq}
 \end{equation}
 
-When \(N > p + J\), the solution to this system of equations can be
-found by the normal equation: \begin{equation}
-\hat{\boldsymbol{\beta}}^{(ols)} = (D^T D)^{-1}D^T\boldsymbol{y}. \label{eq:ols}
+In the case when \(N > p + J\), the solution to this system of equations
+can be found by the normal equation, as: \begin{equation}
+    \hat{\boldsymbol{\beta}}^{(ols)} = (D^T D)^{-1}D^T\boldsymbol{y}. \label{eq:ols}
 \end{equation}
 
 However, when the number of concatenated features (i.e.~the number of
 columns of \(D\)) is bigger than the number of observations,
 i.e.~\((p + J) >> N\), this optimisation problem becomes ill-posed. In
-this is the case, the two most common approaches to estimating the
-parameters of the RWNN are the Moore-Penrose pseudoinverse and
-regularisation.
+this case, the two most common approaches to estimating the
+output-weights, are the Moore-Penrose pseudoinverse and regularisation.
 
-When using Moore-Penrose pseudoinverse
+Using the Moore-Penrose pseudoinverse
 \citep[\citet{PenroseInv}]{BjerhammarInv}, \(D^+\), the solution to the
-optimisation problem is simply: \begin{equation}
-\hat{\boldsymbol \beta}^{(pseudo)} = D^+ \boldsymbol y.
+optimisation problem is given by: \begin{equation}
+    \hat{\boldsymbol \beta}^{(pseudo)} = D^+ \boldsymbol y.
 \end{equation}
 
-When regularisation is introduced, the SSE, seen in Eq.~\eqref{eq:ssq},
-is penalised by the size of the output-weights. The penalisation is
+In regularisation the SSE, seen in Eq.\textasciitilde{}\eqref{eq:ssq},
+is penalised by the size of the output-weights. This penalisation is
 usually performed using either the \(\ell_1\) or \(\ell_2\)-norm,
 creating the following optimisation problem: \begin{equation}
-\hat{\boldsymbol{\beta}}^{(reg)} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2  + \lambda||\boldsymbol{\beta}||_q^q \Big\}, \label{eq:rsse}
-\end{equation} where \(q \in \{1, 2\}\) and \(\lambda\) is a
+    \hat{\boldsymbol{\beta}}^{(reg)} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2  + \lambda||\boldsymbol{\beta}||_q^q \Big\}, \label{eq:rsse}
+\end{equation} where \(q \in \{1, 2\}\), and \(\lambda\) is a
 penalisation constant. The penalisation constant should be chosen such
 that it minimises the out-of-sample error (using e.g.~\(k\)-fold
-cross-validation during training process).
+cross-validation during the training process):
 
-\underline{\textbf{When} $\boldsymbol{q = 2}$}:\newline The optimisation
-problem in Eq. \eqref{eq:rsse} is equivalent to performing
-ridge-regression on the concatenated features, instead of the input
-features, and the solution can be found as \citep{ridgeReg}:
-\begin{equation}
-\hat{\boldsymbol \beta}^{(ridge)} = \left(D^TD + \lambda I_{p + J}\right)^{-1}D^T\boldsymbol y,
-\end{equation} where \(I_{p+J}\) is the identity matrix of size \(p+J\).
-
-\underline{\textbf{When} $\boldsymbol{q = 1}$}:\newline The optimisation
-problem in Eq. \eqref{eq:rsse} is equivalent to lasso-regression
-\citep[\citet{TibLasso}]{SanLasso}. Unlike ridge-regression (\(q = 2\))
-it is not possible to find a closed form solution of the lasso estimated
-output-weights, \(\hat{\boldsymbol{\beta}}^{(lasso)}\), however, they
-can be found by using coordinate descent \citep{CoordLasso}.
-
-\textbf{NB:} Extreme learning machine's (ELMs) are effectively RWNNs
-without the functional link and can, therefore, be trained using exactly
-the same set of equations by setting
-\(\boldsymbol d_n = \boldsymbol h_n\).
+\begin{itemize}
+\item
+  \underline{\textbf{When} $\boldsymbol{q = 1}$}:\newline  The
+  optimisation problem in Eq. \eqref{eq:rsse} is equivalent to
+  performing lasso-regression \citep[\citet{TibLasso}]{SanLasso}. Unlike
+  ridge-regression (\(q = 2\)) it is not possible to find a closed form
+  solution to the optimisation problem and, thereby, the lasso estimated
+  output-weights, \(\hat{\boldsymbol{\beta}}^{(lasso)}\). However, it
+  has been shown by \citep{CoordLasso}, that
+  \(\hat{\boldsymbol{\beta}}^{(lasso)}\) can be found using coordinate
+  descent.
+\item
+  \underline{\textbf{When} $\boldsymbol{q = 2}$}:\newline  The
+  optimisation problem in Eq. \eqref{eq:rsse} is equivalent to
+  performing ridge-regression on the concatenated features, instead of
+  the input features, and the solution can be found as \citep{ridgeReg}:
+  \begin{equation}
+  \hat{\boldsymbol \beta}^{(ridge)} = \left(D^TD + \lambda I_{p + J}\right)^{-1}D^T\boldsymbol y,
+  \end{equation} where \(I_{p+J}\) is the identity matrix of size
+  \(p+J\).
+\end{itemize}
 
 \hypertarget{deepRWNN}{%
 \subsection{Deep RWNN}\label{deepRWNN}}
@@ -349,13 +394,13 @@ That is, assuming \(h_{ni}^{(0)}\) is the \(i\)'th feature \(x_{ni}\)
 and that the number of neurons in the \(k\)'th layer is \(J^{(k)}\),
 then the output of the \(j\)'th neuron in the \(k\)'th layer for the
 \(n\)'th observation, is given by: \begin{equation}
-h_{nj}^{(k)} = f^{(k)}\left(\sum_{i = 1}^{J^{(k - 1)}} w^{(k)}_{ij} h_{ni}^{(k - 1)} + w^{(k)}_{0}\right), \label{eq:hidden2}
+    h_{nj}^{(k)} = f^{(k)}\left(\sum_{i = 1}^{J^{(k - 1)}} w^{(k)}_{ij} h_{ni}^{(k - 1)} + w^{(k)}_{0}\right), \label{eq:hidden2} 
 \end{equation} where \(f^{(k)}\) is the activation function,
 \(w^{(k)}_0\) is the bias, and \(w^{(k)}_{ij}\) is the weight between
 the \(i\)'th neuron and the \(j\)'th neuron in the \(k\)'th layer for
 \(k = 1, ..., K\). Using vector notation this is simplified as:
 \begin{equation}
-\boldsymbol h_n^{(k)} = \boldsymbol f^{(k)}\left(W^{(k)} \boldsymbol{h}^{(k)} + w^{(k)}_0 \boldsymbol{1}_{k}\right),
+    \boldsymbol h_n^{(k)} = \boldsymbol f^{(k)}\left(W^{(k)} \boldsymbol{h}^{(k)} + w^{(k)}_0 \boldsymbol{1}_{k}\right),
 \end{equation} where \(\boldsymbol{1}_k\) is a vector of one's of
 dimension \(J^{k}\).
 
@@ -385,7 +430,7 @@ function in each of the \(K\) hidden-layers.
 
 }
 
-\caption[Graph representation of a deep random weight neural network (RWNN) with funcitonal link between the input-layer, intermediate hidden-layers, and the output-layer]{Graph representation of a deep random weight neural network (RWNN) with funcitonal link between the input-layer, intermediate hidden-layers, and the output-layer.}\label{fig:deeprwnn}
+\caption[Graph representation of a deep random weight neural network (RWNN) with functional link between the input-layer, intermediate hidden-layers, and the output-layer]{Graph representation of a deep random weight neural network (RWNN) with functional link between the input-layer, intermediate hidden-layers, and the output-layer.}\label{fig:deeprwnn}
 \end{figure}
 \end{CodeChunk}
 
@@ -395,6 +440,9 @@ function in each of the \(K\) hidden-layers.
 \hypertarget{pre-trained-using-an-auto-encoder}{%
 \subsubsection{Pre-trained using an
 auto-encoder}\label{pre-trained-using-an-auto-encoder}}
+
+\hypertarget{pruning-using-magnitude}{%
+\subsubsection{Pruning using magnitude}\label{pruning-using-magnitude}}
 
 \hypertarget{pruning-using-fisher-information}{%
 \subsubsection{Pruning using Fisher

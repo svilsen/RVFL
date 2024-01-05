@@ -5,9 +5,23 @@
 \alias{rwnn.formula}
 \title{Random weight neural networks}
 \usage{
-rwnn(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
+rwnn(
+  formula,
+  data = NULL,
+  N_hidden = c(),
+  lambda = 0,
+  type = NULL,
+  control = list()
+)
 
-\method{rwnn}{formula}(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
+\method{rwnn}{formula}(
+  formula,
+  data = NULL,
+  N_hidden = c(),
+  lambda = 0,
+  type = NULL,
+  control = list()
+)
 }
 \arguments{
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
@@ -17,6 +31,8 @@ rwnn(formula, data = NULL, N_hidden = c(), lambda = NULL, control = list())
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
 \item{lambda}{The penalisation constant used when training the output layer.}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }
@@ -31,11 +47,23 @@ The deep RWNN is handled by increasing the number of elements in the \code{N_hid
 }
 \examples{
 ## Models with a single hidden layer
-N_hidden <- 100
-elm(y ~ ., data = example_data, N_hidden = N_hidden)
-rwnn(y ~ ., data = example_data, N_hidden = N_hidden)
+N_hidden <- 50
+lambda <- 0.01
+
+# Regression
+rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda)
+
+# Classification
+rwnn(I(y > 15) ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda)
 
 ## Model with multiple hidden layers
-N_hidden <- c(10, 20, 10, 5)
-rwnn(y ~ ., data = example_data, N_hidden = N_hidden)
+N_hidden <- c(20, 15, 10, 5)
+lambda <- 0.01
+
+# Combining outputs from all hidden layers (default)
+rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda)
+
+# Using only the output of the last hidden layer
+rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, control = list(combine_hidden = FALSE))
+
 }

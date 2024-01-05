@@ -2,99 +2,41 @@
 ####################### ERWNN neural networks AUX #######################
 #########################################################################
 
-#' @title Coefficients of the ERWNN-object
-#' 
-#' @param object An \link{ERWNN-object}.
-#' @param ... Additional arguments.
-#' 
-#' @details The additional argument '\code{type}' is only used if '\code{method}' was \code{"bagging"}, in which case it can be supplied with values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning the full list of coefficients for all bootstrap samples, the standard deviation of each coefficient across bootstrap samples, and the average value of each coefficient across bootstrap samples, respectively.
-#' 
-#' @return Depended on '\code{method}' and '\code{type}':
-#' 
-#' If '\code{method}' was \code{"bagging"}, the '\code{type}' yields the following results: 
-#' \describe{
-#'     \item{\code{"mean" (default):}}{A vector containing the average value of each parameter taken across the bootstrap samples.}
-#'     \item{\code{"sd":}}{A vector containing the standard deviation of each parameter taken across the bootstrap samples.}
-#'     \item{\code{"all":}}{A matrix where every column contains the parameters of the output-layer of corresponding boostrap sample.}
-#' }
-#' 
-#' If '\code{method}' was \code{"boosting"} or \code{"stacking"}, a matrix is returned corresponding to '\code{type == "all"}'.
-#' 
-#' @rdname coef.ERWNN
-#' @method coef ERWNN
-#' @export
-coef.ERWNN <- function(object, ...) {
-    dots <- list(...)
-    type <- dots$type
-    if (is.null(type)) {
-        type <- "mean"
-    }
-    else {
-        type <- tolower(type)
-    }
-    
-    if (object$method == "ed") {
-        beta <- object$OutputWeights
-    }
-    else {
-        B <- length(object$RWNNmodels)
-        beta <- vector("list", B)
-        for (b in seq_along(beta)) {
-            beta[[b]] <- coef(object$RWNNmodels[[b]])
-        }
-        
-        beta <- do.call("cbind", beta)
-    }
-    
-    ##
-    if (object$method %in% c("bagging")) {
-        if (type %in% c("a", "all", "f", "full")) {
-            return(beta)
-        }
-        else if (type %in% c("m", "mean", "avg", "average")) {
-            beta <- matrix(apply(beta, 1, mean), ncol = 1)
-            return(beta)
-        }            
-        else if (type %in% c("s", "sd", "standarddeviation")) {
-            beta <- matrix(apply(beta, 1, sd), ncol = 1)
-            return(beta)
-        }
-        else {
-            stop("The value of 'type' was not valid, see '?coef.ERWNN' for valid options of 'type'.")
-        }
-    }
-    else {
-        return(beta)
-    }
-}
-
 #' @title Predicting targets of an ERWNN-object
 #' 
 #' @param object An \link{ERWNN-object}.
 #' @param ... Additional arguments.
 #' 
-#' @details The additional argument '\code{newdata}' and '\code{type}' can be specified, as follows:
+#' @details The additional arguments '\code{newdata}', '\code{type}', and '\code{class}' can be specified as follows:
 #' \describe{
-#'   \item{\code{newdata}}{Expects a matrix the same number of features (columns) as in the original data.}
-#'   \item{\code{type}}{Is only used of '\code{method}' was set to \code{"bagging"}, in which case it takes values \code{"all"}, \code{"sd"}, and \code{"mean"} (default), returning a full matrix of predictions for all bootstrap samples, the standard deviation of each predicted observation across bootstrap samples, and the average value of each prediction across the bootstrap samples, respectively.}
+#'   \item{\code{newdata}}{Expects a \link{matrix} or \link{data.frame} with the same features (columns) as in the original data.}
+#'   \item{\code{type}}{A string taking the following values:
+#'      \describe{
+#'          \item{\code{"mean"}}{Returns the average prediction across all ensemble models.}
+#'          \item{\code{"sd"}}{Returns the standard deviation of the predictions across all ensemble models.}
+#'          \item{\code{"all"}}{Returns all predictions for each ensemble models.}
+#'      }
+#'   }
+#'   \item{\code{class}}{A string taking the following values:
+#'      \describe{
+#'          \item{\code{"classify"}}{Returns the predicted class of ensemble. If used together with \code{type == "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type == "all"}, every ensemble is classified and returned.}
+#'          \item{\code{"vote"}}{Returns the predicted class of ensemble by classifying each ensemble and using majority voting to make the final prediction.}
+#'      }
+#'   }
 #' }
-#'
-#' @return Depended on '\code{method}' and '\code{type}'. 
 #' 
-#' If '\code{method}' was \code{"bagging"}, \code{"stacking"}, \code{"ed"}, or \code{"resample"}, the '\code{type}' yields the following results: 
-#' \describe{
-#'     \item{\code{"mean" (default):}}{A vector containing the weighted (using the \code{weights} element of the \link{ERWNN-object}) sum each observation taken across the bootstrap samples.}
-#'     \item{\code{"sd":}}{A vector containing the standard deviation of each prediction taken across the bootstrap samples.}
-#'     \item{\code{"all":}}{A matrix where every column contains the predicted values corresponding to each of the boostrapped models.}
-#' }
+#' Furthermore, if '\code{class}' is set to either \code{"classify"} or \code{"vote"}, additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
 #' 
-#' If '\code{method}' was \code{"boosting"}, a vector is returned each element being the sum of the boosted predictions.
-#'
+#' @return A matrix or a vector of predicted values depended on the arguments '\code{method}', '\code{type}', and '\code{class}'. 
+#' 
 #' @rdname predict.ERWNN
 #' @method predict ERWNN
 #' @export
 predict.ERWNN <- function(object, ...) {
+    #
     dots <- list(...)
+    
+    #
     type <- dots$type
     if (is.null(type)) {
         type <- "mean"
@@ -102,6 +44,7 @@ predict.ERWNN <- function(object, ...) {
         type <- tolower(type)
     }
     
+    #
     if (is.null(dots$newdata)) {
         newdata <- object$data$X
     } else {
@@ -152,43 +95,40 @@ predict.ERWNN <- function(object, ...) {
     }
     
     ##
-    if (object$method %in% c("bagging", "stacking", "ed", "resample")) {
+    o_type <- unique(do.call("c", sapply(object, function(x) x$Type)))
+    if (object$method %in% c("bagging", "ed")) {
         if (type %in% c("a", "all", "f", "full")) {
             return(y_new)
         } else if (type %in% c("m", "mean", "avg", "average")) {
             W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
             y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
+            
+            if (o_type %in% c("c", "class", "classification")) {
+                if ((!is.null(dots$type)) && (dots$type %in% c("c", "class", "classify"))) {
+                    newy <- newy |> apply(1, which.max) |> (\(x) object$data$C[x])()
+                }
+            }
+            
             return(y_new)
         } else if (type %in% c("s", "sd", "standarddeviation")) {
             y_new <- matrix(apply(y_new, 1, sd), ncol = 1)
-            return(y_new)
         } else {
             stop("The value of 'type' was not valid, see '?predict.ERWNN' for valid options of 'type'.")
         }
     } else {
         W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
         y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
+        
+        if (o_type %in% c("c", "class", "classification")) {
+            if ((!is.null(dots$type)) && (dots$type %in% c("c", "class", "classify"))) {
+                newy <- newy |> apply(1, which.max) |> (\(x) object$data$C[x])()
+            }
+        }
+        
         return(y_new)
     }
-}
-
-#' @title Residuals of the ERWNN-object
-#' 
-#' @param object An \link{ERWNN-object}.
-#' @param ... Additional arguments.
-#' 
-#' @details No additional arguments are used in this instance.
-#' 
-#' @return A vector of raw residuals between the predicted (using \code{type = "mean"}) and observed targets.
-#' 
-#' @rdname residuals.ERWNN
-#' @method residuals ERWNN
-#' @export
-residuals.ERWNN <- function(object, ...) {
-    y_new <- predict(object, ...)
     
-    r <- y_new - object$data$y
-    return(r)
+    return(y_new)
 }
 
 #' @title Diagnostic-plots of an ERWNN-object
@@ -264,25 +204,6 @@ plot.ERWNN <- function(x, ...) {
     return(invisible(NULL))
 }
 
-estimate_weights_stack <- function(C, b, B) {
-    # Creating matricies for QP optimisation problem.
-    # NB: diagonal matrix is added to ensure the matrix is invertible.
-    D <- t(C) %*% C + diag(1e-8, nrow = ncol(C), ncol = ncol(C))
-    d <- t(C) %*% b
-    A <- rbind(t(matrix(rep(1, B), ncol = 1)), diag(B), -diag(B))
-    b <- c(1, rep(0, B), rep(-1, B))
-    
-    # Solution to QP optimisation problem
-    w <- solve.QP(D, d, t(A), b, meq = 1)$solution
-    
-    # Ensure all weights are valid (some may not be due to machine precision)
-    w[w < 1e-16] <- 1e-16
-    w[w > (1 - 1e-16)] <- (1 - 1e-16)
-    w <- w / sum(w)
-    
-    return(w)
-}
-
 #' @title Set ensemble weights for an ERWNN-object
 #' 
 #' @description Manually set ensemble weights for an \link{ERWNN-object}.
@@ -293,7 +214,7 @@ estimate_weights_stack <- function(C, b, B) {
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-set_weights <- function(object, weights = NULL) {
+set_weights <- function(object, weights) {
     UseMethod("set_weights")
 }
 
@@ -303,21 +224,16 @@ set_weights <- function(object, weights = NULL) {
 #' @example inst/examples/sw_example.R
 #'
 #' @export
-set_weights.ERWNN <- function(object, weights = NULL) {
-    if (is.null(weights)) {
-        warning("No weights defined, setting weights to uniform.")
-        return(object)
-    }
-    
+set_weights.ERWNN <- function(object, weights) {
     if (length(weights) != length(object$weights)) {
-        stop("The number of supplied weights have to be equal to the number of ensemble weights.")
+        stop("The length of 'weights' have to be equal to the number of ensemble weights.")
     }
-    
+
     if (any(weights > 1) || any(weights < 0)) {
         stop("All weights have to be between 0 and 1.")
     }
     
-    if (abs(sum(weights) - 1) > 1e-6) {
+    if (abs(sum(weights) - 1) > 1e-8) {
         stop("The weights have to sum to 1.")
     }
     

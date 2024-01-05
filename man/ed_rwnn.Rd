@@ -5,9 +5,23 @@
 \alias{ed_rwnn.formula}
 \title{Ensemble deep random weight neural networks}
 \usage{
-ed_rwnn(formula, data = NULL, N_hidden, lambda = 0, control = list())
+ed_rwnn(
+  formula,
+  data = NULL,
+  N_hidden,
+  lambda = 0,
+  type = NULL,
+  control = list()
+)
 
-\method{ed_rwnn}{formula}(formula, data = NULL, N_hidden, lambda = 0, control = list())
+\method{ed_rwnn}{formula}(
+  formula,
+  data = NULL,
+  N_hidden,
+  lambda = 0,
+  type = NULL,
+  control = list()
+)
 }
 \arguments{
 \item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
@@ -17,6 +31,8 @@ ed_rwnn(formula, data = NULL, N_hidden, lambda = 0, control = list())
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
 \item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }

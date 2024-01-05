@@ -12,6 +12,8 @@ boost_rwnn(
   lambda = NULL,
   B = 10,
   epsilon = 1,
+  method = NULL,
+  type = NULL,
   control = list()
 )
 
@@ -22,6 +24,8 @@ boost_rwnn(
   lambda = NULL,
   B = 10,
   epsilon = 0.1,
+  method = NULL,
+  type = NULL,
   control = list()
 )
 }
@@ -37,6 +41,10 @@ boost_rwnn(
 \item{B}{The number of levels used in the boosting tree.}
 
 \item{epsilon}{The learning rate.}
+
+\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }

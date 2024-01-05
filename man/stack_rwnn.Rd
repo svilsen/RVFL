@@ -13,6 +13,8 @@ stack_rwnn(
   B = 100,
   optimise = FALSE,
   folds = 10,
+  method = NULL,
+  type = NULL,
   control = list()
 )
 
@@ -24,6 +26,8 @@ stack_rwnn(
   B = 100,
   optimise = FALSE,
   folds = 10,
+  method = NULL,
+  type = NULL,
   control = list()
 )
 }
@@ -41,6 +45,10 @@ stack_rwnn(
 \item{optimise}{TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)?}
 
 \item{folds}{The number of folds used to train the RWNN models.}
+
+\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }

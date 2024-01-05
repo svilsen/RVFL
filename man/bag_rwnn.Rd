@@ -11,6 +11,8 @@ bag_rwnn(
   N_hidden = c(),
   lambda = NULL,
   B = 100,
+  method = NULL,
+  type = NULL,
   control = list()
 )
 
@@ -20,6 +22,8 @@ bag_rwnn(
   N_hidden = c(),
   lambda = NULL,
   B = 100,
+  method = NULL,
+  type = NULL,
   control = list()
 )
 }
@@ -34,6 +38,10 @@ bag_rwnn(
 
 \item{B}{The number of bootstrap samples.}
 
+\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
+
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }
 \value{
@@ -43,10 +51,18 @@ An \link{ERWNN-object}.
 Use bootstrap aggregation to reduce the variance of random weight neural network models.
 }
 \examples{
-N_hidden <- 100
-B <- 1000
-lambda <- 0.2
+N_hidden <- 50
+B <- 100
+lambda <- 0.01
+
+# Regression
 \dontrun{
 bag_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, B = B)
 }
+
+# Classification
+\dontrun{
+bag_rwnn(I(y > 15) ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, B = B)
+}
+
 }
