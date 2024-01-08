@@ -113,10 +113,10 @@ Rcpp::List estimate_output_weights(const arma::mat & O, const arma::mat & y, con
     }
     
     const arma::mat residual = y - O * beta; 
-    const double sigma_squared = arma::as_scalar(arma::accu(arma::trans(residual) * residual / (N - p)));
+    const arma::mat sigma_squared = arma::trans(residual) * residual / (N - p);
     return Rcpp::List::create(
         Rcpp::Named("beta") = beta,
-        Rcpp::Named("sigma") = std::sqrt(sigma_squared)
+        Rcpp::Named("sigma") = sigma_squared
     );
 }
 

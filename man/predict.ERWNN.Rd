@@ -12,7 +12,7 @@
 \item{...}{Additional arguments.}
 }
 \value{
-A matrix or a vector of predicted values depended on the arguments '\code{method}', '\code{type}', and '\code{class}'.
+An list, matrix, or vector of predicted values depended on the arguments '\code{method}', '\code{type}', and '\code{class}'.
 }
 \description{
 Predicting targets of an ERWNN-object
@@ -24,17 +24,19 @@ The additional arguments '\code{newdata}', '\code{type}', and '\code{class}' can
   \item{\code{type}}{A string taking the following values:
      \describe{
          \item{\code{"mean"}}{Returns the average prediction across all ensemble models.}
-         \item{\code{"sd"}}{Returns the standard deviation of the predictions across all ensemble models.}
+         \item{\code{"std"}}{Returns the standard deviation of the predictions across all ensemble models.}
          \item{\code{"all"}}{Returns all predictions for each ensemble models.}
      }
   }
   \item{\code{class}}{A string taking the following values:
      \describe{
-         \item{\code{"classify"}}{Returns the predicted class of ensemble. If used together with \code{type == "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type == "all"}, every ensemble is classified and returned.}
-         \item{\code{"vote"}}{Returns the predicted class of ensemble by classifying each ensemble and using majority voting to make the final prediction.}
+         \item{\code{"classify"}}{Returns the predicted class of ensemble. If used together with \code{type = "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type = "all"}, every ensemble is classified and returned.}
+         \item{\code{"voting"}}{Returns the predicted class of ensemble by classifying each ensemble and using majority voting to make the final prediction, i.e. the \code{type} argument is overruled.}
      }
   }
 }
 
-Furthermore, if '\code{class}' is set to either \code{"classify"} or \code{"vote"}, additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
+Furthermore, if '\code{class}' is set to either \code{"classify"} or \code{"voting"}, additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
+
+NB: if the ensemble is created using the \link{boost_rwnn}-function, then \code{type} should be set to \code{"mean"}.
 }

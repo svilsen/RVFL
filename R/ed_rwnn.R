@@ -22,29 +22,71 @@ ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, type = NULL, con
 
 ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, type = NULL, control = list()) {
     ## Checks
+    #
     control$N_hidden <- N_hidden
-    control <- do.call(control_rwnn, control)
     
     #
-    lnorm <- control$lnorm
-    control$lnorm <- "l2"
+    if (is.null(control[["include_data"]])) {
+        control$include_data <- FALSE
+    }
+    
+    #
+    if (is.null(control[["include_estimate"]])) {
+        control$include_estimate <- FALSE
+    }
+    
+    #
+    if (is.null(control[["combine_hidden"]])) {
+        control$combine_hidden <- FALSE
+    }
+    
+    if (control[["combine_hidden"]]) {
+        control$combine_hidden <- FALSE
+        warning("'combine_hidden' has to be set to 'FALSE' for the 'ed_rwnn' model to function correctly.")
+    }
+    
+    #
+    control <- do.call(control_rwnn, control)
     
     #
     dc <- data_checks(y, X)
     
     ## 
     deeprwnn <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+    
     H <- rwnn_forward(X = X, W = deeprwnn$Weights$Hidden, activation = deeprwnn$activation, bias = deeprwnn$Bias$Hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$N_hidden[i]))
-    O <- lapply(seq_along(H), function(i) cbind(1, X, H[[i]]))
-    beta <- lapply(seq_along(O), function(i) estimate_output_weights(O[[i]], y, lnorm, lambda)$beta)
     
-    ##
+    objects <- vector("list", length(N_hidden))
+    for (i in seq_along(N_hidden)) {
+        ## Set-up RWNN object
+        rwnn_i <- deeprwnn
+        rwnn_i$Weights$Hidden <- rwnn_i$Weights$Hidden[seq_len(i)]
+        
+        ## Estimate parameters in output layer
+        H_i <- H[[i]]
+        if (control$bias_output) {
+            H_i <- cbind(1, H_i)
+        }
+        
+        O_i <- H_i
+        if (control$combine_input) {
+            O_i <- cbind(X, O_i)
+        }
+        
+        W_i <- estimate_output_weights(O_i, y, control$lnorm, lambda)
+        
+        ##
+        rwnn_i$Weights$Output <- W_i$beta
+        rwnn_i$Sigma$Output <- W_i$sigma
+        
+        objects[[i]] <- rwnn_i
+    }
+    
     object <- list(
         formula = NULL,
         data = list(X = X, y = y, C = colnames(y)), 
-        RWNNmodels = deeprwnn, 
-        OutputWeights = beta,
+        RWNNmodels = objects, 
         weights = rep(1L / length(N_hidden), length(N_hidden)), 
         method = "ed"
     ) 
@@ -132,11 +174,9 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, type = N
         y <- 2 * y - 1
         
         colnames(y) <- paste(y_names, sep = "")
-    } 
-    else if (tolower(type) %in% c("r", "reg", "regression")) {
+    } else if (tolower(type) %in% c("r", "reg", "regression")) {
         type <- "regression"
-    }
-    else {
+    } else {
         stop("'type' has not been correctly specified, it needs to be set to either 'regression' or 'classification'.")
     }
     

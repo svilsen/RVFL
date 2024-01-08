@@ -13,21 +13,23 @@
 #'   \item{\code{type}}{A string taking the following values:
 #'      \describe{
 #'          \item{\code{"mean"}}{Returns the average prediction across all ensemble models.}
-#'          \item{\code{"sd"}}{Returns the standard deviation of the predictions across all ensemble models.}
+#'          \item{\code{"std"}}{Returns the standard deviation of the predictions across all ensemble models.}
 #'          \item{\code{"all"}}{Returns all predictions for each ensemble models.}
 #'      }
 #'   }
 #'   \item{\code{class}}{A string taking the following values:
 #'      \describe{
-#'          \item{\code{"classify"}}{Returns the predicted class of ensemble. If used together with \code{type == "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type == "all"}, every ensemble is classified and returned.}
-#'          \item{\code{"vote"}}{Returns the predicted class of ensemble by classifying each ensemble and using majority voting to make the final prediction.}
+#'          \item{\code{"classify"}}{Returns the predicted class of ensemble. If used together with \code{type = "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type = "all"}, every ensemble is classified and returned.}
+#'          \item{\code{"voting"}}{Returns the predicted class of ensemble by classifying each ensemble and using majority voting to make the final prediction, i.e. the \code{type} argument is overruled.}
 #'      }
 #'   }
 #' }
 #' 
-#' Furthermore, if '\code{class}' is set to either \code{"classify"} or \code{"vote"}, additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
+#' Furthermore, if '\code{class}' is set to either \code{"classify"} or \code{"voting"}, additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
 #' 
-#' @return A matrix or a vector of predicted values depended on the arguments '\code{method}', '\code{type}', and '\code{class}'. 
+#' NB: if the ensemble is created using the \link{boost_rwnn}-function, then \code{type} should be set to \code{"mean"}.
+#' 
+#' @return An list, matrix, or vector of predicted values depended on the arguments '\code{method}', '\code{type}', and '\code{class}'. 
 #' 
 #' @rdname predict.ERWNN
 #' @method predict ERWNN
@@ -37,9 +39,11 @@ predict.ERWNN <- function(object, ...) {
     dots <- list(...)
     
     #
-    type <- dots$type
+    type <- dots[["type"]]
     if (is.null(type)) {
         type <- "mean"
+    } else if (dots[["class"]] %in% c("v", "vote", "voting")) {
+        type <- "all"
     } else {
         type <- tolower(type)
     }
@@ -76,59 +80,76 @@ predict.ERWNN <- function(object, ...) {
         }
     }
     
-    ##
-    B <- length(object$weights)
-    if (object$method == "ed") {
-        newH <- rwnn_forward(X = newdata, W = object$RWNNmodels$Weights$Hidden, activation = object$RWNNmodels$activation, bias = object$RWNNmodels$Bias$Hidden)
-        newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$RWNNmodels$N_hidden[i]))
-        newO <- lapply(seq_along(newH), function(i) cbind(1, newdata, newH[[i]]))
-        y_new <- lapply(seq_along(newO), function(i) newO[[i]] %*% object$OutputWeights[[i]])
-        
-        y_new <- do.call("cbind", y_new)
-    } else {
-        y_new <- vector("list", B)
-        for (b in seq_along(y_new)) {
-            y_new[[b]] <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
-        }
-        
-        y_new <- do.call("cbind", y_new)
+    ## Set-up
+    o_type <- unique(sapply(object$RWNNmodels, function(x) x$Type))
+    if (length(o_type) > 1) {
+        o_type <- o_type[1]
+        warning("Multiple 'Type' fields found among the ensemble models; therefore, only the first ensemble model is used to determine model type.")
     }
     
-    ##
-    o_type <- unique(do.call("c", sapply(object, function(x) x$Type)))
-    if (object$method %in% c("bagging", "ed")) {
-        if (type %in% c("a", "all", "f", "full")) {
-            return(y_new)
-        } else if (type %in% c("m", "mean", "avg", "average")) {
-            W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
-            y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
+    B <- length(object$weights)
+    
+    ## Prediction based on type and class.
+    if (type %in% c("a", "all")) {
+        y_new <- vector("list", B)
+        for (b in seq_len(B)) {
+            y_new_b <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
             
             if (o_type %in% c("c", "class", "classification")) {
-                if ((!is.null(dots$type)) && (dots$type %in% c("c", "class", "classify"))) {
-                    newy <- newy |> apply(1, which.max) |> (\(x) object$data$C[x])()
+                if (dots[["class"]] %in% c("c", "class", "classify", "v", "vote", "voting")) {
+                    p_new_b <- list(y = y_new_b, C = object$data$C, t = dots[["t"]], b = dots[["b"]])
+                    y_new_b <- do.call(classify, p_new_b)
                 }
             }
-            
-            return(y_new)
-        } else if (type %in% c("s", "sd", "standarddeviation")) {
-            y_new <- matrix(apply(y_new, 1, sd), ncol = 1)
-        } else {
-            stop("The value of 'type' was not valid, see '?predict.ERWNN' for valid options of 'type'.")
+        
+            y_new[[b]] <- y_new_b
         }
-    } else {
-        W <- matrix(rep(object$weights, dim(newdata)[1]), ncol = B, byrow = TRUE)
-        y_new <- matrix(apply(y_new * W, 1, sum), ncol = 1)
         
         if (o_type %in% c("c", "class", "classification")) {
-            if ((!is.null(dots$type)) && (dots$type %in% c("c", "class", "classify"))) {
-                newy <- newy |> apply(1, which.max) |> (\(x) object$data$C[x])()
+            if (dots[["class"]] %in% c("v", "vote", "voting")) {
+                y_new <- do.call("cbind", y_new)
+                y_new <- apply(y_new, 1, mode)
             }
         }
         
         return(y_new)
     }
+    else if (type %in% c("m", "mean")) {
+        y_new <- matrix(0, nrow = dim(object$data$y)[1], ncol = dim(object$data$y)[2])
+        for (b in seq_len(B)) {
+            y_new_b <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
+            y_new <- y_new + object$weights[b] * y_new_b
+        }
+        
+        if (o_type %in% c("c", "class", "classification")) {
+            if (dots[["class"]] %in% c("c", "class", "classify")) {
+                p_new <- list(y = y_new, C = object$data$C, t = dots[["t"]], b = dots[["b"]])
+                y_new <- do.call(classify, p_new)
+            }
+        }
+        
+        return(y_new)
+    }
+    else if (type %in% c("s", "std", "standarddeviation")) {
+        y_new <- matrix(0, nrow = dim(object$data$y)[1], ncol = dim(object$data$y)[2])
+        y_sq_new <- matrix(0, nrow = dim(object$data$y)[1], ncol = dim(object$data$y)[2])
+        for (b in seq_len(B)) {
+            y_new_b <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
+            
+            y_new <- y_new + object$weights[b] * y_new_b
+            y_sq_new <- y_sq_new + object$weights[b] * y_new_b^2
+        }
+        
+        N <- sum(abs(object$weights) > 1e-8)
+        W <- (N - 1) * object$weights / N
+        
+        s_new <- (y_sq_new - y_new^2) / W
+        return(s_new)
+    }
+    else {
+        stop("The value of 'type' was not valid, see '?predict.ERWNN' for valid options of 'type'.")
+    }
     
-    return(y_new)
 }
 
 #' @title Diagnostic-plots of an ERWNN-object
@@ -228,7 +249,7 @@ set_weights.ERWNN <- function(object, weights) {
     if (length(weights) != length(object$weights)) {
         stop("The length of 'weights' have to be equal to the number of ensemble weights.")
     }
-
+    
     if (any(weights > 1) || any(weights < 0)) {
         stop("All weights have to be between 0 and 1.")
     }

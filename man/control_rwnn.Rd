@@ -14,6 +14,7 @@ control_rwnn(
   combine_input = FALSE,
   combine_hidden = TRUE,
   include_data = TRUE,
+  include_estimate = TRUE,
   rng = "orthogonal",
   rng_pars = list(min = -1, max = 1)
 )
@@ -35,7 +36,9 @@ control_rwnn(
 
 \item{combine_hidden}{TRUE/FALSE: Should all hidden layers be combined to predict the output?}
 
-\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to 'TRUE', but can be useful and more memory efficient when bagging or boosting an RWNN.}
+\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but can be useful, and more memory efficiency, in \link{ERWNN}-objects.}
+
+\item{include_estimate}{TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but can be useful, and more memory efficiency, in \link{ERWNN}-objects.}
 
 \item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"orthogonal"}).}
 

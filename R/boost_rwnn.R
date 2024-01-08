@@ -25,6 +25,10 @@ boost_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 
 
 boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
     ## Checks
+    if (is.null(control[["include_data"]])) {
+        control$include_data <- FALSE
+    }
+    
     dc <- data_checks(y, X)
     
     if (is.null(B) | !is.numeric(B)) {

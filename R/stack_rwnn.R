@@ -26,6 +26,11 @@ stack_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 
 
 stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
     ## Checks
+    
+    if (is.null(control[["include_data"]])) {
+        control$include_data <- FALSE
+    }
+    
     dc <- data_checks(y, X)
     
     if (!is.logical(optimise)) {
