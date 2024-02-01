@@ -19,6 +19,7 @@ double rho(const arma::mat & O, const arma::mat & y, const arma::mat & beta, con
     return z;
 }
 
+// FIX TO WORK WITH MULTIVARIATE OUTPUT
 arma::mat coordinate_descent(const arma::mat & O, const arma::mat & y, 
                                 const double & lambda, const arma::mat & beta0, 
                                 const int & N, const int & p, const int & d) {
@@ -57,6 +58,8 @@ arma::mat coordinate_descent(const arma::mat & O, const arma::mat & y,
         
         converged = (std::abs(e_old - e_new) < 1e-8) || (i > 1000);
         i++;
+        
+        Rcpp::Rcout << "Iteration: " << i << " / " << 1000 << "\n" << beta << "\n";
     }
     
     return beta;

@@ -9,6 +9,10 @@ estimate_output_weights <- function(O, y, lnorm, lambda) {
     .Call('_RWNN_estimate_output_weights', PACKAGE = 'RWNN', O, y, lnorm, lambda)
 }
 
+fista <- function(X, H, W, tau, max_iterations, w, step_shrink, backtrack, tolerance, trace) {
+    .Call('_RWNN_fista', PACKAGE = 'RWNN', X, H, W, tau, max_iterations, w, step_shrink, backtrack, tolerance, trace)
+}
+
 rwnn_forward <- function(X, W, activation, bias) {
     .Call('_RWNN_rwnn_forward', PACKAGE = 'RWNN', X, W, activation, bias)
 }

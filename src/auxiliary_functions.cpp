@@ -3,6 +3,63 @@
 //[[Rcpp::depends(RcppArmadillo)]]
 //[[Rcpp::plugins(cpp11)]]
 
+arma::mat matrix_sign(const arma::mat & M) {
+    arma::mat S = M;
+    
+    for (auto & val : S) {
+        if (val > 0) {
+            val = 1.0;
+        }
+        else if (val < 0) {
+            val = -1.0;
+        }
+        else {
+            val = 0.0;
+        }
+    }
+    
+    return S;
+}
+
+arma::mat matrix_nonzero(const arma::mat & M) {
+    arma::mat S = M;
+    
+    for (auto & val : S) {
+        if (val < 0) {
+            val = 0.0;
+        }
+    }
+    
+    return S;
+}
+
+bool matrix_condition(const arma::mat & M, const double & x) {
+    bool s = false;
+    for (auto & val : M) {
+        if (x > val) {
+            s = true;
+            break;
+        }
+    }
+    
+    return s;
+}
+
+double max_window(const arma::mat & x, const int & w, const int & i) {
+    int l = std::max(i - w, 0);
+    int u = std::max(i - 1, 0);
+    
+    double max = x[l];
+    for (int i = l; i < u; i++) {
+        if (x[i] > max) {
+            max = x[i];
+        }
+    }
+    
+    return max;
+}
+
+
 //[[Rcpp::export]]
 std::vector<std::string> classify_cpp(const arma::mat &y, const std::vector<std::string> &C, const double &t, const double &b) {
     const int & N = y.n_rows;

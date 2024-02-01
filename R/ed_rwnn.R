@@ -10,17 +10,18 @@
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
+#' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, type = NULL, control = list()) {
+ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     UseMethod("ed_rwnn")
 }
 
-ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, type = NULL, control = list()) {
+ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     ## Checks
     #
     control$N_hidden <- N_hidden
@@ -52,7 +53,12 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, type = NULL, control = li
     dc <- data_checks(y, X)
     
     ## 
-    deeprwnn <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+    if (is.null(method)) {
+        deeprwnn <- rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+    }
+    else {
+        deeprwnn <- ae_rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+    }
     
     H <- rwnn_forward(X = X, W = deeprwnn$Weights$Hidden, activation = deeprwnn$activation, bias = deeprwnn$Bias$Hidden)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$N_hidden[i]))
@@ -102,7 +108,7 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, type = NULL, control = li
 #' @example inst/examples/edrwnn_example.R
 #' 
 #' @export
-ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, type = NULL, control = list()) {
+ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     # Checks for 'N_hidden'
     if (length(N_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
@@ -130,6 +136,14 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, type = N
         formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
         formula <- as.formula(formula)
         warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
+    }
+    
+    # Checks for 'method'
+    if (!is.null(method)) {
+        method <- tolower(method)
+        if (!(method %in% c("l1", "l2"))) {
+            stop("'method' has to be set to 'NULL', 'l1', or 'l2'.")
+        }
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -181,7 +195,7 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, type = N
     }
     
     #
-    mm <- ed_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+    mm <- ed_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

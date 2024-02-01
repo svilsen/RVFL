@@ -3,6 +3,15 @@
 
 #include <RcppArmadillo.h>
 
-arma::mat bind_cols(const arma::mat & A, const arma::mat & B);
+arma::mat matrix_sign(const arma::mat & M);
+
+arma::mat matrix_nonzero(const arma::mat & M);
+
+bool matrix_condition(const arma::mat & M, const double & x);
+
+double max_window(const arma::mat & x, const int & w, const int & i);
+
+// GETS EXPORTED TO R
+std::vector<std::string> classify_cpp(const arma::mat &y, const std::vector<std::string> &C, const double &t, const double &b);
 
 #endif //auxiliary_functions

@@ -54,12 +54,11 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
     }
     
     ##
+    y_b <- y
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        if (b == 1) {
-            y_b <- y
-        } else {
-            y_b <- y_b - epsilon * predict(objects[[b - 1]])
+        if (b > 1) {
+            y_b <- y_b - epsilon * predict(objects[[b - 1]], newdata = X)
         }
         
         if (is.null(method)) {
@@ -76,7 +75,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         formula = NULL,
         data = list(X = X, y = y, C = colnames(y)), 
         RWNNmodels = objects, 
-        weights = c(rep(epsilon, B - 1), 1L), 
+        weights = rep(epsilon, B), 
         method = "boosting"
     )  
     

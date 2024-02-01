@@ -1,4 +1,4 @@
-N_hidden <- 10
+N_hidden <- c(10, 10)
 
 ## Using L1-norm in the auto-encoder (sparse solution)
 \dontrun{

@@ -65,7 +65,7 @@ arma::mat sqnl(const arma::mat & x) {
 }
 
 arma::mat gaussian(const arma::mat & x) {
-    return arma::exp(-1.0 * x % x);
+    return arma::exp(-1.0 * x * x);
 }
 
 arma::mat sqrbf(const arma::mat & x) {

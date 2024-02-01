@@ -1,6 +1,6 @@
-N_hidden <- 5
-B <- 1000
-epsilon <- 0.1
+N_hidden <- 10
+B <- 100
+epsilon <- 0.01
 lambda <- 0.1
 
 \dontrun{

@@ -66,7 +66,7 @@ random_orthonormal <- function(w, nr_rows, X, W_hidden, N_hidden, activation, bi
             Z <- X
         }
         else {
-            Z <- RWNN:::rwnn_forward(X, W_hidden[seq_len(w - 1)], activation, bias_hidden)
+            Z <- rwnn_forward(X, W_hidden[seq_len(w - 1)], activation, bias_hidden)
             Z <- matrix(Z[[length(Z)]], ncol = N_hidden[w - 1])
         }
         

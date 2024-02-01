@@ -39,6 +39,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fista
+Rcpp::List fista(const arma::mat& X, const arma::mat& H, const arma::mat& W, const double& tau, const int& max_iterations, const int& w, const double& step_shrink, const int& backtrack, const double& tolerance, const int& trace);
+RcppExport SEXP _RWNN_fista(SEXP XSEXP, SEXP HSEXP, SEXP WSEXP, SEXP tauSEXP, SEXP max_iterationsSEXP, SEXP wSEXP, SEXP step_shrinkSEXP, SEXP backtrackSEXP, SEXP toleranceSEXP, SEXP traceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type H(HSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const int& >::type max_iterations(max_iterationsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const double& >::type step_shrink(step_shrinkSEXP);
+    Rcpp::traits::input_parameter< const int& >::type backtrack(backtrackSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< const int& >::type trace(traceSEXP);
+    rcpp_result_gen = Rcpp::wrap(fista(X, H, W, tau, max_iterations, w, step_shrink, backtrack, tolerance, trace));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rwnn_forward
 std::vector<arma::mat> rwnn_forward(arma::mat X, const std::vector<arma::mat>& W, const std::vector<std::string>& activation, const std::vector<bool>& bias);
 RcppExport SEXP _RWNN_rwnn_forward(SEXP XSEXP, SEXP WSEXP, SEXP activationSEXP, SEXP biasSEXP) {
@@ -57,6 +77,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_RWNN_classify_cpp", (DL_FUNC) &_RWNN_classify_cpp, 4},
     {"_RWNN_estimate_output_weights", (DL_FUNC) &_RWNN_estimate_output_weights, 4},
+    {"_RWNN_fista", (DL_FUNC) &_RWNN_fista, 10},
     {"_RWNN_rwnn_forward", (DL_FUNC) &_RWNN_rwnn_forward, 4},
     {NULL, NULL, 0}
 };

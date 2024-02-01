@@ -47,7 +47,7 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 }
 \examples{
-N_hidden <- 10
+N_hidden <- c(10, 10)
 
 ## Using L1-norm in the auto-encoder (sparse solution)
 \dontrun{

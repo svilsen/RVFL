@@ -53,16 +53,16 @@ A function used to create a control-object for the \link{rwnn} function.
 \details{
 The possible activation functions supplied to '\code{activation}' are:
 \describe{
-    \item{\code{"sigmoid"}}{\deqn{a(x) = \frac{1}{1 + \exp(-x)}}}
-    \item{\code{"tanh"}}{\deqn{a(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}}}
-    \item{\code{"relu"}}{\deqn{a(x) = \max\{0, x\}}}
-    \item{\code{"silu"}}{\deqn{a(x) = \frac{x}{1 + \exp(-x)}}}
-    \item{\code{"softplus"}}{\deqn{a(x) = \log(1 + \exp(x))}}
-    \item{\code{"softsign"}}{\deqn{a(x) = \frac{x}{1 + |x|)}}}
-    \item{\code{"sqnl"}}{\deqn{a(x) = -1\text{, if }x < -2\text{, }a(x) = x + \frac{x^2}{4}\text{, if }-2 \le x < 0\text{, }a(x) = x - \frac{x^2}{4}\text{, if }0 \le x \le 2\text{, and } a(x) = 2\text{, if }x > 2}}
-    \item{\code{"gaussian"}}{\deqn{a(x) = \exp(x^2)}}
-    \item{\code{"sqrbf"}}{\deqn{a(x) = 1 - \frac{x^2}{2}\text{, if }|x| \le 1\text{, }a(x) = \frac{(2 - |x|)^2}{2}\text{, if }1 < |x| < 2\text{, and }a(x) = 0\text{, if }|x| \ge 2}}
-    \item{\code{"bentidentity"}}{\deqn{a(x) = \frac{\sqrt{x^2 + 1} - 1}{2} + x}}
-    \item{\code{"identity"}}{\deqn{a(x) = x}}
+    \item{\code{"identity"}}{\deqn{f(x) = x}}
+    \item{\code{"bentidentity"}}{\deqn{f(x) = \frac{\sqrt{x^2 + 1} - 1}{2} + x}}
+    \item{\code{"sigmoid"}}{\deqn{f(x) = \frac{1}{1 + \exp(-x)}}}
+    \item{\code{"tanh"}}{\deqn{f(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}}}
+    \item{\code{"relu"}}{\deqn{f(x) = \max\{0, x\}}}
+    \item{\code{"silu"}}{\deqn{f(x) = \frac{x}{1 + \exp(-x)}}}
+    \item{\code{"softplus"}}{\deqn{f(x) = \ln(1 + \exp(x))}}
+    \item{\code{"softsign"}}{\deqn{f(x) = \frac{x}{1 + |x|}}}
+    \item{\code{"sqnl"}}{\deqn{f(x) = -1\text{, if }x < -2\text{, }f(x) = x + \frac{x^2}{4}\text{, if }-2 \le x < 0\text{, }f(x) = x - \frac{x^2}{4}\text{, if }0 \le x \le 2\text{, and } f(x) = 2\text{, if }x > 2}}
+    \item{\code{"gaussian"}}{\deqn{f(x) = \exp(-x^2)}}
+    \item{\code{"sqrbf"}}{\deqn{f(x) = 1 - \frac{x^2}{2}\text{, if }|x| \le 1\text{, }f(x) = \frac{(2 - |x|)^2}{2}\text{, if }1 < |x| < 2\text{, and }f(x) = 0\text{, if }|x| \ge 2}}
 }
 }

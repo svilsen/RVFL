@@ -10,6 +10,7 @@ ed_rwnn(
   data = NULL,
   N_hidden,
   lambda = 0,
+  method = NULL,
   type = NULL,
   control = list()
 )
@@ -19,6 +20,7 @@ ed_rwnn(
   data = NULL,
   N_hidden,
   lambda = 0,
+  method = NULL,
   type = NULL,
   control = list()
 )
@@ -31,6 +33,8 @@ ed_rwnn(
 \item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
 \item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
+
+\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.}
 
 \item{type}{A string indicating whether this is a regression or classification problem.}
 
