@@ -91,7 +91,7 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NUL
     
     object <- list(
         formula = NULL,
-        data = list(X = X, y = y, C = colnames(y)), 
+        data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
         RWNNmodels = objects, 
         weights = rep(1L / length(N_hidden), length(N_hidden)), 
         method = "ed"
@@ -160,14 +160,14 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, method =
     #
     y <- model.response(model.frame(formula, data))
     if (is.null(type)) {
-        if (class(y) == "numeric") {
+        if (class(y[, 1]) == "numeric") {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
                 warning("The response consists of only integers, is this a classification problem?")
             }
         }
-        else if (class(y) %in% c("factor", "character", "logical")) {
+        else if (class(y[, 1]) %in% c("factor", "character", "logical")) {
             type <- "classification"
         }
     }

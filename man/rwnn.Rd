@@ -48,7 +48,7 @@ The deep RWNN is handled by increasing the number of elements in the \code{N_hid
 \examples{
 ## Models with a single hidden layer
 N_hidden <- 50
-lambda <- 0.01
+lambda <- 1
 
 # Regression
 rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda)

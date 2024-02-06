@@ -269,7 +269,7 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
     ## Return object
     object <- list(
         formula = NULL,
-        data = if(control$include_data) list(X = X, y = y, C = colnames(y)) else NULL, 
+        data = if(control$include_data) list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))) else NULL, 
         N_hidden = N_hidden, 
         activation = activation, 
         lambda = lambda,
@@ -334,14 +334,14 @@ rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = 0, type 
     #
     y <- model.response(model.frame(formula, data))
     if (is.null(type)) {
-        if (class(y) == "numeric") {
+        if (class(y[, 1]) == "numeric") {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
                 warning("The response consists of only integers, is this a classification problem?")
             }
         }
-        else if (class(y) %in% c("factor", "character", "logical")) {
+        else if (class(y[, 1]) %in% c("factor", "character", "logical")) {
             type <- "classification"
         }
     }

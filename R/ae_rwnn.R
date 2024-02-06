@@ -35,7 +35,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
     rng_pars <- control$rng_pars
     
     ## Checks
-    dc <- RWNN:::data_checks(y, X)
+    dc <- data_checks(y, X)
     
     # Regularisation
     if (is.null(lambda)) {
@@ -77,7 +77,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
         
         if (is.character(rng_function)) {
             if (rng_function %in% c("o", "orto", "orthogonal")) {
-                random_weights <- (rng_pars$max - rng_pars$min) * RWNN:::random_orthonormal(w, nr_rows, X, W_hidden, N_hidden, activation, bias_hidden) + rng_pars$min
+                random_weights <- (rng_pars$max - rng_pars$min) * random_orthonormal(w, nr_rows, X, W_hidden, N_hidden, activation, bias_hidden) + rng_pars$min
             }
             else if (rng_function %in% c("h", "halt", "halton")) {
                 random_weights <- (rng_pars$max - rng_pars$min) * halton(nr_rows, N_hidden[w], init = w == 1) + rng_pars$min
@@ -99,7 +99,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
         
         ## Auto-encoder pre-training
         # Value of hidden-layer before pre-training
-        H_tilde <- RWNN:::rwnn_forward(X = X, W = W_hidden[seq_len(w)], activation = activation, bias = bias_hidden[seq_len(w)])
+        H_tilde <- rwnn_forward(X = X, W = W_hidden[seq_len(w)], activation = activation, bias = bias_hidden[seq_len(w)])
         H_tilde <- lapply(seq_along(H_tilde), function(i) matrix(H_tilde[[i]], ncol = N_hidden[i]))
         
         if (w == 1) {
@@ -116,7 +116,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
         
         # Pre-training of weights in hidden-layer
         if (method == "l1") {
-            W_tilde <- RWNN:::fista(
+            W_tilde <- fista(
                 X = P_tilde, 
                 H = H_tilde, 
                 W = t(W_hidden[[w]]),
@@ -167,7 +167,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
     ## Return object
     object <- list(
         formula = NULL,
-        data = if(control$include_data) list(X = X, y = y, C = colnames(y)) else NULL, 
+        data = if(control$include_data) list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))) else NULL, 
         N_hidden = N_hidden, 
         activation = activation, 
         lambda = lambda,
@@ -221,7 +221,7 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
     
     # Re-capture feature names when '.' is used in formula interface
     formula <- terms(formula, data = data)
-    formula <- RWNN:::strip_terms(formula)
+    formula <- strip_terms(formula)
     
     #
     X <- model.matrix(formula, data)
@@ -233,14 +233,14 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
     #
     y <- model.response(model.frame(formula, data))
     if (is.null(type)) {
-        if (class(y) == "numeric") {
+        if (class(y[, 1]) == "numeric") {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
                 warning("The response consists of only integers, is this a classification problem?")
             }
         }
-        else if (class(y) %in% c("factor", "character", "logical")) {
+        else if (class(y[, 1]) %in% c("factor", "character", "logical")) {
             type <- "classification"
         }
     }

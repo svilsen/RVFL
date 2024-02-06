@@ -116,7 +116,7 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
     ##
     object <- list(
         formula = NULL,
-        data = list(X = X, y = y, C = colnames(y)), 
+        data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
         RWNNmodels = objects, 
         weights = w, 
         method = "stacking"
@@ -184,14 +184,14 @@ stack_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NU
     #
     y <- model.response(model.frame(formula, data))
     if (is.null(type)) {
-        if (class(y) == "numeric") {
+        if (class(y[, 1]) == "numeric") {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
                 warning("The response consists of only integers, is this a classification problem?")
             }
         }
-        else if (class(y) %in% c("factor", "character", "logical")) {
+        else if (class(y[, 1]) %in% c("factor", "character", "logical")) {
             type <- "classification"
         }
     }
