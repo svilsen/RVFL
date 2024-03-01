@@ -6,10 +6,10 @@
 #' 
 #' @description Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 #' 
-#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
-#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param lambda The penalisation constant used when training the output layer.
+#' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output-layer. 
+#' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output-layer.
+#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden-layers (the length of the list is taken as the number of hidden-layers).
+#' @param lambda A vector of two penalisation constants used when training the hidden-weights and the output-weights, respectively.
 #' @param method The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
@@ -41,14 +41,16 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
     if (is.null(lambda)) {
         lambda <- 0
         warning("Note: 'lambda' is set to '0', as it was not supplied.")
-    } else if (lambda < 0) {
+    } else if (any(lambda < 0)) {
         lambda <- 0
         warning("'lambda' has to be a real number larger than or equal to '0'.")
     }
     
-    if (length(lambda) > 1) {
-        lambda <- lambda[1]
-        warning("The length of 'lambda' was larger than 1; only the first element will be used.")
+    if (length(lambda) == 1) {
+        lambda <- c(lambda, 0)
+    } else if (length(lambda) > 2) {
+        lambda <- lambda[seq_len(2)]
+        warning("The length of 'lambda' was larger than 2; only the first two elements will be used.")
     }
     
     if (is.null(N_features)) {
@@ -116,22 +118,10 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
         
         # Pre-training of weights in hidden-layer
         if (method == "l1") {
-            W_tilde <- fista(
-                X = P_tilde, 
-                H = H_tilde, 
-                W = t(W_hidden[[w]]),
-                tau = 2, 
-                max_iterations = 2000,
-                w = 20, 
-                step_shrink = 0.01, 
-                backtrack = 40, 
-                tolerance = 1e-12,
-                trace = 0
-            )
-            
-            W_hidden[[w]] <- t(W_tilde$W)
+            W_tilde <- estimate_output_weights(H_tilde, P_tilde, "l1", lambda[1])
+            W_hidden[[w]] <- t(W_tilde$beta)
         } else if (method == "l2") {
-            W_tilde <- estimate_output_weights(H_tilde, P_tilde, "l2", 1)
+            W_tilde <- estimate_output_weights(H_tilde, P_tilde, "l2", lambda[1])
             W_hidden[[w]] <- t(W_tilde$beta)
         } else {
             stop("Method not implemented; set method to either \"l1\" or \"l2\".")
@@ -159,7 +149,7 @@ ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", t
             O <- cbind(X, H)
         }
         
-        W_output <- estimate_output_weights(O, y, lnorm, lambda)
+        W_output <- estimate_output_weights(O, y, lnorm, lambda[2])
     } else {
         W_output <- list()
     }
@@ -232,6 +222,9 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
     
     #
     y <- model.response(model.frame(formula, data))
+    y <- as.matrix(y, nrow = nrow(data))
+    
+    #
     if (is.null(type)) {
         if (class(y[, 1]) == "numeric") {
             type <- "regression"
@@ -244,8 +237,6 @@ ae_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL,
             type <- "classification"
         }
     }
-    
-    y <- as.matrix(y, nrow = nrow(data))
     
     # Change output based on 'type'
     if (tolower(type) %in% c("c", "class", "classification")) {

@@ -26,13 +26,13 @@ ae_rwnn(
 )
 }
 \arguments{
-\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output-layer.}
 
-\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output-layer.}
 
-\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden-layers (the length of the list is taken as the number of hidden-layers).}
 
-\item{lambda}{The penalisation constant used when training the output layer.}
+\item{lambda}{A vector of two penalisation constants used when training the hidden-weights and the output-weights, respectively.}
 
 \item{method}{The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).}
 
@@ -48,14 +48,15 @@ Set-up and estimate weights of a random weight neural network using an auto-enco
 }
 \examples{
 N_hidden <- c(10, 10)
+lambda <- c(2, 0.2)
 
 ## Using L1-norm in the auto-encoder (sparse solution)
 \dontrun{
-ae_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = 0.2, method = "l1")
+ae_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, method = "l1")
 }
 
-## Using L2-norm in the auto-encoder (non-sparse solution)
+## Using L2-norm in the auto-encoder (dense solution)
 \dontrun{
-ae_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = 0.2, method = "l2")
+ae_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, method = "l2")
 }
 }

@@ -46,20 +46,20 @@ reduce_network_output <- function(object) {
     return(object)
 }
 
-#' @title Reduce the weights of a random weight neural network
+#' @title Reduce the weights of a random weight neural network.
 #' 
-#' @description Methods for reducing the number of weights in random weight neural network based on magnitude, Fisher information, entropy, and zero-value output. 
+#' @description Methods for weight and neuron pruning in random weight neural networks.
 #' 
-#' @param object An \link{RWNN-object} or \link{ERWNN-object}.
+#' @param object An \link{RWNN} or \link{ERWNN}-object.
 #' @param method A string setting the method used to reduce the network (see details).
-#' @param p The fraction indicating which proportion of weights should be removed during reduction. 
+#' @param ... Additional arguments passed to the reduction method (see details).
 #' 
 #' @details ... 
 #' 
-#' @return A reduced object.
+#' @return A reduced \link{RWNN} or \link{ERWNN}-object.
 #' 
 #' @export
-reduce_network <- function(object, method = NULL, p = 0.1) {
+reduce_network <- function(object, method = NULL, ...) {
     UseMethod("reduce_network")
 }
 
@@ -69,17 +69,22 @@ reduce_network <- function(object, method = NULL, p = 0.1) {
 #' @example inst/examples/reduction_example.R
 #'
 #' @export
-reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
+reduce_network.RWNN <- function(object, method = NULL, ...) {
+    ##
+    dots <- list(...)
+    
     ##
     if (is.null(method)) {
-        method <- "LAST"
+        method <- "lamp"
     }
     else {
-        method <- toupper(method)
+        method <- tolower(method)
     }
     
     ##
-    if (!(method %in% c("LAST", "LASSO"))) {
+    if (!(method %in% c("last", "lasso"))) {
+        p <- dots$p
+        
         if (is.null(p) | !is.numeric(p)) {
             warning("'p' is set to '0.1' as it was either not supplied, or not numeric.")
             p <- 0.1
@@ -94,17 +99,8 @@ reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
         }
     }
     
-    ##
-    if (method %in% c("FI", "FISHER-INFORMATION")) {
-        ## Reducing the number of hidden-weights based on Fisher-information.
-        
-    }
-    else if (method %in% c("CE", "ENTROPY", "CROSS-ENTROPY")) {
-        ## Reducing the number of hidden-weights based on cross-entropy
-        
-    }
-    else if (method %in% c("MAG", "MAGNITUDE", "GLBL", "GLOBAL")) {
-        ## Reducing the number of hidden-weights based on magnitude (globally).
+    if (method %in% c("mag", "magnitide", "glbl", "global")) {
+        ## Weight pruning method: Reducing the number of hidden-weights based on magnitude (globally).
         weights <- quantile(abs(unlist(object$Weights)), probs = p)
         for(i in seq_along(object$Weights$Hidden)) {
             object$Weights$Hidden[[i]][abs(object$Weights$Hidden[[i]]) <= weights] <- 0
@@ -112,8 +108,8 @@ reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
         
         object$Weights$Output[abs(object$Weights$Output) <= weights] <- 0
     }
-    else if (method %in% c("UNIF", "UNIFORM")) {
-        ## Reducing the number of hidden-weights based on magnitude (uniformly by layer).
+    else if (method %in% c("unif", "uniform")) {
+        ## Weight pruning method: Reducing the number of hidden-weights based on magnitude (uniformly by layer).
         for(i in seq_along(object$Weights$Hidden)) {
             weights_i <- quantile(abs(unlist(object$Weights$Hidden[[i]])), probs = p)
             object$Weights$Hidden[[i]][abs(object$Weights$Hidden[[i]]) <= weights_i] <- 0
@@ -122,8 +118,8 @@ reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
         weights_o <- quantile(abs(unlist(object$Weights$Output)), probs = p)
         object$Weights$Output[abs(object$Weights$Output) <= weights_o] <- 0
     }
-    else if (method %in% c("LAMP")) {
-        ## Reducing the number of hidden-weights based on magnitude (globally using the LAMP score).
+    else if (method %in% c("lamp")) {
+        ## Weight pruning method: Reducing the number of hidden-weights based on magnitude (globally using the LAMP score).
         # Create LAMP scores
         lamp <- vector("list", length(object$Weights$Hidden) + 1)
         for(i in seq_along(lamp)[-length(lamp)]) {
@@ -150,8 +146,8 @@ reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
         
         object$Weights$Output[abs(lamp[[length(lamp)]]) <= weights] <- 0
     }
-    else if (method %in% c("LAST", "LASSO")) {
-        ## Cleaning '0' weights in the output-layer.
+    else if (method %in% c("last", "lasso")) {
+        ## Weight pruning method: Removing '0' weights from the output-layer.
         p <- length(object$Weights$Output)
         N <- dim(object$data$X)[1]
         
@@ -165,6 +161,14 @@ reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
         
         object$Sigma$Output <- ((N - p) / (N - length(object$Weights$Output))) * object$Sigma$Output
     } 
+    else if (method %in% c("apoz")) {
+        ## Neuron pruning method: Average percentage of "zeros".
+        
+    }
+    else if (method %in% c("l2")) {
+        ## Neuron pruning method: L2-norm of hidden-weights.
+        
+    }
     else {
         stop("Provided 'method' not implemented.")
     }
@@ -177,10 +181,47 @@ reduce_network.RWNN <- function(object, method = NULL, p = 0.1) {
 #' @method reduce_network ERWNN
 #' 
 #' @export
-reduce_network.ERWNN <- function(object, method = NULL, p = 0.1) {
+reduce_network.ERWNN <- function(object, method = NULL, ...) {
     B <- length(object$RWNNmodels)
     for (b in seq_len(B)) {
-        object$RWNNmodels[[b]] <- reduce_network(object = object$RWNNmodels[[b]], method = method, p = p)
+        object$RWNNmodels[[b]] <- reduce_network(object = object$RWNNmodels[[b]], method = method, p = p, ...)
+    }
+    
+    return(object)
+}
+
+## 
+
+#' @title Reduce the weights of a random weight neural network.
+#' 
+#' @description Methods for weight and neuron pruning in random weight neural networks.
+#' 
+#' @param object An \link{RWNN} or \link{ERWNN}-object.
+#' @param ... Arguments passed to the \link{reduce_network}-function.
+#' 
+#' @return A reduced \link{RWNN} or \link{ERWNN}-object.
+#' 
+#' @export
+reduce_retrain_network <- function(object, ...) {
+    UseMethod("reduce_retrain_network")
+}
+
+#' @rdname reduce_retrain_network
+#' @method reduce_retrain_network RWNN
+#' 
+#' @export
+reduce_retrain_network.RWNN <- function(object, ...) {
+    
+}
+
+#' @rdname reduce_retrain_network
+#' @method reduce_retrain_network ERWNN
+#' 
+#' @export
+reduce_retrain_network.ERWNN <- function(object, ...) {
+    B <- length(object$RWNNmodels)
+    for (b in seq_len(B)) {
+        object$RWNNmodels[[b]] <- reduce_retrain_network(object = object$RWNNmodels[[b]], ...)
     }
     
     return(object)

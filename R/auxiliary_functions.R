@@ -83,11 +83,6 @@ random_orthonormal <- function(w, nr_rows, X, W_hidden, N_hidden, activation, bi
     return(W)
 }
 
-mse <- function(object, X, y) {
-    yhat <- predict(object, newdata = X)
-    return(mean((y - yhat)^2))
-}
-
 estimate_weights_stack <- function(C, b, B) {
     # Creating matricies for QP optimisation problem.
     # NB: diagonal matrix is added to ensure the matrix is invertible due to potential numeric instability.

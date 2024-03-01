@@ -159,6 +159,9 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, method =
     
     #
     y <- model.response(model.frame(formula, data))
+    y <- as.matrix(y, nrow = nrow(data))
+    
+    #
     if (is.null(type)) {
         if (class(y[, 1]) == "numeric") {
             type <- "regression"
@@ -171,8 +174,6 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, method =
             type <- "classification"
         }
     }
-    
-    y <- as.matrix(y, nrow = nrow(data))
     
     # Change output based on 'type'
     if (tolower(type) %in% c("c", "class", "classification")) {

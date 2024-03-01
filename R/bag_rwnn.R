@@ -129,6 +129,9 @@ bag_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL
     
     #
     y <- model.response(model.frame(formula, data))
+    y <- as.matrix(y, nrow = nrow(data))
+    
+    #
     if (is.null(type)) {
         if (class(y[, 1]) == "numeric") {
             type <- "regression"
@@ -141,8 +144,6 @@ bag_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL
             type <- "classification"
         }
     }
-    
-    y <- as.matrix(y, nrow = nrow(data))
     
     # Change output based on 'type'
     if (tolower(type) %in% c("c", "class", "classification")) {
