@@ -4,10 +4,10 @@
 
 #### Reducing output-layer
 ##
-reduce_network_output <- function(object) {
-    if (any(abs(object$Weights$Output) < 1e-8)) {
+reduce_network_output <- function(object, tolerance = 1e-8) {
+    if (any(abs(object$Weights$Output) < tolerance)) {
         #
-        zero_index <- which(abs(object$Weights$Output) < 1e-8)
+        zero_index <- which(abs(object$Weights$Output) < tolerance)
         output_dim <- ncol(object$Weights$Output)
         
         # Including off-set in case a functional link is included
@@ -47,9 +47,13 @@ reduce_network_output <- function(object) {
     return(object)
 }
 
-reduce_network_output_recursive <- function(object) {
+reduce_network_output_recursive <- function(object, tolerance) {
     if (object$Combined$Hidden)  {
         stop("Setting 'method' to 'last' does not work when the output of each hidden-layer is used to predict the target. ")
+    }
+    
+    if (is.null(tolerance)) {
+        tolerance <- 1e-8
     }
     
     p <- length(object$Weights$Output)
@@ -58,7 +62,7 @@ reduce_network_output_recursive <- function(object) {
     converged <- FALSE
     size_output <- dim(object$Weights$Output)[1]
     while (!converged) {
-        object <- reduce_network_output(object)
+        object <- reduce_network_output(object, tolerance)
         converged <- size_output == dim(object$Weights$Output)[1]
         size_output <- dim(object$Weights$Output)[1]
     }
@@ -171,6 +175,16 @@ reduce_network_lamp <- function(object, p) {
 
 #### Reducing the number of neurons
 ##
+reduce_network_apoz < function(object, p, X) {
+    
+}
+
+##
+reduce_network_l2(object, p, X) {
+    
+}
+
+##
 reduce_network_correlation <- function(object, type, rho, X) {
     if (is.null(type)) {
         type <- "pearson"
@@ -226,6 +240,90 @@ reduce_network_correlation <- function(object, type, rho, X) {
     return(object)
 }
 
+##
+reduce_network_correlation_ft <- function(object, type, rho, alpha, X) { 
+    if (is.null(type)) {
+        type <- "pearson"
+    }
+    
+    if (is.null(rho) | !is.numeric(rho)) {
+        warning("'rho' is set to '0.99' as it was either 'NULL', or not 'numeric'.")
+        rho <- 0.99
+    } else if (rho < 0) {
+        warning("'rho' is set to '0', because it was found to be smaller than '0'.")
+        rho <- 0.0
+    } else if (rho > 1) {
+        warning("'rho' is set to '1', because it was found to be larger than '1'.")
+        rho <- 1.0
+    }
+    
+    if (is.null(alpha) | !is.numeric(alpha)) {
+        warning("'alpha' is set to '0.05' as it was either 'NULL', or not 'numeric'.")
+        alpha <- 0.05
+    } else if (alpha < 0) {
+        warning("'alpha' is set to '0', because it was found to be smaller than '0'.")
+        alpha <- 0.0
+    } else if (alpha > 1) {
+        warning("'alpha' is set to '1', because it was found to be larger than '1'.")
+        alpha <- 1.0
+    }
+    
+    p <- dim(object$Weights$Hidden[[1]])[1] - object$Bias$Hidden[1]
+    N <- dim(X)[1]
+    
+    W <- length(object$Weights$Hidden)
+    for (w in seq_len(W)) {
+        ##
+        H_w <- RWNN:::rwnn_forward(X, object$Weights$Hidden[seq_len(w)], object$activation[seq_len(w)], object$Bias$Hidden[seq_len(w)])
+        H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$N_hidden[i]))
+        H_w <- H_w[[w]]
+        
+        ##
+        C_w <- cor(H_w, method = type)
+        C_w <- upper.tri(C_w) * C_w
+        
+        Z_w <- 0.5 * (log(1 + C_w) - log(1 - C_w))
+        R_w <- 0.5 * (log(1 + rho) - log(1 - rho))
+        
+        ## -- 
+        T_w <- (Z_w - R_w) * sqrt(N - 3)
+        upper.tri(T_w) * (1.0 - pnorm(T_w, 0, 1))
+        
+        T_w <- (C_w - rho) / sqrt((1 - C_w^2) / (N - 2))
+        P_w <- upper.tri(T_w) * pt(T_w, df = N - 2)
+        
+        ## 
+        remove_cols_w <- c()
+        
+        ##
+        object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -remove_cols_w, drop = FALSE]
+        object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+        
+        ##
+        if (w < W) {    
+            remove_rows_w <- remove_cols_w + as.numeric(object$Bias$Hidden[w + 1])
+            object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-remove_rows_w, , drop = FALSE]
+        }
+        
+        if (object$Combined$Hidden | (w == W)) {
+            index_offset <- object$Bias$Output + p * object$Combined$Input
+            if (w > 1) {
+                previous_w <- sapply(object$Weights$Hidden[seq_len(w - 1)], function(x) dim(x)[2])
+                index_offset <- index_offset + sum(previous_w)
+            } 
+            
+            remove_rows_out_w <- remove_cols_w + index_offset
+            object$Weights$Output <- object$Weights$Output[-remove_rows_out_w, , drop = FALSE]
+        }
+    }
+        
+    return(object)
+}
+
+## 
+
+
+####
 #' @title Reduce the weights of a random weight neural network.
 #' 
 #' @description Methods for weight and neuron pruning in random weight neural networks.
@@ -286,7 +384,7 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
     }
     else if (method %in% c("last")) {
         ## Weight pruning method: Removing '0' weights from the output-layer.
-        object <- reduce_network_output_recursive(object)
+        object <- reduce_network_output_recursive(object, tolerance = dots$tolerance)
     } 
     else if (method %in% c("apoz")) {
         ## Neuron pruning method: Average percentage of "zeros".
@@ -299,6 +397,10 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
     else if (method %in% c("cor", "correlation")) {
         ## Neuron pruning method: Correlation between activated neurons.
         object <- reduce_network_correlation(object = object, type = dots$type, rho = dots$rho, X = X)
+    }
+    else if (method %in% c("ct", "cortest", "correlationtest")) {
+        ## Neuron pruning method: Correlation between activated neurons.
+        object <- reduce_network_correlation_ft(object = object, type = dots$type, rho = dots$rho, alpha = dots$alpha, X = X)
     }
     else if (is.function(method)) {
         object_list <- list(object = object, X = X, y = y) |> append(dots)
