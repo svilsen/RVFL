@@ -6,20 +6,20 @@
 \alias{reduce_network.ERWNN}
 \title{Reduce the weights of a random weight neural network.}
 \usage{
-reduce_network(object, method = NULL, p = 0.1, ...)
+reduce_network(object, method, retrain = TRUE, ...)
 
-\method{reduce_network}{RWNN}(object, method = NULL, p = 0.1, ...)
+\method{reduce_network}{RWNN}(object, method, retrain = TRUE, ...)
 
-\method{reduce_network}{ERWNN}(object, method = NULL, p = 0.1, ...)
+\method{reduce_network}{ERWNN}(object, method = NULL, retrain = TRUE, ...)
 }
 \arguments{
 \item{object}{An \link{RWNN} or \link{ERWNN}-object.}
 
-\item{method}{A string setting the method used to reduce the network (see details).}
+\item{method}{A string setting the method (see details), or a function, used to reduce the network.}
 
-\item{p}{The fraction indicating which proportion of weights should be removed during reduction.}
+\item{retrain}{TRUE/FALSE: Should the output weights be retrained after reduction?}
 
-\item{...}{Additional arguments passed to the reduction method.}
+\item{...}{Additional arguments passed to the reduction method (see details).}
 }
 \value{
 A reduced \link{RWNN} or \link{ERWNN}-object.

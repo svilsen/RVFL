@@ -9,6 +9,7 @@ An RWNN-object is a list containing the following:
     \item{\code{data}}{The original data used to estimate the weights.}
     \item{\code{N_hidden}}{The vector of neurons in each layer.}
     \item{\code{activation}}{The vector of the activation functions used in each layer.}
+    \item{\code{lnorm}}{The norm used when estimating the output weights.}
     \item{\code{lambda}}{The penalisation constant used when estimating the output weights.}
     \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
     \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}

@@ -53,9 +53,14 @@ Furthermore, the \pkg{RWNN} package also includes general implementations of the
 -   **Bagging** [@Breiman1996b], [@Breiman2001], [@Xin2021]: Bootstrap aggregation of RWNN's, deep RWNN's, or sparse RWNN's creates a number of bootstrap samples, sampled with replacement from the training-set. Furthermore, as in random forest, instead of using all features when training each RWNN, a subset of the features are chosen at random.
 -   **Boosting** [@Friedman2001]: The boosting implementation is based on residual boosting using RWNN's, deep RWNN's, or sparse RWNN's as the base learner. 
 
-As RWNN's will inevitably include a lot of randomly generated features, to improve their computational and memory efficiency, the \pkg{RWNN} package also includes methods for pruning the number of weights and neurons using magnitude, mutual information, and Fisher information.
+Lastly, in order to improve their computational and memory efficiency, the \pkg{RWNN} package includes the following methods for pruning the number of weights and neurons: 
 
-Lastly, the \pkg{RWNN} package also includes a simple method for grid based hyperparameter optimisation, where $k$-fold cross-validation is applied to the training-set to find the hyperparameters yielding the smallest cross-validation error on a user defined grid (similar to the \pkg{tune} function found in the package \pkg{e1071} [@e1071]).
+- **Global magnitude** (weight pruning): 
+- **Uniform magnitude** (weight pruning): 
+- **LAMP** (weight pruning): 
+- **APoZ pruning** (neuron pruning)
+- **L2 ** (neuron pruning): 
+- 
 
 The remainder of the paper is structured as follows: Section \ref{RWNN} introduces the general idea of RWNNs, this is followed by the method of estimating the output weights, and an outline of each of the implemented RWNN variants. The utility of the \pkg{RWNN} package is shown in Section \ref{EX} applying different RWNN variants to a series of examples. Lastly, a conclusion is found in Section \ref{CON}.
 

@@ -2,6 +2,37 @@
 ####################### Stacking ERWNN neural networks #######################
 #############################################################################
 
+create_folds <- function(X, folds) {
+    N <- nrow(X)
+    index <- sample(N, N, replace = FALSE)
+    fold_index <- rep(seq_len(folds), each = floor(N / folds))
+    
+    if (length(fold_index) < length(index)) {
+        fold_index <- c(fold_index, seq_len(folds)[seq_len(length(index) - length(fold_index))])
+    }
+    
+    return(unname(split(x = index, f = fold_index)))
+}
+
+estimate_weights_stack <- function(C, b, B) {
+    # Creating matricies for QP optimisation problem.
+    # NB: diagonal matrix is added to ensure the matrix is invertible due to potential numeric instability.
+    D <- t(C) %*% C + diag(1e-8, nrow = ncol(C), ncol = ncol(C))
+    d <- t(C) %*% b
+    A <- rbind(t(matrix(rep(1, B), ncol = 1)), diag(B), -diag(B))
+    b <- c(1, rep(0, B), rep(-1, B))
+    
+    # Solution to QP optimisation problem
+    w <- solve.QP(D, d, t(A), b, meq = 1)$solution
+    
+    # Ensure all weights are valid (some may not be due to machine precision)
+    w[w < 1e-16] <- 1e-16
+    w[w > (1 - 1e-16)] <- (1 - 1e-16)
+    w <- w / sum(w)
+    
+    return(w)
+}
+
 #' @title Stacking random weight neural networks
 #' 
 #' @description Use stacking to create ensemble random weight neural networks.

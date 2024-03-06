@@ -251,14 +251,13 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
             H <- H[[length(H)]]
         }
         
-        ## Estimate parameters in output layer
-        if (control$bias_output) {
-            H <- cbind(1, H)
-        }
-        
         O <- H
         if (control$combine_input) {
             O <- cbind(X, H)
+        }
+        
+        if (control$bias_output) {
+            O <- cbind(1, O)
         }
         
         W_output <- estimate_output_weights(O, y, lnorm, lambda)
@@ -272,6 +271,7 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
         data = if(control$include_data) list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))) else NULL, 
         N_hidden = N_hidden, 
         activation = activation, 
+        lnorm = lnorm, 
         lambda = lambda,
         Bias = list(Hidden = bias_hidden, Output = control$bias_output),
         Weights = list(Hidden = W_hidden, Output = W_output$beta),
