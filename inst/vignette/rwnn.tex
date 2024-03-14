@@ -194,16 +194,31 @@ learners):
   as the base learner.
 \end{itemize}
 
-As RWNN's will inevitably include a lot of randomly generated features,
-to improve their computational and memory efficiency, the \pkg{RWNN}
-package also includes methods for pruning the number of weights and
-neurons using magnitude, mutual information, and Fisher information.
+Lastly, in order to improve computational time and memory efficiency,
+the \pkg{RWNN} package includes the following methods for pruning the
+number of weights and neurons:
 
-Lastly, the \pkg{RWNN} package also includes a simple method for grid
-based hyperparameter optimisation, where \(k\)-fold cross-validation is
-applied to the training-set to find the hyperparameters yielding the
-smallest cross-validation error on a user defined grid (similar to the
-\pkg{tune} function found in the package \pkg{e1071} \citep{e1071}).
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Global magnitude} (weight pruning) \citep{han2016},
+  \citep{morcos2019}: Pruning a pre-defined proportion of the weights
+  with lowest magnitude globally across the network.
+\item
+  \textbf{Uniform magnitude} (weight pruning) \citep{han2016},
+  \citep{morcos2019}: Pruning a pre-defined proportion of the weights
+  with lowest magnitude layer-by-layer.
+\item
+  \textbf{LAMP} (weight pruning) \citep{Lee2021}:
+\item
+  \textbf{APoZ pruning} (neuron pruning) \citep{hu2016}: Pruning a
+  pre-defined proportion of neurons in layers, activated by the ReLU
+  activation function, based on the average proportion of zeros (APoZ).
+\item
+  \textbf{L2 pruning} (neuron pruning):
+\item
+  \textbf{Relief} (weight and neuron pruning) \citep{Dekhovich2024}:
+\end{itemize}
 
 The remainder of the paper is structured as follows: Section \ref{RWNN}
 introduces the general idea of RWNNs, this is followed by the method of

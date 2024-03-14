@@ -8,16 +8,17 @@ Maintainer: Søren B. Vilsen <svilsen@math.aau.dk>
 Description: Creation, estimation, and prediction of random weight neural networks (RWNN), including popular variants like extreme learning machines (ELM), sparse RWNN (spRWNN), and deep RWNN (dRWNN). It further allows for the creation of ensemble RWNNs like bagging RWNN (bagRWNN), boosting RWNN (boostRWNN), stacking RWNN (stackRWNN), and ensemble deep RWNN (edRWNN).
 License: MIT + file LICENSE
 Imports: 
-    Rcpp (>= 1.0.4.6), 
-    stats, 
-    methods,
     graphics, 
     grDevices,
+    methods,
     quadprog,
+    randtoolbox,
+    Rcpp (>= 1.0.4.6), 
+    stats, 
     utils
 LinkingTo: Rcpp, RcppArmadillo
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests: 
     knitr,
     rmarkdown, 

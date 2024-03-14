@@ -21,6 +21,7 @@ ae_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, method 
     UseMethod("ae_rwnn")
 }
 
+#' @export
 ae_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden

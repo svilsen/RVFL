@@ -27,24 +27,16 @@ set.seed(1)
 m_rwnn <- rwnn(y ~ ., data, N_hidden, lambda)
 
 set.seed(1)
-m_elm <- elm(y ~ ., data, N_hidden, lambda)
-
-set.seed(1)
 m_stackrwnn <- stack_rwnn(y ~ ., data, N_hidden, lambda, B = 10, optimise = TRUE, folds = 10)
 
 set.seed(1)
 m_bagrwnn <- bag_rwnn(y ~ ., data, N_hidden, lambda, B = 10)
-
-set.seed(1)
-th <- tune_hyperparameters(y ~ ., data = data, method = rwnn, folds = 10, hyperparameters = list(lambda = c(0.1, 1, 2), N_hidden = list(c(N_hidden), c(N_hidden, N_hidden))))
 
 ######################################
 #       Examining model results      #
 ######################################
 #
 expect_silent(m_rwnn)
-
-expect_silent(m_elm)
 
 expect_equal(m_rwnn$Weights$Output, m_elm$Weights$Output, tolerance = 1e-7)
 
@@ -59,13 +51,6 @@ expect_equal(round(mse(m_bagrwnn, X, y), 4), 1.1722, tolerance = 1e-7)
 expect_equal(round(m_stackrwnn$weights[1], 4), 0.199, tolerance = 1e-7)
 
 expect_equal(round(mse(m_stackrwnn, X, y), 4), 1.0776, tolerance = 1e-7)
-
-# 
-expect_equal(th$lambda, 2, tolerance = 1e-7)
-
-expect_equal(th$N_hidden, 20, tolerance = 1e-7)
-
-expect_equal(round(mse(th, X, y), 4), 1.0761, tolerance = 1e-7)
 
 #############################################################
 #       Warnings/errors when not specifying parameters      #

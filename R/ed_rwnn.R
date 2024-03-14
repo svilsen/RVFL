@@ -21,6 +21,7 @@ ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, method = NULL, t
     UseMethod("ed_rwnn")
 }
 
+#' @export
 ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     ## Checks
     #

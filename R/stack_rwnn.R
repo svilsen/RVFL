@@ -55,6 +55,7 @@ stack_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 
     UseMethod("stack_rwnn")
 }
 
+#' @export
 stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
     ## Checks
     
@@ -126,10 +127,10 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
             
             for (k in seq_len(folds)) {
                 Ok <- matrix(O[-fold_index[[k]], ], ncol = ncol(O))
-                Om <- matrix(O[fold_index[[k]], ], ncol = ncol(O))
                 yk <- matrix(y[-fold_index[[k]], ], ncol = ncol(y))
                 beta_b <- estimate_output_weights(Ok, yk, control$lnorm, lambda)$beta
                 
+                Om <- matrix(O[fold_index[[k]], ], ncol = ncol(O))
                 C[fold_index[[k]], b] <- Om %*% beta_b
             }
         }

@@ -160,6 +160,7 @@ rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = 0, type = NULL, 
     UseMethod("rwnn")
 }
 
+#' @export
 rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control = list()) {
     ## Creating control object 
     control$N_hidden <- N_hidden

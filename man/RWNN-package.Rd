@@ -2,6 +2,7 @@
 % Please edit documentation in R/RWNN-package.R
 \docType{package}
 \name{RWNN-package}
+\alias{RWNN}
 \alias{RWNN-package}
 \title{RWNN: Random Weight Neural Networks}
 \description{
@@ -10,3 +11,4 @@ Creation, estimation, and prediction of random weight neural networks (RWNN), in
 \author{
 Søren B. Vilsen <svilsen@math.aau.dk>
 }
+\keyword{internal}

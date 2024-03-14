@@ -59,7 +59,25 @@ double max_window(const arma::mat & x, const int & w, const int & i) {
     return max;
 }
 
+////
+//[[Rcpp::export]]
+arma::mat importance_score(const arma::mat &X, const arma::mat &W) {
+    const int & N = W.n_rows;
+    const int & M = W.n_cols;
+    
+    arma::mat Z = W;
+    for (int n = 0; n < N; n++) {
+        arma::colvec X_n = X.col(n);
+        for (int m = 0; m < M; m++) {
+            double W_nm = W(n, m);
+            Z(n, m) = arma::accu(arma::abs(W_nm * X_n));
+        }
+    }
+    
+    return Z;
+}
 
+////
 //[[Rcpp::export]]
 std::vector<std::string> classify_cpp(const arma::mat &y, const std::vector<std::string> &C, const double &t, const double &b) {
     const int & N = y.n_rows;
