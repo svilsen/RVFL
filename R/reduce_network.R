@@ -10,28 +10,25 @@ reduce_network_output <- function(object, p, tolerance) {
         tolerance <- 1e-8
     }
     
-    #
-    p <- ncol(X)
-    
-    if (any(abs(object$Weights$Output) < tolerance)) {
+    if (any(abs(object$weights$beta) < tolerance)) {
         # Identifying zeroes
-        zero_index <- which(abs(object$Weights$Output) < tolerance)
+        zero_index <- which(abs(object$weights$beta) < tolerance)
         
         # Removing output bias
-        if (object$Bias$Output) {
+        if (object$bias$beta) {
             if (zero_index[1] == 1) {
-                object$Bias$Output <- FALSE
-                object$Weights$Output <- object$Weights$Output[-1, , drop = FALSE]
+                object$bias$beta <- FALSE
+                object$weights$beta <- object$weights$beta[-1, , drop = FALSE]
                 zero_index <- zero_index[-1] - 1    
             }
         }
         
         # Silencing input features 
-        k <- as.numeric(object$Bias$Output)
-        if (object$Combined$Input) {
+        k <- as.numeric(object$bias$beta)
+        if (object$combined$X) {
             k <- k + p
             if (any(zero_index <= k)) {
-                object$Weights$Hidden[[1]][zero_index[zero_index <= k] - as.numeric(object$Bias$Output) + as.numeric(object$Bias$Hidden[1]), ] <- 0
+                object$weights$W[[1]][zero_index[zero_index <= k] - as.numeric(object$bias$beta) + as.numeric(object$bias$W[1]), ] <- 0
             }
             
             zero_index <- zero_index[!(zero_index <= k)]
@@ -40,38 +37,21 @@ reduce_network_output <- function(object, p, tolerance) {
         
         # Removing weights from hidden layers
         removal_index <- zero_index
-        W <- length(object$Weights$Hidden)
+        W <- length(object$weights$W)
         for (w in seq_len(W)) {
-            k <- k + object$N_hidden[w]
-            removal_index_w <- zero_index[zero_index <= k] - (k - object$N_hidden[w])
-            object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -removal_index_w, drop = FALSE]
+            k <- k + object$n_hidden[w]
+            removal_index_w <- zero_index[zero_index <= k] - (k - object$n_hidden[w])
+            object$weights$W[[w]] <- object$weights$W[[w]][, -removal_index_w, drop = FALSE]
             
             if (w < W) {
-                object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-(removal_index_w + object$Bias$Hidden[w]), , drop = FALSE]
+                object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-(removal_index_w + object$bias$W[w]), , drop = FALSE]
             }
             
-            object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+            object$n_hidden[w] <- ncol(object$weights$W[[w]])
             zero_index <- zero_index[!(zero_index <= k)]
         }
         
-        object$Weights$Output <- object$Weights$Output[-removal_index, , drop = FALSE]
-    }
-    
-    return(object)
-}
-
-reduce_network_output_recursive <- function(object, X, tolerance) {
-    # if (object$Combined$Hidden & (length(object$N_hidden) > 1))  {
-    #     stop("Setting 'method' to 'output' does not work when the output of each hidden-layer is used to predict the target. ")
-    # }
-    
-    #
-    converged <- FALSE
-    size_output <- dim(object$Weights$Output)[1]
-    while (!converged) {
-        object <- reduce_network_output(object, p, tolerance)
-        converged <- size_output == dim(object$Weights$Output)[1]
-        size_output <- dim(object$Weights$Output)[1]
+        object$weights$beta <- object$weights$beta[-removal_index, , drop = FALSE]
     }
     
     return(object)
@@ -93,12 +73,12 @@ reduce_network_global <- function(object, p) {
         p <- 0.99
     }
     
-    weights <- quantile(abs(unlist(object$Weights)), probs = p)
-    for(i in seq_along(object$Weights$Hidden)) {
-        object$Weights$Hidden[[i]][abs(object$Weights$Hidden[[i]]) <= weights] <- 0
+    weights <- quantile(abs(unlist(object$weights)), probs = p)
+    for(i in seq_along(object$weights$W)) {
+        object$weights$W[[i]][abs(object$weights$W[[i]]) <= weights] <- 0
     }
     
-    object$Weights$Output[abs(object$Weights$Output) <= weights] <- 0
+    object$weights$beta[abs(object$weights$beta) <= weights] <- 0
     
     return(object)
 }
@@ -120,13 +100,13 @@ reduce_network_uniform <- function(object, p) {
     }
     
     #  
-    for(i in seq_along(object$Weights$Hidden)) {
-        weights_i <- quantile(abs(unlist(object$Weights$Hidden[[i]])), probs = p)
-        object$Weights$Hidden[[i]][abs(object$Weights$Hidden[[i]]) <= weights_i] <- 0
+    for(i in seq_along(object$weights$W)) {
+        weights_i <- quantile(abs(unlist(object$weights$W[[i]])), probs = p)
+        object$weights$W[[i]][abs(object$weights$W[[i]]) <= weights_i] <- 0
     }
     
-    weights_o <- quantile(abs(unlist(object$Weights$Output)), probs = p)
-    object$Weights$Output[abs(object$Weights$Output) <= weights_o] <- 0
+    weights_o <- quantile(abs(unlist(object$weights$beta)), probs = p)
+    object$weights$beta[abs(object$weights$beta) <= weights_o] <- 0
     
     #
     return(object)
@@ -149,9 +129,9 @@ reduce_network_lamp <- function(object, p) {
     }
     
     # 
-    lamp <- vector("list", length(object$Weights$Hidden) + 1)
+    lamp <- vector("list", length(object$weights$W) + 1)
     for(i in seq_along(lamp)[-length(lamp)]) {
-        w_i <- object$Weights$Hidden[[i]]
+        w_i <- object$weights$W[[i]]
         w_i_sq <- w_i^2
         o_i <- order(w_i_sq)
         w_i_sq <- w_i_sq[o_i] / rev(cumsum(rev(w_i_sq[o_i])))
@@ -159,7 +139,7 @@ reduce_network_lamp <- function(object, p) {
         lamp[[i]] <- w_i
     }
     
-    w_o <- object$Weights$Output
+    w_o <- object$weights$beta
     w_o_sq <- w_o^2
     o_o <- order(w_o_sq)
     w_o_sq <- w_o_sq[o_o] / rev(cumsum(rev(w_o_sq[o_o])))
@@ -168,11 +148,11 @@ reduce_network_lamp <- function(object, p) {
     
     # 
     weights <- quantile(abs(unlist(lamp)), probs = p)
-    for(i in seq_along(object$Weights$Hidden)) {
-        object$Weights$Hidden[[i]][abs(lamp[[i]]) <= weights] <- 0
+    for(i in seq_along(object$weights$W)) {
+        object$weights$W[[i]][abs(lamp[[i]]) <= weights] <- 0
     }
     
-    object$Weights$Output[abs(lamp[[length(lamp)]]) <= weights] <- 0
+    object$weights$beta[abs(lamp[[length(lamp)]]) <= weights] <- 0
     
     #
     return(object)
@@ -218,8 +198,8 @@ reduce_network_apoz <- function(object, p, tolerance, X, type) {
     }
     
     #
-    H <- rwnn_forward(X, object$Weights$Hidden, object$activation, object$Bias$Hidden)
-    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$N_hidden[i]))
+    H <- rwnn_forward(X, object$weights$W, object$activation, object$bias$W)
+    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$n_hidden[i]))
     
     Z <- lapply(seq_along(H), function(i) (H[[i]] - mean(H[[i]])) / sd(H[[i]]))
     APOZ <- lapply(seq_along(Z), function(i) apply(abs(Z[[i]]) < tolerance, 2, mean))
@@ -237,28 +217,28 @@ reduce_network_apoz <- function(object, p, tolerance, X, type) {
     }
     
     #
-    W <- length(object$Weights$Hidden)
+    W <- length(object$weights$W)
     for (w in seq_len(W)) {
         ##
         remove_cols_w <- remove_cols[[w]]
-        object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -remove_cols_w, drop = FALSE]
-        object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+        object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+        object$n_hidden[w] <- ncol(object$weights$W[[w]])
         
         ##
         if (w < W) {    
-            remove_rows_w <- remove_cols_w + as.numeric(object$Bias$Hidden[w + 1])
-            object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-remove_rows_w, , drop = FALSE]
+            remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+            object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
         }
         
-        if (object$Combined$Hidden | (w == W)) {
-            index_offset <- object$Bias$Output + p * object$Combined$Input
+        if (object$combined$W | (w == W)) {
+            index_offset <- object$bias$beta + p * object$combined$X
             if (w > 1) {
-                previous_w <- sapply(object$Weights$Hidden[seq_len(w - 1)], function(x) dim(x)[2])
+                previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
                 index_offset <- index_offset + sum(previous_w)
             } 
             
             remove_rows_out_w <- remove_cols_w + index_offset
-            object$Weights$Output <- object$Weights$Output[-remove_rows_out_w, , drop = FALSE]
+            object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
         }
     }
     
@@ -295,8 +275,8 @@ reduce_network_l2  <- function(object, p, X, type) {
     }
     
     #
-    H <- rwnn_forward(X, object$Weights$Hidden, object$activation, object$Bias$Hidden)
-    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$N_hidden[i]))
+    H <- rwnn_forward(X, object$weights$W, object$activation, object$bias$W)
+    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$n_hidden[i]))
     
     Z <- lapply(seq_along(H), function(i) (H[[i]] - mean(H[[i]])) / sd(H[[i]]))
     L <- lapply(seq_along(Z), function(i) apply(Z[[i]], 2, function(x) sqrt(sum(x^2))))
@@ -315,28 +295,28 @@ reduce_network_l2  <- function(object, p, X, type) {
     
     
     #
-    W <- length(object$Weights$Hidden)
+    W <- length(object$weights$W)
     for (w in seq_len(W)) {
         ##
         remove_cols_w <- remove_cols[[w]]
-        object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -remove_cols_w, drop = FALSE]
-        object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+        object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+        object$n_hidden[w] <- ncol(object$weights$W[[w]])
         
         ##
         if (w < W) {    
-            remove_rows_w <- remove_cols_w + as.numeric(object$Bias$Hidden[w + 1])
-            object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-remove_rows_w, , drop = FALSE]
+            remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+            object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
         }
         
-        if (object$Combined$Hidden | (w == W)) {
-            index_offset <- object$Bias$Output + p * object$Combined$Input
+        if (object$combined$W | (w == W)) {
+            index_offset <- object$bias$beta + p * object$combined$X
             if (w > 1) {
-                previous_w <- sapply(object$Weights$Hidden[seq_len(w - 1)], function(x) dim(x)[2])
+                previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
                 index_offset <- index_offset + sum(previous_w)
             } 
             
             remove_rows_out_w <- remove_cols_w + index_offset
-            object$Weights$Output <- object$Weights$Output[-remove_rows_out_w, , drop = FALSE]
+            object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
         }
     }
     
@@ -363,12 +343,12 @@ reduce_network_correlation <- function(object, type, rho, X) {
         rho <- 1.0
     }
     
-    p <- dim(object$Weights$Hidden[[1]])[1] - object$Bias$Hidden[1]
-    W <- length(object$Weights$Hidden)
+    p <- dim(object$weights$W[[1]])[1] - object$bias$W[1]
+    W <- length(object$weights$W)
     for (w in seq_len(W)) {
         ##
-        H_w <- rwnn_forward(X, object$Weights$Hidden[seq_len(w)], object$activation[seq_len(w)], object$Bias$Hidden[seq_len(w)])
-        H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$N_hidden[i]))
+        H_w <- rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
+        H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$n_hidden[i]))
         H_w <- H_w[[w]]
         
         ##
@@ -378,24 +358,24 @@ reduce_network_correlation <- function(object, type, rho, X) {
         remove_cols_w <- which(apply(C_w >= rho, 2, any))
         
         ##
-        object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -remove_cols_w, drop = FALSE]
-        object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+        object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+        object$n_hidden[w] <- ncol(object$weights$W[[w]])
         
         ##
         if (w < W) {    
-            remove_rows_w <- remove_cols_w + as.numeric(object$Bias$Hidden[w + 1])
-            object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-remove_rows_w, , drop = FALSE]
+            remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+            object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
         }
         
-        if (object$Combined$Hidden | (w == W)) {
-            index_offset <- object$Bias$Output + p * object$Combined$Input
+        if (object$combined$W | (w == W)) {
+            index_offset <- object$bias$beta + p * object$combined$X
             if (w > 1) {
-                previous_w <- sapply(object$Weights$Hidden[seq_len(w - 1)], function(x) dim(x)[2])
+                previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
                 index_offset <- index_offset + sum(previous_w)
             } 
             
             remove_rows_out_w <- remove_cols_w + index_offset
-            object$Weights$Output <- object$Weights$Output[-remove_rows_out_w, , drop = FALSE]
+            object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
         }
     }
     
@@ -433,14 +413,14 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
         alpha <- 1.0
     }
     
-    p <- dim(object$Weights$Hidden[[1]])[1] - object$Bias$Hidden[1]
+    p <- dim(object$weights$W[[1]])[1] - object$bias$W[1]
     N <- dim(X)[1]
     
-    W <- length(object$Weights$Hidden)
+    W <- length(object$weights$W)
     for (w in seq_len(W)) {
         ##
-        H_w <- rwnn_forward(X, object$Weights$Hidden[seq_len(w)], object$activation[seq_len(w)], object$Bias$Hidden[seq_len(w)])
-        H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$N_hidden[i]))
+        H_w <- rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
+        H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$n_hidden[i]))
         H_w <- H_w[[w]]
         
         ##
@@ -458,24 +438,24 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
         remove_cols_w <- which(apply(P_w < alpha, 2, all))
         
         ##
-        object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -remove_cols_w, drop = FALSE]
-        object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+        object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+        object$n_hidden[w] <- ncol(object$weights$W[[w]])
         
         ##
         if (w < W) {    
-            remove_rows_w <- remove_cols_w + as.numeric(object$Bias$Hidden[w + 1])
-            object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-remove_rows_w, , drop = FALSE]
+            remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+            object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
         }
         
-        if (object$Combined$Hidden | (w == W)) {
-            index_offset <- object$Bias$Output + p * object$Combined$Input
+        if (object$combined$W | (w == W)) {
+            index_offset <- object$bias$beta + p * object$combined$X
             if (w > 1) {
-                previous_w <- sapply(object$Weights$Hidden[seq_len(w - 1)], function(x) dim(x)[2])
+                previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
                 index_offset <- index_offset + sum(previous_w)
             } 
             
             remove_rows_out_w <- remove_cols_w + index_offset
-            object$Weights$Output <- object$Weights$Output[-remove_rows_out_w, , drop = FALSE]
+            object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
         }
     }
     
@@ -512,13 +492,13 @@ reduce_network_relief <- function(object, p, X, type) {
     k <- ncol(X)
     
     #
-    H <- rwnn_forward(X, object$Weights$Hidden, object$activation, object$Bias$Hidden)
-    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$N_hidden[i]))
+    H <- rwnn_forward(X, object$weights$W, object$activation, object$bias$W)
+    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$n_hidden[i]))
     
     #
     C <- append(list(X), H)
-    W <- append(object$Weights$Hidden, list(object$Weights$Output))
-    B <- c(object$Bias$Hidden, object$Bias$Output)
+    W <- append(object$weights$W, list(object$weights$beta))
+    B <- c(object$bias$W, object$bias$beta)
     
     #
     for (w in seq_along(C)) {
@@ -526,14 +506,14 @@ reduce_network_relief <- function(object, p, X, type) {
         if (w < length(C)) {
             C_w <- C[[w]]
         } else {
-            if (object$Combined$Hidden){
+            if (object$combined$W){
                 C_w <- do.call("cbind", H)
             }
             else {
                 C_w <- H[[length(H)]]
             }
             
-            if (object$Combined$Input) {
+            if (object$combined$X) {
                 C_w <- cbind(X, C_w)
             }
         }
@@ -564,10 +544,10 @@ reduce_network_relief <- function(object, p, X, type) {
         if (type %in% c("w", "weight")) {
             R_w <- quantile(S_w, probs = p)
             if (w < length(C)) {
-                object$Weights$Hidden[[w]][S_w <= R_w] <- 0
+                object$weights$W[[w]][S_w <= R_w] <- 0
             } 
             else {
-                object$Weights$Output[S_w <= R_w] <- 0
+                object$weights$beta[S_w <= R_w] <- 0
             }
         }
         else if (type %in% c("n", "neuron")) {
@@ -580,24 +560,24 @@ reduce_network_relief <- function(object, p, X, type) {
             R_w <- quantile(N_w, probs = p)
             
             remove_cols_w <- which(N_w < R_w)
-            object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][, -remove_cols_w, drop = FALSE]
-            object$N_hidden[w] <- ncol(object$Weights$Hidden[[w]])
+            object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+            object$n_hidden[w] <- ncol(object$weights$W[[w]])
             
             #
             if (w < (length(C) - 1)) {    
-                remove_rows_w <- remove_cols_w + as.numeric(object$Bias$Hidden[w + 1])
-                object$Weights$Hidden[[w + 1]] <- object$Weights$Hidden[[w + 1]][-remove_rows_w, , drop = FALSE]
+                remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+                object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
             }
             
-            if (object$Combined$Hidden | (w == (length(C) - 1))) {
-                index_offset <- object$Bias$Output + k * object$Combined$Input
+            if (object$combined$W | (w == (length(C) - 1))) {
+                index_offset <- object$bias$beta + k * object$combined$X
                 if (w > 1) {
-                    previous_w <- sapply(object$Weights$Hidden[seq_len(w - 1)], function(x) dim(x)[2])
+                    previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
                     index_offset <- index_offset + sum(previous_w)
                 } 
                 
                 remove_rows_out_w <- remove_cols_w + index_offset
-                object$Weights$Output <- object$Weights$Output[-remove_rows_out_w, , drop = FALSE]
+                object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
             }
         }
     }
@@ -605,8 +585,6 @@ reduce_network_relief <- function(object, p, X, type) {
     #
     return(object)
 }
-
-
 
 ####
 #' @title Reduce the weights of a random weight neural network.
@@ -644,9 +622,9 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
     }
     
     ##
-    if ((!is.null(dots$X)) & (!is.null(dots$y))) {
-        X <- dots$X
-        y <- dots$y
+    if ((!is.null(dots[["X"]])) & (!is.null(dots[["y"]]))) {
+        X <- dots[["X"]]
+        y <- dots[["y"]]
     } else if (!is.null(object$data$X)) {
         X <- object$data$X
         y <- object$data$y
@@ -657,15 +635,15 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
     ##
     if (method %in% c("mag", "magnitide", "glbl", "global")) {
         ## Weight pruning method: Reducing the number of hidden-weights based on magnitude (globally).
-        object <- reduce_network_global(object = object, p = dots$p)
+        object <- reduce_network_global(object = object, p = dots[["p"]])
     }
     else if (method %in% c("unif", "uniform")) {
         ## Weight pruning method: Reducing the number of hidden-weights based on magnitude (uniformly layer-by-layer).
-        object <- reduce_network_uniform(object = object, p = dots$p)
+        object <- reduce_network_uniform(object = object, p = dots[["p"]])
     }
     else if (method %in% c("lamp")) {
         ## Weight pruning method: Reducing the number of hidden-weights using the LAMP scores.
-        object <- reduce_network_lamp(object = object, p = dots$p)
+        object <- reduce_network_lamp(object = object, p = dots[["p"]])
     }
     else if (method %in% c("apoz")) {
         ## Neuron pruning method: Average percentage of "zeros".
@@ -673,27 +651,27 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
             warning("APOZ was designed for 'relu' activation functions, but no 'relu' activation was found.")
         }
         
-        object <- reduce_network_apoz(object = object, p = dots$p, tolerance = dots$tolerance, X = X, type = dots$type)
+        object <- reduce_network_apoz(object = object, p = dots[["p"]], tolerance = dots[["tolerance"]], X = X, type = dots[["type"]])
     }
     else if (method %in% c("l2")) {
         ## Neuron pruning method: L2-norm of hidden-weights.
-        object <- reduce_network_l2(object = object, p = dots$p, X = X, type = dots$type)
+        object <- reduce_network_l2(object = object, p = dots[["p"]], X = X, type = dots[["type"]])
     }
     else if (method %in% c("cor", "correlation")) {
         ## Neuron pruning method: Correlation between activated neurons.
-        object <- reduce_network_correlation(object = object, type = dots$type, rho = dots$rho, X = X)
+        object <- reduce_network_correlation(object = object, type = dots[["type"]], rho = dots[["rho"]], X = X)
     }
     else if (method %in% c("ct", "cortest", "correlationtest")) {
         ## Neuron pruning method: Correlation between activated neurons.
-        object <- reduce_network_correlation_ft(object = object, type = dots$type, rho = dots$rho, alpha = dots$alpha, X = X)
+        object <- reduce_network_correlation_ft(object = object, type = dots[["type"]], rho = dots[["rho"]], alpha = dots[["alpha"]], X = X)
     }
     else if (method %in% c("relief")) {
         ## Neuron and weight pruning method: Reduction based on relief scores.
-        object <- reduce_network_relief(object = object, p = dots$p, X = X, type = dots$type)
+        object <- reduce_network_relief(object = object, p = dots[["p"]], X = X, type = dots[["type"]])
     }
     else if (method %in% c("output")) {
         ## Removing '0' weights from the output-layer.
-        object <- reduce_network_output(object = object, p = ncol(X), tolerance = dots$tolerance)
+        object <- reduce_network_output(object = object, p = ncol(X), tolerance = dots[["tolerance"]])
     } 
     else if (is.function(method)) {
         object_list <- list(object = object, X = X, y = y) |> append(dots)
@@ -704,45 +682,45 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
     }
     
     ## 
-    for (w in seq_along(object$Weights$Hidden)) {
-        if (object$Bias$Hidden[w]) {
-            if (sum(abs(object$Weights$Hidden[[w]][1, ])) < 1e-8) {
-                object$Weights$Hidden[[w]] <- object$Weights$Hidden[[w]][-1, , drop = FALSE]
-                object$Bias$Hidden[w] <- FALSE
+    for (w in seq_along(object$weights$W)) {
+        if (object$bias$W[w]) {
+            if (sum(abs(object$weights$W[[w]][1, ])) < 1e-8) {
+                object$weights$W[[w]] <- object$weights$W[[w]][-1, , drop = FALSE]
+                object$bias$W[w] <- FALSE
             }
         }
     }
     
-    if (object$Bias$Output) { 
-        if (abs(object$Weights$Output[1]) < 1e-8) {
-            object$Weights$Output <- object$Weights$Output[-1, , drop = FALSE]
-            object$Bias$Output <- FALSE
+    if (object$bias$beta) { 
+        if (abs(object$weights$beta[1]) < 1e-8) {
+            object$weights$beta <- object$weights$beta[-1, , drop = FALSE]
+            object$bias$beta <- FALSE
         }
     }
     
     ## 
     if (retrain) {
-        H <- rwnn_forward(X, object$Weights$Hidden, object$activation, object$Bias$Hidden)
-        H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$N_hidden[i]))
+        H <- rwnn_forward(X, object$weights$W, object$activation, object$bias$W)
+        H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = object$n_hidden[i]))
         
-        if (object$Combined$Hidden){
+        if (object$combined$W){
             H <- do.call("cbind", H)
         } else {
             H <- H[[length(H)]]
         }
         
         O <- H
-        if (object$Combined$Input) {
+        if (object$combined$X) {
             O <- cbind(X, H)
         }
         
-        if (object$Bias$Output) {
+        if (object$bias$beta) {
             O <- cbind(1, O)
         }
         
         W <- estimate_output_weights(O, y, object$lnorm[length(object$lnorm)], object$lambda[length(object$lambda)])
-        object$Weights$Output <- W$beta
-        object$Sigma$Output <- W$sigma
+        object$weights$beta <- W$beta
+        object$sigma <- W$sigma
     }
     
     ##
@@ -756,9 +734,9 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
 reduce_network.ERWNN <- function(object, method, retrain = TRUE, ...) {
     dots <- list(...)
     
-    if ((!is.null(dots$X)) & (!is.null(dots$y))) {
-        X <- dots$X
-        y <- dots$y
+    if ((!is.null(dots[["X"]])) & (!is.null(dots[["y"]]))) {
+        X <- dots[["X"]]
+        y <- dots[["y"]]
     } else if (!is.null(object$data$X)) {
         X <- object$data$X
         y <- object$data$y
@@ -766,12 +744,12 @@ reduce_network.ERWNN <- function(object, method, retrain = TRUE, ...) {
         stop("Data has to be present in the model object, or supplied through '...' argument as 'X = ' and 'y = '.")
     }
     
-    B <- length(object$RWNNmodels)
+    B <- length(object$models)
     for (b in seq_len(B)) {
-        list_b <- list(object = object$RWNNmodels[[b]], method = method, retrain = retrain, X = X, y = y) |> append(dots)
+        list_b <- list(object = object$models[[b]], method = method, retrain = retrain, X = X, y = y) |> append(dots)
         object_b <- do.call(reduce_network, list_b)
         
-        object$RWNNmodels[[b]] <- object_b
+        object$models[[b]] <- object_b
     }
     
     return(object)

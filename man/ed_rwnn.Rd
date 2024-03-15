@@ -8,7 +8,7 @@
 ed_rwnn(
   formula,
   data = NULL,
-  N_hidden,
+  n_hidden,
   lambda = 0,
   method = NULL,
   type = NULL,
@@ -18,7 +18,7 @@ ed_rwnn(
 \method{ed_rwnn}{formula}(
   formula,
   data = NULL,
-  N_hidden,
+  n_hidden,
   lambda = 0,
   method = NULL,
   type = NULL,
@@ -30,7 +30,7 @@ ed_rwnn(
 
 \item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
-\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+\item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
 \item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
 

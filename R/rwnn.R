@@ -6,18 +6,18 @@
 #' 
 #' @description A function used to create a control-object for the \link{rwnn} function.
 #' 
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param N_features The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function. 
-#' @param lnorm A string indicating the regularisation used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).
+#' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param n_features The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function. 
+#' @param lnorm A string indicating the type of regularisation used when estimating the weights in the output layer, \code{"l1"} or \code{"l2"} (default).
 #' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
 #' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
 #' @param combine_input TRUE/FALSE: Should the input be included to predict the output?
 #' @param combine_hidden TRUE/FALSE: Should all hidden layers be combined to predict the output?
-#' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but can be useful, and more memory efficiency, in \link{ERWNN}-objects.
-#' @param include_estimate TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but can be useful, and more memory efficiency, in \link{ERWNN}-objects.
-#' @param rng A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"orthogonal"}). 
-#' @param rng_pars A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).   
+#' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.
+#' @param include_estimate TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.
+#' @param rng A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{runif}). 
+#' @param rng_pars A list of parameters passed to the \code{rng} function (defaults to \code{list(min = -1, max = 1)}).   
 #' 
 #' @details The possible activation functions supplied to '\code{activation}' are:
 #' \describe{
@@ -36,11 +36,11 @@
 #' 
 #' @return A list of control variables.
 #' @export
-control_rwnn <- function(N_hidden = NULL, N_features = NULL, lnorm = NULL,
+control_rwnn <- function(n_hidden = NULL, n_features = NULL, lnorm = NULL,
                          bias_hidden = TRUE, bias_output = TRUE, activation = NULL, 
                          combine_input = FALSE, combine_hidden = TRUE, 
                          include_data = TRUE, include_estimate = TRUE,
-                         rng = "orthogonal", rng_pars = list(min = -1, max = 1)) {
+                         rng = runif, rng_pars = list(min = -1, max = 1)) {
     #
     if (is.null(lnorm) | !is.character(lnorm)) {
         lnorm <- "l2"
@@ -54,13 +54,13 @@ control_rwnn <- function(N_hidden = NULL, N_features = NULL, lnorm = NULL,
     
     #
     if (length(bias_hidden) == 1) {
-        bias_hidden <- rep(bias_hidden, length(N_hidden))
+        bias_hidden <- rep(bias_hidden, length(n_hidden))
     } 
-    else if (length(bias_hidden) == length(N_hidden)) {
+    else if (length(bias_hidden) == length(n_hidden)) {
         bias_hidden <- bias_hidden
     } 
     else {
-        stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+        stop("The 'bias_hidden' vector specified in the control-object should have length 1, or be the same length as the vector 'n_hidden'.")
     }
     
     #
@@ -98,13 +98,13 @@ control_rwnn <- function(N_hidden = NULL, N_features = NULL, lnorm = NULL,
     }
     
     if (length(activation) == 1) {
-        activation <- rep(tolower(activation), length(N_hidden))
+        activation <- rep(tolower(activation), length(n_hidden))
     } 
-    else if (length(activation) == length(N_hidden)) {
+    else if (length(activation) == length(n_hidden)) {
         activation <- tolower(activation)
     } 
     else {
-        stop("The 'activation' vector specified in the control-object should have length 1, or be the same length as the vector 'N_hidden'.")
+        stop("The 'activation' vector specified in the control-object should have length 1, or be the same length as the vector 'n_hidden'.")
     }
     
     if (length(activation) < 1) {
@@ -131,7 +131,7 @@ control_rwnn <- function(N_hidden = NULL, N_features = NULL, lnorm = NULL,
     #
     return(
         list(
-            N_hidden = N_hidden, N_features = N_features, lnorm = lnorm, 
+            n_hidden = n_hidden, n_features = n_features, lnorm = lnorm, 
             bias_hidden = bias_hidden, bias_output = bias_output, activation = activation, 
             combine_input = combine_input, combine_hidden = combine_hidden, 
             include_data = include_data, include_estimate = include_estimate,
@@ -146,31 +146,31 @@ control_rwnn <- function(N_hidden = NULL, N_features = NULL, lnorm = NULL,
 #' 
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layer.
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
-#' @details The deep RWNN is handled by increasing the number of elements in the \code{N_hidden} vector.
+#' @details The deep RWNN is handled by increasing the number of elements in the \code{n_hidden} vector.
 #' 
 #' @return An \link{RWNN-object}.
 #' 
 #' @export
-rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = 0, type = NULL, control = list()) {
+rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
     UseMethod("rwnn")
 }
 
 #' @export
-rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control = list()) {
+rwnn.matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
     ## Creating control object 
-    control$N_hidden <- N_hidden
+    control$n_hidden <- n_hidden
     control <- do.call(control_rwnn, control)
     
     #
     lnorm <- control$lnorm
     bias_hidden <- control$bias_hidden
     activation <- control$activation
-    N_features <- control$N_features
+    n_features <- control$n_features
     rng_function <- control$rng
     rng_pars <- control$rng_pars
     
@@ -192,50 +192,50 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
     }
     
     # Feature restriction
-    if (is.null(N_features)) {
-        N_features <- ncol(X)
+    if (is.null(n_features)) {
+        n_features <- ncol(X)
     }
     
-    if (length(N_features) > 1) {
-        N_features <- N_features[1]
-        warning("The length of 'N_features' was larger than 1, only the first element will be used.")
+    if (length(n_features) > 1) {
+        n_features <- n_features[1]
+        warning("The length of 'n_features' was larger than 1, only the first element will be used.")
     }
     
-    if ((N_features < 1) || (N_features > dim(X)[2])) {
-        stop("'N_features' have to be between 1 and the total number of features.")
+    if ((n_features < 1) || (n_features > dim(X)[2])) {
+        stop("'n_features' have to be between 1 and the total number of features.")
     }
     
     ## Creating random weights
     X_dim <- dim(X)
-    W_hidden <- vector("list", length = length(N_hidden))
+    W_hidden <- vector("list", length = length(n_hidden))
     for (w in seq_along(W_hidden)) {
         if (w == 1) {
             nr_rows <- (X_dim[2] + as.numeric(bias_hidden[w]))
         }
         else {
-            nr_rows <- (N_hidden[w - 1] + as.numeric(bias_hidden[w]))
+            nr_rows <- (n_hidden[w - 1] + as.numeric(bias_hidden[w]))
         }
         
         if (is.character(rng_function)) {
             if (rng_function %in% c("o", "orto", "orthogonal")) {
-                random_weights <- (rng_pars$max - rng_pars$min) * random_orthonormal(w, nr_rows, X, W_hidden, N_hidden, activation, bias_hidden) + rng_pars$min
+                random_weights <- (rng_pars$max - rng_pars$min) * random_orthonormal(w, nr_rows, X, W_hidden, n_hidden, activation, bias_hidden) + rng_pars$min
             }
             else if (rng_function %in% c("h", "halt", "halton")) {
-                random_weights <- (rng_pars$max - rng_pars$min) * halton(nr_rows, N_hidden[w], init = w == 1) + rng_pars$min
+                random_weights <- (rng_pars$max - rng_pars$min) * halton(nr_rows, n_hidden[w], init = w == 1) + rng_pars$min
             }
             else if (rng_function %in% c("s", "sobo", "sobol")) {
-                random_weights <- (rng_pars$max - rng_pars$min) * sobol(nr_rows, N_hidden[w], init = w == 1) + rng_pars$min
+                random_weights <- (rng_pars$max - rng_pars$min) * sobol(nr_rows, n_hidden[w], init = w == 1) + rng_pars$min
             }
         }
         else {
-            rng_pars$n <- N_hidden[w] * nr_rows
-            random_weights <- matrix(do.call(rng_function, rng_pars), ncol = N_hidden[w]) 
+            rng_pars$n <- n_hidden[w] * nr_rows
+            random_weights <- matrix(do.call(rng_function, rng_pars), ncol = n_hidden[w]) 
         }
         
         W_hidden[[w]] <- random_weights
         
-        if ((w == 1) && (N_features < dim(X)[2])) {
-            indices_f <- sample(ncol(X), N_features, replace = FALSE) + as.numeric(bias_hidden[w])
+        if ((w == 1) && (n_features < dim(X)[2])) {
+            indices_f <- sample(ncol(X), n_features, replace = FALSE) + as.numeric(bias_hidden[w])
             W_hidden[[w]][-indices_f, ] <- 0
         }
     }
@@ -243,7 +243,7 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
     ## Values of last hidden layer
     if (control$include_estimate) {
         H <- rwnn_forward(X, W_hidden, activation, bias_hidden)
-        H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
+        H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = n_hidden[i]))
         
         if (control$combine_hidden){
             H <- do.call("cbind", H)
@@ -270,15 +270,15 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
     object <- list(
         formula = NULL,
         data = if(control$include_data) list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))) else NULL, 
-        N_hidden = N_hidden, 
+        n_hidden = n_hidden, 
         activation = activation, 
         lnorm = lnorm, 
         lambda = lambda,
-        Bias = list(Hidden = bias_hidden, Output = control$bias_output),
-        Weights = list(Hidden = W_hidden, Output = W_output$beta),
-        Sigma = list(Hidden = NA, Output = W_output$sigma),
-        Type = type,
-        Combined = list(Input = control$combine_input, Hidden = control$combine_hidden)
+        bias = list(W = bias_hidden, beta = control$bias_output),
+        weights = list(W = W_hidden, beta = W_output$beta),
+        sigma = W_output$sigma,
+        type = type,
+        combined = list(X = control$combine_input, W = control$combine_hidden)
     )
     
     class(object) <- "RWNN"
@@ -291,14 +291,14 @@ rwnn.matrix <- function(X, y, N_hidden = c(), lambda = 0, type = NULL, control =
 #' @example inst/examples/rwnn_example.R
 #' 
 #' @export
-rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = 0, type = NULL, control = list()) {
-    # Checks for 'N_hidden'
-    if (length(N_hidden) < 1) {
+rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
+    # Checks for 'n_hidden'
+    if (length(n_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
     }
     
-    if (!is.numeric(N_hidden)) {
-        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    if (!is.numeric(n_hidden)) {
+        stop("Not all elements of the 'n_hidden' vector were numeric.")
     }
     
     # Checks for 'data'
@@ -373,7 +373,7 @@ rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = 0, type 
     }
     
     #
-    mm <- rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+    mm <- rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

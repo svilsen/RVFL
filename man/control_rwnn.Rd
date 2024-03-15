@@ -5,8 +5,8 @@
 \title{rwnn control function}
 \usage{
 control_rwnn(
-  N_hidden = NULL,
-  N_features = NULL,
+  n_hidden = NULL,
+  n_features = NULL,
   lnorm = NULL,
   bias_hidden = TRUE,
   bias_output = TRUE,
@@ -15,16 +15,16 @@ control_rwnn(
   combine_hidden = TRUE,
   include_data = TRUE,
   include_estimate = TRUE,
-  rng = "orthogonal",
+  rng = runif,
   rng_pars = list(min = -1, max = 1)
 )
 }
 \arguments{
-\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+\item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{N_features}{The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function.}
+\item{n_features}{The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function.}
 
-\item{lnorm}{A string indicating the regularisation used when estimating the weights in the output layer (either \code{"l1"} or \code{"l2"}).}
+\item{lnorm}{A string indicating the type of regularisation used when estimating the weights in the output layer, \code{"l1"} or \code{"l2"} (default).}
 
 \item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
 
@@ -36,13 +36,13 @@ control_rwnn(
 
 \item{combine_hidden}{TRUE/FALSE: Should all hidden layers be combined to predict the output?}
 
-\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but can be useful, and more memory efficiency, in \link{ERWNN}-objects.}
+\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.}
 
-\item{include_estimate}{TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but can be useful, and more memory efficiency, in \link{ERWNN}-objects.}
+\item{include_estimate}{TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.}
 
-\item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{"orthogonal"}).}
+\item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{runif}).}
 
-\item{rng_pars}{A list of parameters passed to the \code{rng} function (defaults to \code{list(lower = -1, upper = 1)}).}
+\item{rng_pars}{A list of parameters passed to the \code{rng} function (defaults to \code{list(min = -1, max = 1)}).}
 }
 \value{
 A list of control variables.

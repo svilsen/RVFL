@@ -8,7 +8,7 @@
 #' 
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
 #' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.
 #' @param type A string indicating whether this is a regression or classification problem. 
@@ -17,15 +17,15 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-ed_rwnn <- function(formula, data = NULL, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
+ed_rwnn <- function(formula, data = NULL, n_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     UseMethod("ed_rwnn")
 }
 
 #' @export
-ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
+ed_rwnn.matrix <- function(X, y, n_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     ## Checks
     #
-    control$N_hidden <- N_hidden
+    control$n_hidden <- n_hidden
     
     #
     if (is.null(control[["include_data"]])) {
@@ -55,17 +55,17 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NUL
     
     ## 
     if (is.null(method)) {
-        deeprwnn <- rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+        deeprwnn <- rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
     }
     else {
-        deeprwnn <- ae_rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+        deeprwnn <- ae_rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
     }
     
     H <- rwnn_forward(X = X, W = deeprwnn$Weights$Hidden, activation = deeprwnn$activation, bias = deeprwnn$Bias$Hidden)
-    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$N_hidden[i]))
+    H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$n_hidden[i]))
     
-    objects <- vector("list", length(N_hidden))
-    for (i in seq_along(N_hidden)) {
+    objects <- vector("list", length(n_hidden))
+    for (i in seq_along(n_hidden)) {
         ## Set-up RWNN object
         rwnn_i <- deeprwnn
         rwnn_i$Weights$Hidden <- rwnn_i$Weights$Hidden[seq_len(i)]
@@ -93,8 +93,8 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NUL
     object <- list(
         formula = NULL,
         data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
-        RWNNmodels = objects, 
-        weights = rep(1L / length(N_hidden), length(N_hidden)), 
+        models = objects, 
+        weights = rep(1L / length(n_hidden), length(n_hidden)), 
         method = "ed"
     ) 
     
@@ -109,14 +109,14 @@ ed_rwnn.matrix <- function(X, y, N_hidden, lambda = 0, method = NULL, type = NUL
 #' @example inst/examples/edrwnn_example.R
 #' 
 #' @export
-ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
-    # Checks for 'N_hidden'
-    if (length(N_hidden) < 1) {
+ed_rwnn.formula <- function(formula, data = NULL, n_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
+    # Checks for 'n_hidden'
+    if (length(n_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
     }
     
-    if (!is.numeric(N_hidden)) {
-        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    if (!is.numeric(n_hidden)) {
+        stop("Not all elements of the 'n_hidden' vector were numeric.")
     }
     
     # Checks for 'data'
@@ -197,7 +197,7 @@ ed_rwnn.formula <- function(formula, data = NULL, N_hidden, lambda = 0, method =
     }
     
     #
-    mm <- ed_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+    mm <- ed_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

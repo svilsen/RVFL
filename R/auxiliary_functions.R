@@ -45,17 +45,17 @@ orthonormal <- function(M) {
     return(X)
 }
 
-random_orthonormal <- function(w, nr_rows, X, W_hidden, N_hidden, activation, bias_hidden) {
-    W <- matrix(runif(N_hidden[w] * nr_rows), nrow = N_hidden[w])
+random_orthonormal <- function(w, nr_rows, X, W_hidden, n_hidden, activation, bias_hidden) {
+    W <- matrix(runif(n_hidden[w] * nr_rows), nrow = n_hidden[w])
     W <- orthonormal(W)
     
-    if (nr_rows > N_hidden[w]) {
+    if (nr_rows > n_hidden[w]) {
         if (w == 1) {
             Z <- X
         }
         else {
             Z <- rwnn_forward(X, W_hidden[seq_len(w - 1)], activation, bias_hidden)
-            Z <- matrix(Z[[length(Z)]], ncol = N_hidden[w - 1])
+            Z <- matrix(Z[[length(Z)]], ncol = n_hidden[w - 1])
         }
         
         if (bias_hidden[w]) {
@@ -63,7 +63,7 @@ random_orthonormal <- function(w, nr_rows, X, W_hidden, N_hidden, activation, bi
         }
         
         pca <- princomp(Z)
-        L <- unname(t(pca$loadings[, seq_len(N_hidden[w]), drop = FALSE]))
+        L <- unname(t(pca$loadings[, seq_len(n_hidden[w]), drop = FALSE]))
         W <- W %*% L
     }
     

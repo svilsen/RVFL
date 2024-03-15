@@ -46,38 +46,38 @@ predict.RWNN <- function(object, ...) {
             }
         }
         
-        if (dim(newdata)[2] != (dim(object$Weights$Hidden[[1]])[1] - as.numeric(object$Bias$Hidden[1]))) {
+        if (dim(newdata)[2] != (dim(object$weights$W[[1]])[1] - as.numeric(object$bias$W[1]))) {
             stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
     }
     
     newH <- rwnn_forward(
         X = newdata, 
-        W = object$Weights$Hidden, 
+        W = object$weights$W, 
         activation = object$activation,
-        bias = object$Bias$Hidden
+        bias = object$bias$W
     )
     
-    newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$N_hidden[i]))
-    if (object$Combined$Hidden) { 
+    newH <- lapply(seq_along(newH), function(i) matrix(newH[[i]], ncol = object$n_hidden[i]))
+    if (object$combined$W) { 
         newH <- do.call("cbind", newH)
     } else {
         newH <- newH[[length(newH)]]
     }
     
     ## Estimate parameters in output layer
-    if (object$Bias$Output) {
+    if (object$bias$beta) {
         newH <- cbind(1, newH)
     }
     
     newO <- newH
-    if (object$Combined$Input) {
+    if (object$combined$X) {
         newO <- cbind(newH, newdata)
     }
     
-    newy <- newO %*% object$Weights$Output
+    newy <- newO %*% object$weights$beta
     
-    if (object$Type %in% c("c", "class", "classification")) {
+    if (object$type %in% c("c", "class", "classification")) {
         if (dots[["class"]] %in% c("c", "class", "classify")) {
             newp <- list(y = newy, C = object$data$C, t = dots[["t"]], b = dots[["b"]])
             newy <- do.call(classify, newp)
@@ -117,7 +117,7 @@ plot.RWNN <- function(x, ...) {
         y_hat <- predict(x, newdata = newdata, classify = dots$classify)
     }
     
-    if (object$Type %in% c("c", "class", "classification")) {
+    if (object$type %in% c("c", "class", "classification")) {
         warning("The following figures are meant as diagnostic plots for models of the type 'regression', not the type 'classification'.")
     }
     

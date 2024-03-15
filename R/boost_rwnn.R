@@ -8,7 +8,7 @@
 #' 
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
 #' @param B The number of levels used in the boosting tree.
 #' @param epsilon The learning rate.
@@ -19,12 +19,12 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-boost_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
+boost_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
     UseMethod("boost_rwnn")
 }
 
 #' @export
-boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
+boost_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
     ## Checks
     if (is.null(control[["include_data"]])) {
         control$include_data <- FALSE
@@ -63,10 +63,10 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
         }
         
         if (is.null(method)) {
-            objects[[b]] <- rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+            objects[[b]] <- rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            objects[[b]] <- ae_rwnn.matrix(X = X, y = y_b, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+            objects[[b]] <- ae_rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
     }
@@ -75,7 +75,7 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
     object <- list(
         formula = NULL,
         data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
-        RWNNmodels = objects, 
+        models = objects, 
         weights = rep(epsilon, B), 
         method = "boosting"
     )  
@@ -90,14 +90,14 @@ boost_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 10, epsil
 #' @example inst/examples/boostrwnn_example.R
 #' 
 #' @export
-boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 10, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
-    # Checks for 'N_hidden'
-    if (length(N_hidden) < 1) {
+boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 10, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
+    # Checks for 'n_hidden'
+    if (length(n_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
     }
     
-    if (!is.numeric(N_hidden)) {
-        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    if (!is.numeric(n_hidden)) {
+        stop("Not all elements of the 'n_hidden' vector were numeric.")
     }
     
     # Checks for 'data'
@@ -180,7 +180,7 @@ boost_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NU
     }
     
     #
-    mm <- boost_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, epsilon = epsilon, method = method, type = type, control = control)
+    mm <- boost_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, epsilon = epsilon, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

@@ -39,7 +39,7 @@ estimate_weights_stack <- function(C, b, B) {
 #' 
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN
 #' @param B The number of models in the stack.
 #' @param optimise TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)? 
@@ -51,12 +51,12 @@ estimate_weights_stack <- function(C, b, B) {
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-stack_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
+stack_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
     UseMethod("stack_rwnn")
 }
 
 #' @export
-stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
+stack_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
     ## Checks
     
     if (is.null(control[["include_data"]])) {
@@ -84,11 +84,11 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
         warning("Note: 'B' was not supplied, 'B' was set to 100.")
     }
     
-    if (is.null(control$N_features)) {
-        control$N_features <- ceiling(dim(X)[2] / 3)
+    if (is.null(control$n_features)) {
+        control$n_features <- ceiling(dim(X)[2] / 3)
     }
     
-    control$N_hidden <- N_hidden
+    control$n_hidden <- n_hidden
     control <- do.call(control_rwnn, control)
     
     ##
@@ -100,15 +100,15 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
     objects <- vector("list", B)
     for (b in seq_len(B)) {
         if (!is.null(method)) {
-            object_b <- rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+            object_b <- rwnn.matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            object_b <- ae_rwnn.matrix(X = X, y = y, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+            object_b <- ae_rwnn.matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
         if (optimise) {
             H <- rwnn_forward(X, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
-            H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = N_hidden[i]))
+            H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = n_hidden[i]))
             
             if (object_b$Combined$Hidden) {
                 H <- do.call("cbind", H)
@@ -149,7 +149,7 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
     object <- list(
         formula = NULL,
         data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
-        RWNNmodels = objects, 
+        models = objects, 
         weights = w, 
         method = "stacking"
     )  
@@ -164,14 +164,14 @@ stack_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, opti
 #' @example inst/examples/stackrwnn_example.R
 #' 
 #' @export
-stack_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
-    # Checks for 'N_hidden'
-    if (length(N_hidden) < 1) {
+stack_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
+    # Checks for 'n_hidden'
+    if (length(n_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
     }
     
-    if (!is.numeric(N_hidden)) {
-        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    if (!is.numeric(n_hidden)) {
+        stop("Not all elements of the 'n_hidden' vector were numeric.")
     }
     
     # Checks for 'data'
@@ -254,7 +254,7 @@ stack_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NU
     }
     
     #
-    mm <- stack_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, method = method, type = type, control = control)
+    mm <- stack_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

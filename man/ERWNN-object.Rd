@@ -7,7 +7,7 @@
 An ERWNN-object is a list containing the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{RWNNmodels}}{A list with each element being an \link{RWNN-object}.}
+    \item{\code{models}}{A list with each element being an \link{RWNN-object}.}
     \item{\code{weights}}{A vector of ensemble weights.}
     \item{\code{method}}{A string indicating the method.}
 }

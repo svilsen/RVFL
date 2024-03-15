@@ -8,7 +8,7 @@
 #' 
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
-#' @param N_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
+#' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
 #' @param lambda The penalisation constant used when training the output layers of each RWNN.
 #' @param B The number of bootstrap samples.
 #' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.
@@ -18,12 +18,12 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-bag_rwnn <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
+bag_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
     UseMethod("bag_rwnn")
 }
 
 #' @export
-bag_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
+bag_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
     ## Checks
     if (is.null(control[["include_data"]])) {
         control$include_data <- FALSE
@@ -36,8 +36,8 @@ bag_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, method
         warning("Note: 'B' was not supplied, 'B' was set to 100.")
     }
     
-    if (is.null(control$N_features)) {
-        control$N_features <- ceiling(dim(X)[2] / 3)
+    if (is.null(control$n_features)) {
+        control$n_features <- ceiling(dim(X)[2] / 3)
     }
     
     ##
@@ -50,10 +50,10 @@ bag_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, method
         y_b <- y[indices_b, , drop = FALSE]  
         
         if (is.null(method)) {
-            rwnn_b <- rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, type = type, control = control)
+            rwnn_b <- rwnn.matrix(X = X_b, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            rwnn_b <- ae_rwnn.matrix(X = X_b, y = y_b, N_hidden = N_hidden, lambda = lambda, method = method, type = type, control = control)
+            rwnn_b <- ae_rwnn.matrix(X = X_b, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
         objects[[b]] <- rwnn_b
@@ -63,7 +63,7 @@ bag_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, method
     object <- list(
         formula = NULL,
         data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
-        RWNNmodels = objects, 
+        models = objects, 
         weights = rep(1L / B, B), 
         method = "bagging"
     )  
@@ -79,14 +79,14 @@ bag_rwnn.matrix <- function(X, y, N_hidden = c(), lambda = NULL, B = 100, method
 #' @example inst/examples/bagrwnn_example.R
 #' 
 #' @export
-bag_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
-    # Checks for 'N_hidden'
-    if (length(N_hidden) < 1) {
+bag_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
+    # Checks for 'n_hidden'
+    if (length(n_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
     }
     
-    if (!is.numeric(N_hidden)) {
-        stop("Not all elements of the 'N_hidden' vector were numeric.")
+    if (!is.numeric(n_hidden)) {
+        stop("Not all elements of the 'n_hidden' vector were numeric.")
     }
     
     # Checks for 'data'
@@ -169,7 +169,7 @@ bag_rwnn.formula <- function(formula, data = NULL, N_hidden = c(), lambda = NULL
     }
     
     #
-    mm <- bag_rwnn.matrix(X, y, N_hidden = N_hidden, lambda = lambda, B = B, method = method, type = type, control = control)
+    mm <- bag_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

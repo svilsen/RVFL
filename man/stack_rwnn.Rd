@@ -8,7 +8,7 @@
 stack_rwnn(
   formula,
   data = NULL,
-  N_hidden = c(),
+  n_hidden = c(),
   lambda = NULL,
   B = 100,
   optimise = FALSE,
@@ -21,7 +21,7 @@ stack_rwnn(
 \method{stack_rwnn}{formula}(
   formula,
   data = NULL,
-  N_hidden = c(),
+  n_hidden = c(),
   lambda = NULL,
   B = 100,
   optimise = FALSE,
@@ -36,7 +36,7 @@ stack_rwnn(
 
 \item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
-\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+\item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
 \item{lambda}{The penalisation constant used when training the output layers of each RWNN}
 

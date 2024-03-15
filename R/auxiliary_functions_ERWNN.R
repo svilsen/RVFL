@@ -54,8 +54,7 @@ predict.ERWNN <- function(object, ...) {
     } else {
         if (is.null(object$formula)) {
             newdata <- as.matrix(dots$newdata)
-        }
-        else {
+        } else {
             formula <- as.formula(object$formula)
             formula <- strip_terms(delete.response(terms(formula)))
             
@@ -75,16 +74,16 @@ predict.ERWNN <- function(object, ...) {
             newdata <- as.matrix(newdata, ncol = length(keep))
         }
         
-        if (dim(newdata)[2] != (dim(object$RWNNmodels[[1]]$Weights$Hidden[[1]])[1] - as.numeric(object$RWNNmodels[[1]]$Bias$Hidden[1]))) {
+        if (dim(newdata)[2] != (dim(object$models[[1]]$weights$W[[1]])[1] - as.numeric(object$models[[1]]$bias$W[1]))) {
             stop("The number of features (columns) provided in 'newdata' does not match the number of features of the model.")
         }
     }
     
     ## Set-up
-    o_type <- unique(sapply(object$RWNNmodels, function(x) x$Type))
+    o_type <- unique(sapply(object$models, function(x) x$type))
     if (length(o_type) > 1) {
         o_type <- o_type[1]
-        warning("Multiple 'Type' fields found among the ensemble models; therefore, only the first ensemble model is used to determine model type.")
+        warning("Multiple 'type' fields found among the ensemble models; therefore, only the first ensemble model is used to determine model type.")
     }
     
     B <- length(object$weights)
@@ -93,7 +92,7 @@ predict.ERWNN <- function(object, ...) {
     if (type %in% c("a", "all")) {
         y_new <- vector("list", B)
         for (b in seq_len(B)) {
-            y_new_b <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
+            y_new_b <- predict.RWNN(object = object$models[[b]], newdata = newdata)
             
             if (o_type %in% c("c", "class", "classification")) {
                 if (dots[["class"]] %in% c("c", "class", "classify", "v", "vote", "voting")) {
@@ -115,9 +114,9 @@ predict.ERWNN <- function(object, ...) {
         return(y_new)
     }
     else if (type %in% c("m", "mean")) {
-        y_new <- matrix(0, nrow = dim(object$data$y)[1], ncol = dim(object$data$y)[2])
+        y_new <- matrix(0, nrow = dim(newdata)[1], ncol = dim(object$data$y)[2])
         for (b in seq_len(B)) {
-            y_new_b <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
+            y_new_b <- predict.RWNN(object = object$models[[b]], newdata = newdata)
             y_new <- y_new + object$weights[b] * y_new_b
         }
         
@@ -131,10 +130,10 @@ predict.ERWNN <- function(object, ...) {
         return(y_new)
     }
     else if (type %in% c("s", "std", "standarddeviation")) {
-        y_new <- matrix(0, nrow = dim(object$data$y)[1], ncol = dim(object$data$y)[2])
-        y_sq_new <- matrix(0, nrow = dim(object$data$y)[1], ncol = dim(object$data$y)[2])
+        y_new <- matrix(0, nrow = dim(newdata)[1], ncol = dim(object$data$y)[2])
+        y_sq_new <- matrix(0, nrow = dim(newdata)[1], ncol = dim(object$data$y)[2])
         for (b in seq_len(B)) {
-            y_new_b <- predict.RWNN(object = object$RWNNmodels[[b]], newdata = newdata)
+            y_new_b <- predict.RWNN(object = object$models[[b]], newdata = newdata)
             
             y_new <- y_new + object$weights[b] * y_new_b
             y_sq_new <- y_sq_new + object$weights[b] * y_new_b^2
