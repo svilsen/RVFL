@@ -41,17 +41,28 @@ reduce_network_output <- function(object, p, tolerance) {
         for (w in seq_len(W)) {
             k <- k + object$n_hidden[w]
             removal_index_w <- zero_index[zero_index <= k] - (k - object$n_hidden[w])
-            object$weights$W[[w]] <- object$weights$W[[w]][, -removal_index_w, drop = FALSE]
             
-            if (w < W) {
-                object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-(removal_index_w + object$bias$W[w]), , drop = FALSE]
+            if (length(removal_index_w) > 0) {
+                if (ncol(object$weights$W[[w]]) == 1) {
+                    removal_index <- removal_index[-which(zero_index <= k)]
+                    zero_index <- zero_index[!(zero_index <= k)]
+                }
+                else {
+                    object$weights$W[[w]] <- object$weights$W[[w]][, -removal_index_w, drop = FALSE]
+                    
+                    if (w < W) {
+                        object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-(removal_index_w + object$bias$W[w]), , drop = FALSE]
+                    }
+                    
+                    object$n_hidden[w] <- ncol(object$weights$W[[w]])
+                    zero_index <- zero_index[!(zero_index <= k)]
+                }
             }
-            
-            object$n_hidden[w] <- ncol(object$weights$W[[w]])
-            zero_index <- zero_index[!(zero_index <= k)]
         }
         
-        object$weights$beta <- object$weights$beta[-removal_index, , drop = FALSE]
+        if (length(removal_index) > 0) {
+            object$weights$beta <- object$weights$beta[-removal_index, , drop = FALSE]
+        }
     }
     
     return(object)
@@ -219,6 +230,10 @@ reduce_network_apoz <- function(object, p, tolerance, X, type) {
     #
     W <- length(object$weights$W)
     for (w in seq_len(W)) {
+        if (ncol(object$weights$W[[w]]) == 1) {
+            next
+        }
+        
         ##
         remove_cols_w <- remove_cols[[w]]
         object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
@@ -297,6 +312,10 @@ reduce_network_l2  <- function(object, p, X, type) {
     #
     W <- length(object$weights$W)
     for (w in seq_len(W)) {
+        if (ncol(object$weights$W[[w]]) == 1) {
+            next
+        }
+        
         ##
         remove_cols_w <- remove_cols[[w]]
         object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
@@ -346,6 +365,10 @@ reduce_network_correlation <- function(object, type, rho, X) {
     p <- dim(object$weights$W[[1]])[1] - object$bias$W[1]
     W <- length(object$weights$W)
     for (w in seq_len(W)) {
+        if (ncol(object$weights$W[[w]]) == 1) {
+            next
+        }
+        
         ##
         H_w <- rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
         H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$n_hidden[i]))
@@ -418,8 +441,12 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
     
     W <- length(object$weights$W)
     for (w in seq_len(W)) {
+        if (ncol(object$weights$W[[w]]) == 1) {
+            next
+        }
+        
         ##
-        H_w <- rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
+        H_w <- RWNN:::rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
         H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$n_hidden[i]))
         H_w <- H_w[[w]]
         
@@ -556,6 +583,10 @@ reduce_network_relief <- function(object, p, X, type) {
                 next
             }
             
+            if (ncol(object$weights$W[[w]]) == 1) {
+                next
+            }
+            
             N_w <- N_w / sum(N_w) 
             R_w <- quantile(N_w, probs = p)
             
@@ -688,6 +719,18 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
                 object$weights$W[[w]] <- object$weights$W[[w]][-1, , drop = FALSE]
                 object$bias$W[w] <- FALSE
             }
+        }
+        
+        if (all(abs(object$weights$W[[w]]) < 1e-8)) {
+            object$weights$W <- object$weights$W[seq_len(w - 1)]
+            object$bias$W <- object$bias$W[seq_len(w - 1)]
+            
+            object$n_hidden <- object$n_hidden[seq_len(w - 1)]
+            object$activation <- object$activation[seq_len(w - 1)]
+            
+            keep_rows <- ifelse(object$combined$W, sum(object$n_hidden), object$n_hidden[length(object$n_hidden)]) + 
+                sum(object$bias$W) + sum(object$bias$beta) + ncol(X) * sum(object$combined$X)
+            object$weights$beta <- object$weights$beta[seq_len(keep_rows), , drop = FALSE]
         }
     }
     
