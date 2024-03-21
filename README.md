@@ -1,43 +1,40 @@
----
-title: 'RWNN: Fast and simple non-linear modelling using random weight neural networks in R'
-date: "01 January 2022"
-output: html_document
-bibliography: inst/paper.bib
-author: Søren B. Vilsen
----
+# Random weight neural networks in R: The RWNN package
+The `RWNN`-package implements a variety of random weight neural networks (RWNNs), a simplification of feed-forward neural networks,  `R` using `Rcpp` and `RcppArmadillo`. RWNNs randomly assigns the weights of the network between the input-layer and the last hidden-layer, focusing on training the weights between the last hidden-layer and the output-layer. This simplification makes training an RWNN as fast, simple, and efficient as training a (regularised) linear model. However, by randomly drawing the weights between the input and last hidden-layer additional instability is introduced into the network. Therefore, various extensions including deep RWNNs, sparse RWNNs, and ensemble deep RWNNs have been proposed to combat this instability.
 
-# Introduction
-In recent years neural networks, and variants thereof, have seen a massive increase in popularity. This increase is largely due to the flexibility of the neural network architecture, and their accuracy when applied to highly non-linear problems. However, due to the non-linear nature of the neural network architecture training the weights of the network using gradient based optimisation procedures, like back-propagation, does not guarantee a globally optimal solution. Furthermore, optimising the weights by back-propagation can be very slow process. Therefore, various simplifications of the general feed forward neural network architecture have been proposed, including the so called random vector functional link networks, also called random weight neural networks [@Schmidt1992, @Pao1994, @Cao2006] (sometimes referred to as extreme learning machines). RWNNs randomly assigns the weights of the network between the input-layer and the last hidden-layer, focusing on training the weights between the last hidden-layer and the output-layer. This simplification makes training an RWNN as fast, simple, and efficient as training a (regularised) linear model. However, by randomly drawing the weights between the input and last hidden-layer additional instability is introduced into the network. Therefore, extensions like deep RWNN [@Henriquez2018], sparse RWNN [@Zhang2019], and ensemble deep RWNN [@Shi2021] have been proposed to combat this instability.
-
-## Variants implemented in the package
-`RWNN` is a general purpose implementation of RWNNs in `R` using `Rcpp` and `RcppArmadillo` ([@RWNN2021]). The `RWNN` package allows the user to create an RWNN of any depth, letting the user set the number of neurons and activation functions in each layer, choose the sampling distribution of the random weights, and during estimation of the output-weights it allows for Moore-Penrose inversion, $\ell_1$ regularisation, and $\ell_2$ regularisation. The network, as well as output weight estimation, is implemented in C++ through `Rcpp` and `RcppArmadillo`, making training the model simple, fast, and efficient.
+The `RWNN` package allows the user to create an RWNN of any depth, letting the user set the number of neurons and activation functions used in each layer, choose the sampling distribution of the random weights, and during estimation of the output-weights it allows for Moore-Penrose inversion, $\ell_1$ regularisation, and $\ell_2$ regularisation.
 
 Along with a standard RWNN implementation, a number of popular variations have also been implemented in the `RWNN` package: 
 
- - **ELM** (extreme learning machine) [@Huang2006]: A simplified version of an RWNN without a link between the input and output layer. 
- - **deep RWNN** [@Henriquez2018]: An RWNN with multiple hidden layers, where the output of each hidden-layer is included as features in the model. 
- - **sparse RWNN** [@Zhang2019]: Applies sparse auto-encoder ($\ell_1$ regularised) pre-training to reduce the number non-zero weights between the input and the hidden layer (the implementation generalises this concept to allow for both $\ell_1$ and $\ell_2$ regularisation). 
- - **ensemble deep RWNN** [@Shi2021]: An extension of deep RWNNs using the output of each hidden layer to create separate RWNNs. These RWNNs are then used to create an ensemble prediction of the target.  
+-   **ELM** (extreme learning machine): A simplified version of an RWNN without a link between the input and output layer (this is also the default behaviour of the RWNN implementation).
+-   **deep RWNN**: An RWNN with multiple hidden layers, where the output of each hidden-layer is included as features in the model.
+-   **sparse RWNN**: Applies sparse auto-encoder ($\ell_1$ regularised) pre-training to reduce the number non-zero weights between the input and the hidden layer (the implementation generalises this concept to allow for both $\ell_1$ and $\ell_2$ regularisation).
+-   **ensemble deep RWNN**: An ensemble extension of deep RWNNs using the output of each hidden layer to create an ensemble of RWNNs, each hidden-layer being used to create a seperate prediction of the target.
 
-Furthermore, the `RWNN` package also includes general implementations of the following ensemble methods (using RWNNs as base learners): 
+Furthermore, the `RWNN` package also includes general implementations of the following ensemble methods (using RWNNs as base learners):
 
- - **Stacking**: Stack multiple randomly generated RWNN's, and estimate their contribution to the weighted ensemble prediction using $k$-fold cross-validation.
- - **Bagging** [@Xin2021]: Bootstrap aggregation of RWNN's creates a number of bootstrap samples, sampled with replacement from the training-set. Furthermore, as in random forest, instead of using all features when training each RWNN, a subset of the features can be  chosen at random. 
- - **Boosting**: Gradient boosting creates a series of RWNN's, where an element, $k$, of the series is trained on the residual of the previous $k - 1$ RWNN's. It further allows for manipulation of the learning rate used to improve the generalisation of the boosted model. Lastly, like the implemented bagging method, the number of features used in each iteration can be chosen at random (also called stochastic gradient boosting). 
+-   **Stacking**: Stack multiple randomly generated RWNNs, deep RWNNs, or sparse RWNNs and estimate their contribution to a weighted ensemble using $k$-fold cross-validation.
+-   **Bagging**: Bootstrap aggregation of RWNNs, deep RWNNs, or sparse RWNNs creates a number of bootstrap samples, sampled with replacement from the training-set. Furthermore, as in random forest, instead of using all features when training each RWNN, a subset of the features are chosen at random.
+-   **Boosting**: The boosting implementation is based on residual boosting using RWNNs, deep RWNNs, or sparse RWNNs as the base learner. 
 
-A Bayesian sampling approach is also implemented using a simple Metropolis-Hastings sampler to sample hidden weights from the posterior distribution of the RWNN. The sampling approach can create multiple types of output such as a single RWNN using the MAP, an ensemble RWNN using stacking, and the entire posterior of the hidden weights.  
+Lastly, in order to improve computational time and memory efficiency, the `RWNN` package includes the following methods for pruning the number of weights and neurons: 
 
-Lastly, the `RWNN` package also includes a simple method for grid based hyperparameter optimisation using $k$-fold cross-validation.
+- **Global magnitude** (weight pruning): Pruning a pre-defined proportion of the weights with lowest magnitude globally across the network. 
+- **Uniform magnitude** (weight pruning): Pruning a pre-defined proportion of the weights with lowest magnitude layer-by-layer. 
+- **LAMP** (weight pruning): Uses ``LAMP'' scores to prune a pre-defined proportion of weights.
+- **APoZ pruning** (neuron pruning): Pruning a pre-defined proportion of neurons in each layer, activated by the ReLU activation function, based on the average proportion of zeros (APoZ).
+- **L2 pruning** (neuron pruning): Pruning a pre-defined proportion of neurons in each layer based on the L2-norm of the neurons output.  
+- **Relief** (weight and neuron pruning): Uses ``relief'' scores to prune a pre-defined proportion of weights or neurons.
 
 # Installation
 
-The `RWNN`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, and `quadprog`. As the package is not available on CRAN, devtools is needed to install the package from github. 
+The `RWNN`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, `quadprog`, and `randtoolbox`. The package is not available on CRAN, therfore, devtools is needed to install the package from github. 
 
 From R, run the following commands:  
 ```r
 install.packages("Rcpp")
 install.packages("RcppArmadillo")
 install.packages("quadprog")
+install.packages("randtoolbox")
 
 install.packages("devtools")
 devtools::install_github("svilsen/RWNN")
@@ -47,49 +44,61 @@ devtools::install_github("svilsen/RWNN")
 In the following the data is randomly generated and split into training and validation sets. After which, three models are fitted: (1) #a simple RWNN, (2) a bagged RWNN with equal weighting, and (3) a bagged RWNN where the ensemble weights are optimised using the validation set.
 
 ```r
+##
+library("RWNN")
+
 ## Data set-up
-N <- 2000
-p <- 5
+data(example_data)
 
-s <- seq(0, pi, length.out = N)
-X <- matrix(NA, ncol = p, nrow = N)
-X[, 1] <- sin(s)
-X[, 2] <- cos(s)
-X[, 3] <- s
-X[, 4] <- s^2
-X[, 5] <- s^3
-
-beta <- matrix(rnorm(p), ncol = 1) 
-y <- X %*% beta + rnorm(N, 0, 1)
-
-## Split data into training and validtion sets
-proportion_training <- 0.7
-proportion_validation <- 1L - proportion_training
-
-index_training <- sample(N, proportion_training * N)
-index_validation <- seq(N)[-index_training]
-
-X_train <- X[index_training, ]
-X_val <- X[index_validation, ]
-
-y_train <- matrix(y[index_training, ], ncol = 1)
-y_val <- matrix(y[index_validation, ], ncol = 1)
+# Split data into training and validtion sets
+tr <- sample(nrow(example_data), round(0.6 * nrow(example_data)))
+example_train <- example_data[tr,]
+example_val <- example_data[-tr,]
 
 ## Fitting models
-N_hidden <- c(10, 10)
-lambda <- 0.025
+n_hidden <- c(10, 15, 5)
+lambda <- 0.01
 
 # RWNN
-m_rwnn <- rwnn(X = X_train, y = y_train, N_hidden = N_hidden, lambda = lambda, 
-               control = list(combine_input = TRUE))
+m_rwnn <- rwnn(y ~ ., data = example_train, n_hidden = n_hidden, lambda = lambda)
 
-# Bagged RWNN
-B <- 100 
-m_bagrwnn <- bag_rwnn(X = X_train, y = y_train, lambda = lambda, N_hidden = N_hidden, B = B,
-                      control = list(combine_input = TRUE, include_data = FALSE))
-             
-# Bagged RWNN with trained weights        
-m_bagrwnn_ew <- estimate_weights(m_bagrwnn, X_val = X_val, y_val = y_val)
+# sp-RWNN
+m_sprwnn <- ae_rwnn(y ~ ., data = example_train, n_hidden = n_hidden, lambda = c(lambda, 0.2), method = "l1")
+
+# Reducing RWNN
+m_rwnn_p <- m_rwnn |> 
+    reduce_network(method = "correlation", rho = 0.9) |> 
+    reduce_network(method = "lamp", p = 0.2) |> 
+    reduce_network(method = "output")
+
+## Ensemble methods    
+# Bagging RWNN
+m_bag <- bag_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = 150)
+
+# Boosting RWNN
+m_boost <- boost_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = 2000, epsilon = 0.005)
+
+# Stacking RWNN
+m_stack <- stack_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = 25, optimise = TRUE)
+
+m_stack_p <- m_stack |> 
+    reduce_network(method = "stack", tolerance = 1e-6)
+
+# ed-RWNN
+m_ed <- ed_rwnn(y ~ ., data = example_train, n_hidden = n_hidden, lambda = lambda)
+
+## Compare
+rmse <- function(m, data_val) {
+    return(sqrt(mean((data_val$y - predict(m, newdata = data_val))^2)))
+}
+
+(rmse_comp <- 
+        data.frame(
+            Method = c("RWNN", "sp-RWNN", "Pruning", "Bagging", "Boosting", "Stacking", "L-Stacking", "ed-RWNN"),
+            RMSE = sapply(list(m_rwnn, m_sprwnn, m_rwnn_p, m_bag, m_boost, m_stack, m_stack_p, m_ed), rmse, data_val = example_data)
+        )
+)
+
 ```
 
 ## License

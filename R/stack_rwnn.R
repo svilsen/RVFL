@@ -44,7 +44,7 @@ estimate_weights_stack <- function(C, b, B) {
 #' @param B The number of models in the stack.
 #' @param optimise TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)? 
 #' @param folds The number of folds used to train the RWNN models. 
-#' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.
+#' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 

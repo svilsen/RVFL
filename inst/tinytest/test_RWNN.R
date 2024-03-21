@@ -236,4 +236,7 @@ expect_warning(reduce_network(m_rwnn, "cortest", retrain = TRUE, rho = 0.99, alp
 #
 expect_error(reduce_network(m_rwnn, "relief", retrain = TRUE, type = ""), "'type' should be either 'weight' or 'neuron'.")
 
+# 
+expect_error(reduce_network(m_bagrwnn, method = "stack", tolerance = 1e-8), "Setting 'method' to 'stacking' is only meant for stacking ensemble models.")
+expect_error(reduce_network(m_stackrwnn, method = "stack", tolerance = 3), "Because of the chosen tolerance all models were removed; the tolerance should be lowered to a more appropriate level.")
 

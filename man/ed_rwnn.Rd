@@ -34,7 +34,7 @@ ed_rwnn(
 
 \item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
 
-\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, the \link{rwnn} is used as the base learner.}
+\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.}
 
 \item{type}{A string indicating whether this is a regression or classification problem.}
 

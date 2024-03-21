@@ -9,10 +9,6 @@
 #' 
 #' @importFrom stats coef cor predict runif sd rnorm pnorm dnorm quantile terms model.matrix model.response model.frame as.formula delete.response princomp
 #' 
-#' @importFrom graphics plot abline boxplot hist
-#' 
-#' @importFrom grDevices dev.hold dev.flush
-#' 
 #' @importFrom quadprog solve.QP
 #' 
 #' @importFrom utils methods

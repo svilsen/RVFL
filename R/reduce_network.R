@@ -624,6 +624,36 @@ reduce_network_relief <- function(object, p, X, type) {
 }
 
 ####
+##
+reduce_network_stack <- function(object, tolerance) {
+    #
+    if (is.null(tolerance) | !is.numeric(tolerance)) {
+        warning("'tolerance' is set to '1e-8' as it was either 'NULL', or not 'numeric'.")
+        tolerance <- 1e-8
+    }
+    else if (tolerance < 0) {
+        warning("'tolerance' is set to '1e-8', because it was found to be smaller than '0'.")
+        tolerance <- 1e-8
+    }
+    
+    #
+    remove_models <- which(object$weights < tolerance)
+    if (length(remove_models) == length(object$weights)) {
+        stop("Because of the chosen tolerance all models were removed; the tolerance should be lowered to a more appropriate level.")
+    }
+    
+    #
+    object$models <- object$models[-remove_models]
+    
+    #
+    object$weights <- object$weights[-remove_models]
+    object$weights <- object$weights / sum(object$weights)
+    
+    #
+    return(object)
+}
+
+####
 #' @title Reduce the weights of a random weight neural network.
 #' 
 #' @description Methods for weight and neuron pruning in random weight neural networks.
@@ -718,7 +748,7 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
         stop("'method' is either not implemented, or not a function.")
     }
     
-    ## 
+    ##
     for (w in seq_along(object$weights$W)) {
         if (object$bias$W[w]) {
             if (sum(abs(object$weights$W[[w]][1, ])) < 1e-8) {
@@ -804,22 +834,31 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
 reduce_network.ERWNN <- function(object, method, retrain = TRUE, ...) {
     dots <- list(...)
     
-    if ((!is.null(dots[["X"]])) & (!is.null(dots[["y"]]))) {
-        X <- dots[["X"]]
-        y <- dots[["y"]]
-    } else if (!is.null(object$data$X)) {
-        X <- object$data$X
-        y <- object$data$y
-    } else {
-        stop("Data has to be present in the model object, or supplied through '...' argument as 'X = ' and 'y = '.")
-    }
-    
-    B <- length(object$models)
-    for (b in seq_len(B)) {
-        list_b <- list(object = object$models[[b]], method = method, retrain = retrain, X = X, y = y) |> append(dots)
-        object_b <- do.call(reduce_network, list_b)
+    if (method %in% c("stack", "stacking")) {
+        if (object$method != "stacking") {
+            stop("Setting 'method' to 'stacking' is only meant for stacking ensemble models.")
+        }
         
-        object$models[[b]] <- object_b
+        object <- reduce_network_stack(object = object, tolerance = dots[["tolerance"]])
+    }
+    else {
+        if ((!is.null(dots[["X"]])) & (!is.null(dots[["y"]]))) {
+            X <- dots[["X"]]
+            y <- dots[["y"]]
+        } else if (!is.null(object$data$X)) {
+            X <- object$data$X
+            y <- object$data$y
+        } else {
+            stop("Data has to be present in the model object, or supplied through '...' argument as 'X = ' and 'y = '.")
+        }
+        
+        B <- length(object$models)
+        for (b in seq_len(B)) {
+            list_b <- list(object = object$models[[b]], method = method, retrain = retrain, X = X, y = y) |> append(dots)
+            object_b <- do.call(reduce_network, list_b)
+            
+            object$models[[b]] <- object_b
+        }
     }
     
     return(object)
