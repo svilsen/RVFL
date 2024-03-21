@@ -81,6 +81,7 @@ m_boost <- boost_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = 
 # Stacking RWNN
 m_stack <- stack_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = 25, optimise = TRUE)
 
+# Removing RWNNs from stack with weights less than 1e-6 
 m_stack_p <- m_stack |> 
     reduce_network(method = "stack", tolerance = 1e-6)
 
