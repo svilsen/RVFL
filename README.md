@@ -105,5 +105,3 @@ rmse <- function(m, data_val) {
 ## License
 
 This project is licensed under the MIT License.
-
-# References
