@@ -115,7 +115,7 @@ control_rwnn <- function(n_hidden = NULL, n_features = NULL, lnorm = NULL,
     if (is.character(rng)) {
         rng <- tolower(rng)
         if (!(rng %in% c("o", "orto", "orthogonal", "h", "halt", "halton", "s", "sobo", "sobol"))) {
-            stop(paste0("The method'", rng, "' is not implemented."))
+            stop(paste0("The method '", rng, "' is not implemented."))
         }
         
         rng_arg <- c("min", "max")
@@ -160,8 +160,7 @@ rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type = NULL, 
     UseMethod("rwnn")
 }
 
-#' @export
-rwnn.matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
+rwnn_matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
     ## Creating control object 
     control$n_hidden <- n_hidden
     control <- do.call(control_rwnn, control)
@@ -180,7 +179,7 @@ rwnn.matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control =
     # Regularisation
     if (is.null(lambda) | !is.numeric(lambda)) {
         lambda <- 0
-        warning("Note: 'lambda' was not supplied/not numeric. It is set to 0.")
+        warning("Note: 'lambda' was not supplied, or not numeric, and is therefore set to 0.")
     } else if (length(lambda) > 1) {
         lambda <- lambda[1]
         warning("The length of 'lambda' was larger than 1, only the first element will be used.")
@@ -202,7 +201,7 @@ rwnn.matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control =
     }
     
     if ((n_features < 1) || (n_features > dim(X)[2])) {
-        stop("'n_features' have to be between 1 and the total number of features.")
+        stop("'n_features' has to be between 1 and the total number of features.")
     }
     
     ## Creating random weights
@@ -297,7 +296,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")
     }
     
-    if (!is.numeric(n_hidden)) {
+    if (any(!is.numeric(n_hidden))) {
         stop("Not all elements of the 'n_hidden' vector were numeric.")
     }
     
@@ -308,7 +307,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
                 as.data.frame(as.matrix(model.frame(formula)))
             },
             error = function(e) {
-                message("'data' needs to be supplied when using 'formula'.")
+                stop("'data' needs to be supplied when using 'formula'.")
             }
         )
         
@@ -318,7 +317,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
         
         formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
         formula <- as.formula(formula)
-        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response may have been renamed.")
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -338,7 +337,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
     
     #
     if (is.null(type)) {
-        if (class(y[, 1]) == "numeric") {
+        if (is(y[, 1], "numeric")) {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
@@ -373,7 +372,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
     }
     
     #
-    mm <- rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
+    mm <- rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

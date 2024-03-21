@@ -13,7 +13,7 @@ reduce_network(object, method, retrain = TRUE, ...)
 \method{reduce_network}{ERWNN}(object, method, retrain = TRUE, ...)
 }
 \arguments{
-\item{object}{An \link{RWNN} or \link{ERWNN}-object.}
+\item{object}{An \link{RWNN-object} or \link{ERWNN-object}.}
 
 \item{method}{A string setting the method, or a function, used to reduce the network  (see details).}
 
@@ -22,7 +22,7 @@ reduce_network(object, method, retrain = TRUE, ...)
 \item{...}{Additional arguments passed to the reduction method (see details).}
 }
 \value{
-A reduced \link{RWNN} or \link{ERWNN}-object.
+A reduced \link{RWNN-object} or \link{ERWNN-object}.
 }
 \description{
 Methods for weight and neuron pruning in random weight neural networks.
@@ -33,7 +33,8 @@ Methods for weight and neuron pruning in random weight neural networks.
 \examples{
 ## RWNN
 \dontrun{
-m <- rwnn(y ~ ., data = example_data, N_hidden = c(10, 15), lambda = 2, control = list(lnorm = "l2"))
+m <- rwnn(y ~ ., data = example_data, n_hidden = c(10, 15), 
+          lambda = 2, control = list(lnorm = "l2"))
 
 m |> 
     reduce_network(method = "relief", p = 0.2, type = "neuron") |> 
@@ -60,7 +61,8 @@ m |>
 
 ## ERWNN (reduction is performed element-wise on each RWNN)
 \dontrun{
-m <- bag_rwnn(y ~ ., data = example_data, N_hidden = c(10, 15), lambda = 2, B = 100, control = list(lnorm = "l2"))
+m <- bag_rwnn(y ~ ., data = example_data, n_hidden = c(10, 15), 
+              lambda = 2, B = 100, control = list(lnorm = "l2"))
 
 m |> 
     reduce_network(method = "relief", p = 0.2, type = "neuron") |> 

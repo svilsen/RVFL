@@ -21,8 +21,7 @@ ae_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, method 
     UseMethod("ae_rwnn")
 }
 
-#' @export
-ae_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
+ae_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
     ## Creating control object 
     control$n_hidden <- n_hidden
     control <- do.call(control_rwnn, control)
@@ -195,14 +194,20 @@ ae_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL,
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
-                model.matrix(formula)
+                as.data.frame(as.matrix(model.frame(formula)))
             },
             error = function(e) {
-                message("'data' needs to be supplied when using 'formula'.")
+                stop("'data' needs to be supplied when using 'formula'.")
             }
         )
         
-        data <- as.data.frame(data)
+        x_name <- paste0(attr(terms(formula), "term.labels"), ".")
+        colnames(data) <- paste0("V", gsub(x_name, "", colnames(data)))
+        colnames(data)[1] <- "y"
+        
+        formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
+        formula <- as.formula(formula)
+        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response may have been renamed.")
     }
     
     # Checks for 'method'
@@ -228,7 +233,7 @@ ae_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL,
     
     #
     if (is.null(type)) {
-        if (class(y[, 1]) == "numeric") {
+        if (is(y[, 1], "numeric")) {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
@@ -261,7 +266,7 @@ ae_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL,
     }
     
     #
-    mm <- ae_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+    mm <- ae_rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

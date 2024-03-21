@@ -51,18 +51,18 @@ An \link{ERWNN-object}.
 Use bootstrap aggregation to reduce the variance of random weight neural network models.
 }
 \examples{
-N_hidden <- 50
+n_hidden <- 50
 B <- 100
 lambda <- 0.01
 
 # Regression
 \dontrun{
-bag_rwnn(y ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, B = B)
+m <- bag_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = B)
 }
 
 # Classification
 \dontrun{
-bag_rwnn(I(y > 15) ~ ., data = example_data, N_hidden = N_hidden, lambda = lambda, B = B)
+m <- bag_rwnn(I(y > 15) ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = B)
 }
 
 }

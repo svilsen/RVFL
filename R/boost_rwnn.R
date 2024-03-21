@@ -23,8 +23,7 @@ boost_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 
     UseMethod("boost_rwnn")
 }
 
-#' @export
-boost_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
+boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
     ## Checks
     if (is.null(control[["include_data"]])) {
         control$include_data <- FALSE
@@ -34,12 +33,12 @@ boost_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsil
     
     if (is.null(B) | !is.numeric(B)) {
         B <- 10
-        warning("Note: 'B' was set to '10', as it was not supplied.")
+        warning("Note: 'B' was not supplied and is therefore set to 10.")
     }
     
     if (is.null(epsilon) | !is.numeric(epsilon)) {
         epsilon <- 1
-        warning("Note: 'epsilon' was set to '1', as it was not supplied.")
+        warning("Note: 'epsilon' was not supplied and is therefore set to 1.")
     }
     else if (epsilon > 1) {
         epsilon <- 1
@@ -50,8 +49,8 @@ boost_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsil
         warning("'epsilon' has to be a number between '0' and '1'.")
     }
     
-    if (is.null(control$N_features)) {
-        control$N_features <- dim(X)[2] 
+    if (is.null(control$n_features)) {
+        control$n_features <- dim(X)[2] 
     }
     
     ##
@@ -63,10 +62,10 @@ boost_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsil
         }
         
         if (is.null(method)) {
-            objects[[b]] <- rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
+            objects[[b]] <- rwnn_matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            objects[[b]] <- ae_rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+            objects[[b]] <- ae_rwnn_matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
     }
@@ -145,7 +144,7 @@ boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
     
     #
     if (is.null(type)) {
-        if (class(y[, 1]) == "numeric") {
+        if (is(y[, 1], "numeric")) {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
@@ -180,7 +179,7 @@ boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
     }
     
     #
-    mm <- boost_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, epsilon = epsilon, method = method, type = type, control = control)
+    mm <- boost_rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, epsilon = epsilon, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

@@ -355,11 +355,11 @@ reduce_network_correlation <- function(object, type, rho, X) {
         warning("'rho' is set to '0.99' as it was either 'NULL', or not 'numeric'.")
         rho <- 0.99
     } else if (rho < 0) {
-        warning("'rho' is set to '0', because it was found to be smaller than '0'.")
-        rho <- 0.0
+        warning("'rho' is set to '0.01', because it was found to be smaller than '0'.")
+        rho <- 0.01
     } else if (rho > 1) {
-        warning("'rho' is set to '1', because it was found to be larger than '1'.")
-        rho <- 1.0
+        warning("'rho' is set to '0.99', because it was found to be larger than '1'.")
+        rho <- 0.99
     }
     
     p <- dim(object$weights$W[[1]])[1] - object$bias$W[1]
@@ -381,24 +381,27 @@ reduce_network_correlation <- function(object, type, rho, X) {
         remove_cols_w <- which(apply(C_w >= rho, 2, any))
         
         ##
-        object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
-        object$n_hidden[w] <- ncol(object$weights$W[[w]])
-        
-        ##
-        if (w < W) {    
-            remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
-            object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
-        }
-        
-        if (object$combined$W | (w == W)) {
-            index_offset <- object$bias$beta + p * object$combined$X
-            if (w > 1) {
-                previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
-                index_offset <- index_offset + sum(previous_w)
-            } 
+        if (length(remove_cols_w) > 0) {
+            ##
+            object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+            object$n_hidden[w] <- ncol(object$weights$W[[w]])
             
-            remove_rows_out_w <- remove_cols_w + index_offset
-            object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
+            ##
+            if (w < W) {    
+                remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+                object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
+            }
+            
+            if (object$combined$W | (w == W)) {
+                index_offset <- object$bias$beta + p * object$combined$X
+                if (w > 1) {
+                    previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
+                    index_offset <- index_offset + sum(previous_w)
+                } 
+                
+                remove_rows_out_w <- remove_cols_w + index_offset
+                object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
+            }
         }
     }
     
@@ -429,11 +432,11 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
         warning("'alpha' is set to '0.05' as it was either 'NULL', or not 'numeric'.")
         alpha <- 0.05
     } else if (alpha < 0) {
-        warning("'alpha' is set to '0', because it was found to be smaller than '0'.")
-        alpha <- 0.0
+        warning("'alpha' is set to '0.01', because it was found to be smaller than '0'.")
+        alpha <- 0.01
     } else if (alpha > 1) {
-        warning("'alpha' is set to '1', because it was found to be larger than '1'.")
-        alpha <- 1.0
+        warning("'alpha' is set to '0.99', because it was found to be larger than '1'.")
+        alpha <- 0.99
     }
     
     p <- dim(object$weights$W[[1]])[1] - object$bias$W[1]
@@ -446,7 +449,7 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
         }
         
         ##
-        H_w <- RWNN:::rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
+        H_w <- rwnn_forward(X, object$weights$W[seq_len(w)], object$activation[seq_len(w)], object$bias$W[seq_len(w)])
         H_w <- lapply(seq_along(H_w), function(i) matrix(H_w[[i]], ncol = object$n_hidden[i]))
         H_w <- H_w[[w]]
         
@@ -462,27 +465,30 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
         P_w <- upper.tri(T_w) * pnorm(T_w, 0, 1)
         
         ## 
-        remove_cols_w <- which(apply(P_w < alpha, 2, all))
+        remove_cols_w <- which(!apply(P_w < alpha, 2, all))
         
         ##
-        object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
-        object$n_hidden[w] <- ncol(object$weights$W[[w]])
-        
-        ##
-        if (w < W) {    
-            remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
-            object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
-        }
-        
-        if (object$combined$W | (w == W)) {
-            index_offset <- object$bias$beta + p * object$combined$X
-            if (w > 1) {
-                previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
-                index_offset <- index_offset + sum(previous_w)
-            } 
+        if (length(remove_cols_w) > 0) {
+            ##
+            object$weights$W[[w]] <- object$weights$W[[w]][, -remove_cols_w, drop = FALSE]
+            object$n_hidden[w] <- ncol(object$weights$W[[w]])
             
-            remove_rows_out_w <- remove_cols_w + index_offset
-            object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
+            ##
+            if (w < W) {    
+                remove_rows_w <- remove_cols_w + as.numeric(object$bias$W[w + 1])
+                object$weights$W[[w + 1]] <- object$weights$W[[w + 1]][-remove_rows_w, , drop = FALSE]
+            }
+            
+            if (object$combined$W | (w == W)) {
+                index_offset <- object$bias$beta + p * object$combined$X
+                if (w > 1) {
+                    previous_w <- sapply(object$weights$W[seq_len(w - 1)], function(x) dim(x)[2])
+                    index_offset <- index_offset + sum(previous_w)
+                } 
+                
+                remove_rows_out_w <- remove_cols_w + index_offset
+                object$weights$beta <- object$weights$beta[-remove_rows_out_w, , drop = FALSE]
+            }
         }
     }
     
@@ -622,14 +628,14 @@ reduce_network_relief <- function(object, p, X, type) {
 #' 
 #' @description Methods for weight and neuron pruning in random weight neural networks.
 #' 
-#' @param object An \link{RWNN} or \link{ERWNN}-object.
+#' @param object An \link{RWNN-object} or \link{ERWNN-object}.
 #' @param method A string setting the method, or a function, used to reduce the network  (see details).
 #' @param retrain TRUE/FALSE: Should the output weights be retrained after reduction?
 #' @param ... Additional arguments passed to the reduction method (see details).
 #' 
 #' @details ... 
 #' 
-#' @return A reduced \link{RWNN} or \link{ERWNN}-object.
+#' @return A reduced \link{RWNN-object} or \link{ERWNN-object}.
 #' 
 #' @export
 reduce_network <- function(object, method, retrain = TRUE, ...) {
@@ -731,6 +737,27 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
             keep_rows <- ifelse(object$combined$W, sum(object$n_hidden), object$n_hidden[length(object$n_hidden)]) + 
                 sum(object$bias$W) + sum(object$bias$beta) + ncol(X) * sum(object$combined$X)
             object$weights$beta <- object$weights$beta[seq_len(keep_rows), , drop = FALSE]
+        }
+        
+        if (!object$combined$W) {
+            if (w < length(object$weights$W)) {
+                next_layer_zeroes <- apply(abs(object$weights$W[[w + 1]]), 1, sum)
+                
+                if (as.numeric(object$bias$W[w + 1])) {
+                    next_layer_zeroes <- next_layer_zeroes[-1]
+                }
+                
+                if (length(next_layer_zeroes) == ncol(object$weights$W[[w]])) {
+                    next_layer_zeroes <- next_layer_zeroes[-1]
+                }
+                
+                next_layer_zeroes <- which(next_layer_zeroes < 1e-8)
+                
+                if (length(next_layer_zeroes) > 0) {
+                    object$weights$W[[w]] <- object$weights$W[[w]][-next_layer_zeroes, , drop = FALSE]
+                    object$n_hidden[w] <- object$n_hidden[w] - length(next_layer_zeroes)
+                }
+            }
         }
     }
     

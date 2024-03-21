@@ -17,8 +17,8 @@ title:
 abstract: >
   This paper serves as an introduction to the \pkg{RWNN} package. The \pkg{RWNN} package implements random weight neural networks. The methods are implemented using a combination of \proglang{R} and \proglang{C++} offsetting the heavier computation and estimation to \proglang{C++}  through the \pkg{Rcpp} and \pkg{RcppArmadillo} packages. While implementations of random weight neural networks exist other \proglang{R} packages, these focus on the simplest possible variant of the random weight neural network and cover only very specialised use cases of these networks. Besides a general purpose implementation of random weight neural networks, the \pkg{RWNN} package also includes common variants such as deep RWNN and sparse RWNN, as well as ensemble methods using random weight neural networks as the base learner. Furhtermore, the \pkg{RWNN} packages also includes more sophisticated methods for initialising the random weights, as well as methods for pruning both the number of weights and the number of neurons in the network.
 keywords:
-  formatted: [random weight neural networks, regularisation, ensemble learning, Bayesian computation, "\\proglang{R}", "\\pkg{Rcpp}", "\\pkg{RcppArmadillo}"]
-  plain:     [random weight neural networks, regularisation, ensemble learning, Bayesian computation, R, Rcpp, RcppArmadillo]
+  formatted: [random weight neural networks, regularisation, ensemble learning, pruning, "\\proglang{R}", "\\pkg{Rcpp}", "\\pkg{RcppArmadillo}"]
+  plain:     [random weight neural networks, regularisation, ensemble learning, pruning, R, Rcpp, RcppArmadillo]
 output:
   rticles::jss_article:
     keep_tex: TRUE

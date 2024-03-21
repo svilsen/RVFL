@@ -55,8 +55,7 @@ stack_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 
     UseMethod("stack_rwnn")
 }
 
-#' @export
-stack_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
+stack_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {
     ## Checks
     
     if (is.null(control[["include_data"]])) {
@@ -72,7 +71,7 @@ stack_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, opti
     if (optimise) {
         if (is.null(folds) || folds < 1) {
             folds <- 10
-            warning("Note: 'folds' was not supplied, and is set to 10.")
+            warning("Note: 'folds' was not supplied and is therefore set to 10.")
         }
     } 
     else {
@@ -81,7 +80,7 @@ stack_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, opti
     
     if (is.null(B) | !is.numeric(B)) {
         B <- 100
-        warning("Note: 'B' was not supplied, 'B' was set to 100.")
+        warning("Note: 'B' was not supplied and is therefore set to 100.")
     }
     
     if (is.null(control$n_features)) {
@@ -99,29 +98,29 @@ stack_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, opti
     
     objects <- vector("list", B)
     for (b in seq_len(B)) {
-        if (!is.null(method)) {
-            object_b <- rwnn.matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
+        if (is.null(method)) {
+            object_b <- rwnn_matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            object_b <- ae_rwnn.matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+            object_b <- ae_rwnn_matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
         if (optimise) {
-            H <- rwnn_forward(X, object_b$Weights$Hidden, object_b$activation, object_b$Bias$Hidden)
+            H <- rwnn_forward(X, object_b$weights$W, object_b$activation, object_b$bias$W)
             H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = n_hidden[i]))
             
-            if (object_b$Combined$Hidden) {
+            if (object_b$combined$W) {
                 H <- do.call("cbind", H)
             } else {
                 H <- H[[length(H)]]
             }
             
-            if (object_b$Bias$Output) {
+            if (object_b$bias$beta) {
                 H <- cbind(1, H)
             }
             
             O <- H
-            if (object_b$Combined$Input) {
+            if (object_b$combined$X) {
                 O <- cbind(X, H)
             }
             
@@ -219,7 +218,7 @@ stack_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
     
     #
     if (is.null(type)) {
-        if (class(y[, 1]) == "numeric") {
+        if (is(y[, 1], "numeric")) {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
@@ -254,7 +253,7 @@ stack_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
     }
     
     #
-    mm <- stack_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, method = method, type = type, control = control)
+    mm <- stack_rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, optimise = optimise, folds = folds, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

@@ -22,8 +22,7 @@ bag_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 10
     UseMethod("bag_rwnn")
 }
 
-#' @export
-bag_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
+bag_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {
     ## Checks
     if (is.null(control[["include_data"]])) {
         control$include_data <- FALSE
@@ -33,7 +32,7 @@ bag_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, method
     
     if (is.null(B) | !is.numeric(B)) {
         B <- 100
-        warning("Note: 'B' was not supplied, 'B' was set to 100.")
+        warning("Note: 'B' was not supplied and is therefore set to 100.")
     }
     
     if (is.null(control$n_features)) {
@@ -50,10 +49,10 @@ bag_rwnn.matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, method
         y_b <- y[indices_b, , drop = FALSE]  
         
         if (is.null(method)) {
-            rwnn_b <- rwnn.matrix(X = X_b, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
+            rwnn_b <- rwnn_matrix(X = X_b, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            rwnn_b <- ae_rwnn.matrix(X = X_b, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+            rwnn_b <- ae_rwnn_matrix(X = X_b, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
         objects[[b]] <- rwnn_b
@@ -134,7 +133,7 @@ bag_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL
     
     #
     if (is.null(type)) {
-        if (class(y[, 1]) == "numeric") {
+        if (is(y[, 1], "numeric")) {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
@@ -169,7 +168,7 @@ bag_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL
     }
     
     #
-    mm <- bag_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, method = method, type = type, control = control)
+    mm <- bag_rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }

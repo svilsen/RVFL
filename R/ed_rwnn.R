@@ -21,8 +21,7 @@ ed_rwnn <- function(formula, data = NULL, n_hidden, lambda = 0, method = NULL, t
     UseMethod("ed_rwnn")
 }
 
-#' @export
-ed_rwnn.matrix <- function(X, y, n_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
+ed_rwnn_matrix <- function(X, y, n_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {
     ## Checks
     #
     control$n_hidden <- n_hidden
@@ -55,20 +54,20 @@ ed_rwnn.matrix <- function(X, y, n_hidden, lambda = 0, method = NULL, type = NUL
     
     ## 
     if (is.null(method)) {
-        deeprwnn <- rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
+        deeprwnn <- rwnn_matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
     }
     else {
-        deeprwnn <- ae_rwnn.matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+        deeprwnn <- ae_rwnn_matrix(X = X, y = y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
     }
     
-    H <- rwnn_forward(X = X, W = deeprwnn$Weights$Hidden, activation = deeprwnn$activation, bias = deeprwnn$Bias$Hidden)
+    H <- rwnn_forward(X = X, W = deeprwnn$weights$W, activation = deeprwnn$activation, bias = deeprwnn$bias$W)
     H <- lapply(seq_along(H), function(i) matrix(H[[i]], ncol = deeprwnn$n_hidden[i]))
     
     objects <- vector("list", length(n_hidden))
     for (i in seq_along(n_hidden)) {
         ## Set-up RWNN object
         rwnn_i <- deeprwnn
-        rwnn_i$Weights$Hidden <- rwnn_i$Weights$Hidden[seq_len(i)]
+        rwnn_i$weights$W <- rwnn_i$weights$W[seq_len(i)]
         
         ## Estimate parameters in output layer
         H_i <- H[[i]]
@@ -84,8 +83,8 @@ ed_rwnn.matrix <- function(X, y, n_hidden, lambda = 0, method = NULL, type = NUL
         W_i <- estimate_output_weights(O_i, y, control$lnorm, lambda)
         
         ##
-        rwnn_i$Weights$Output <- W_i$beta
-        rwnn_i$Sigma$Output <- W_i$sigma
+        rwnn_i$weights$beta <- W_i$beta
+        rwnn_i$sigma <- W_i$sigma
         
         objects[[i]] <- rwnn_i
     }
@@ -164,7 +163,7 @@ ed_rwnn.formula <- function(formula, data = NULL, n_hidden, lambda = 0, method =
     
     #
     if (is.null(type)) {
-        if (class(y[, 1]) == "numeric") {
+        if (is(y[, 1], "numeric")) {
             type <- "regression"
             
             if (all(abs(y - round(y)) < 1e-8)) {
@@ -197,7 +196,7 @@ ed_rwnn.formula <- function(formula, data = NULL, n_hidden, lambda = 0, method =
     }
     
     #
-    mm <- ed_rwnn.matrix(X, y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+    mm <- ed_rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
     mm$formula <- formula
     return(mm)
 }
