@@ -308,7 +308,6 @@ reduce_network_l2  <- function(object, p, X, type) {
         remove_cols <- lapply(L, function(x) order(x)[-seq_len(round((1 - p) * length(x)))])
     }
     
-    
     #
     W <- length(object$weights$W)
     for (w in seq_len(W)) {
@@ -495,7 +494,7 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
     return(object)
 }
 
-#### 
+#### Reducing the number of weights and/or the number of neurons
 ##
 reduce_network_relief <- function(object, p, X, type) {
     # 
@@ -623,7 +622,7 @@ reduce_network_relief <- function(object, p, X, type) {
     return(object)
 }
 
-####
+#### Reduce the number of models in an ensemble stack
 ##
 reduce_network_stack <- function(object, tolerance) {
     #
@@ -719,10 +718,6 @@ reduce_network.RWNN <- function(object, method, retrain = TRUE, ...) {
         }
         
         object <- reduce_network_apoz(object = object, p = dots[["p"]], tolerance = dots[["tolerance"]], X = X, type = dots[["type"]])
-    }
-    else if (method %in% c("l2")) {
-        ## Neuron pruning method: L2-norm of hidden-weights.
-        object <- reduce_network_l2(object = object, p = dots[["p"]], X = X, type = dots[["type"]])
     }
     else if (method %in% c("cor", "correlation")) {
         ## Neuron pruning method: Correlation between activated neurons.

@@ -19,11 +19,11 @@
 #' @return An \link{ERWNN-object}.
 #' 
 #' @export
-boost_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
+boost_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
     UseMethod("boost_rwnn")
 }
 
-boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsilon = 1, method = NULL, type = NULL, control = list()) {
+boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
     ## Checks
     if (is.null(control[["include_data"]])) {
         control$include_data <- FALSE
@@ -32,13 +32,13 @@ boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsil
     dc <- data_checks(y, X)
     
     if (is.null(B) | !is.numeric(B)) {
-        B <- 10
-        warning("Note: 'B' was not supplied and is therefore set to 10.")
+        B <- 100
+        warning("Note: 'B' was not supplied and is therefore set to 100.")
     }
     
     if (is.null(epsilon) | !is.numeric(epsilon)) {
-        epsilon <- 1
-        warning("Note: 'epsilon' was not supplied and is therefore set to 1.")
+        epsilon <- 0.1
+        warning("Note: 'epsilon' was not supplied and is therefore set to 0.1.")
     }
     else if (epsilon > 1) {
         epsilon <- 1
@@ -50,22 +50,31 @@ boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsil
     }
     
     if (is.null(control$n_features)) {
-        control$n_features <- dim(X)[2] 
+        control$n_features <- ncol(X) 
     }
     
     ##
+    N <- nrow(X)
     y_b <- y
     objects <- vector("list", B)
     for (b in seq_len(B)) {
+        # Update residual
         if (b > 1) {
             y_b <- y_b - epsilon * predict(objects[[b - 1]], newdata = X)
         }
         
+        # Stochastic boosting
+        indices_b <- sample(N, N, replace = TRUE)
+        
+        y_b_i <- y_b[indices_b, , drop = FALSE]
+        X_b_i <- X[indices_b, , drop = FALSE]  
+        
+        # Train base-learner
         if (is.null(method)) {
-            objects[[b]] <- rwnn_matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
+            objects[[b]] <- rwnn_matrix(X = X_b_i, y = y_b_i, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
         }
         else {
-            objects[[b]] <- ae_rwnn_matrix(X = X, y = y_b, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
+            objects[[b]] <- ae_rwnn_matrix(X = X_b_i, y = y_b_i, n_hidden = n_hidden, lambda = lambda, method = method, type = type, control = control)
         }
         
     }
@@ -89,7 +98,7 @@ boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 10, epsil
 #' @example inst/examples/boostrwnn_example.R
 #' 
 #' @export
-boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 10, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
+boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, epsilon = 0.1, method = NULL, type = NULL, control = list()) {
     # Checks for 'n_hidden'
     if (length(n_hidden) < 1) {
         stop("When the number of hidden layers is 0, or left 'NULL', the RWNN reduces to a linear model, see ?lm.")

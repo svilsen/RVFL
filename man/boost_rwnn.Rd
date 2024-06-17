@@ -10,8 +10,8 @@ boost_rwnn(
   data = NULL,
   n_hidden = c(),
   lambda = NULL,
-  B = 10,
-  epsilon = 1,
+  B = 100,
+  epsilon = 0.1,
   method = NULL,
   type = NULL,
   control = list()
@@ -22,7 +22,7 @@ boost_rwnn(
   data = NULL,
   n_hidden = c(),
   lambda = NULL,
-  B = 10,
+  B = 100,
   epsilon = 0.1,
   method = NULL,
   type = NULL,
@@ -57,7 +57,7 @@ Use gradient boosting to create ensemble random weight neural network models.
 \examples{
 n_hidden <- 10
 B <- 100
-epsilon <- 0.01
+epsilon <- 0.1
 lambda <- 0.1
 
 \dontrun{

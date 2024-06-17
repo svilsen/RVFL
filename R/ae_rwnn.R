@@ -47,7 +47,7 @@ ae_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, method = "l1", t
     }
     
     if (length(lambda) == 1) {
-        lambda <- c(lambda, 0)
+        lambda <- c(1, lambda)
     } else if (length(lambda) > 2) {
         lambda <- lambda[seq_len(2)]
         warning("The length of 'lambda' was larger than 2; only the first two elements will be used.")

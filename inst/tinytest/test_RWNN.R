@@ -143,11 +143,11 @@ expect_warning(bag_rwnn(y ~ ., data = data, n_hidden, lambda, B = NULL), "Note: 
 
 ## Boosting
 #
-expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = NULL, epsilon = 0.1), "Note: 'B' was not supplied and is therefore set to 10.")
+expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = NULL, epsilon = 0.1), "Note: 'B' was not supplied and is therefore set to 100.")
 
 #
-expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = 10, epsilon = NULL), "Note: 'epsilon' was not supplied and is therefore set to 1")
-expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = 10, epsilon = "NULL"), "Note: 'epsilon' was not supplied and is therefore set to 1.")
+expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = 10, epsilon = NULL), "Note: 'epsilon' was not supplied and is therefore set to 0.1")
+expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = 10, epsilon = "NULL"), "Note: 'epsilon' was not supplied and is therefore set to 0.1.")
 expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = 10, epsilon = -1), "'epsilon' has to be a number between '0' and '1'.")
 expect_warning(boost_rwnn(y ~ ., data = data, n_hidden, lambda, B = 10, epsilon = 2), "'epsilon' has to be a number between '0' and '1'.")
 
