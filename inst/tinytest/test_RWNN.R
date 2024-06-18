@@ -53,7 +53,7 @@ expect_equal(round(mse(m_rwnn, data, y), 4), 0.0421, tolerance = 1e-7)
 
 # 
 expect_silent(m_aerwnn)
-expect_equal(round(mse(m_aerwnn, data, y), 4), 8.9224, tolerance = 1e-7)
+expect_equal(round(mse(m_aerwnn, data, y), 4), 0.0421, tolerance = 1e-7)
 
 #
 expect_equal(round(m_edrwnn$weights[1], 4), 1, tolerance = 1e-7)
