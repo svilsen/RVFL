@@ -153,7 +153,7 @@ been included:
   output layer (this is also the default behaviour of the RWNN
   implementation).
 \item
-  \textbf{deep RWNN} \citep{Henriquez2018}, \citep{Shi2021}: An RWNN
+  \textbf{deep RWNN} {[}\citet{Henriquez2018}, \citep{Shi2021}: An RWNN
   with multiple hidden layers, where the output of each hidden-layer is
   included as features in the model.
 \item
@@ -176,47 +176,55 @@ learners):
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Stacking} \citep{Wolpert1992}, \citep{Breiman1996a}: Stack
+  \textbf{Stacking} \citep[\citet{Breiman1996a}]{Wolpert1992}: Stack
   multiple randomly generated RWNN's, deep RWNN's, or sparse RWNN's and
   estimate their contribution to a weighted ensemble using \(k\)-fold
   cross-validation.
 \item
-  \textbf{Bagging} \citep{Breiman1996b}, \citep{Breiman2001},
-  \citep{Xin2021}: Bootstrap aggregation of RWNN's, deep RWNN's, or
-  sparse RWNN's creates a number of bootstrap samples, sampled with
-  replacement from the training-set. Furthermore, as in random forest,
-  instead of using all features when training each RWNN, a subset of the
-  features are chosen at random.
+  \textbf{Bagging} \citep[\citet{Breiman2001},
+  \citet{Xin2021}]{Breiman1996b}: Bootstrap aggregation of RWNN's, deep
+  RWNN's, or sparse RWNN's creates a number of bootstrap samples,
+  sampled with replacement from the training-set. Furthermore, as in
+  random forest, instead of using all features when training each RWNN,
+  a subset of the features are chosen at random.
 \item
   \textbf{Boosting} \citep{Friedman2001}: The boosting implementation is
-  based on residual boosting using RWNN's, deep RWNN's, or sparse RWNN's
-  as the base learner.
+  based on stochastic residual boosting using RWNN's, deep RWNN's, or
+  sparse RWNN's as the base learner.
 \end{itemize}
 
-Lastly, in order to improve computational time and memory efficiency,
-the \pkg{RWNN} package includes the following methods for pruning the
-number of weights and neurons:
+Lastly, in order to improve computation and memory efficiency, the
+\pkg{RWNN} package includes the following methods for pruning the number
+of weights and neurons:
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Global magnitude} (weight pruning) \citep{han2016},
-  \citep{morcos2019}: Pruning a pre-defined proportion of the weights
-  with lowest magnitude globally across the network.
+  \textbf{Global magnitude} (weight pruning)
+  \citep[\citet{morcos2019}]{han2016}: Pruning a pre-defined proportion
+  of the weights with lowest magnitude globally across the network.
 \item
-  \textbf{Uniform magnitude} (weight pruning) \citep{han2016},
-  \citep{morcos2019}: Pruning a pre-defined proportion of the weights
-  with lowest magnitude layer-by-layer.
+  \textbf{Uniform magnitude} (weight pruning)
+  \citep[\citet{morcos2019}]{han2016}: Pruning a pre-defined proportion
+  of the weights with lowest magnitude layer-by-layer.
 \item
-  \textbf{LAMP} (weight pruning) \citep{Lee2021}:
+  \textbf{LAMP} (weight pruning) \citep{Lee2021}: Pruning a pre-defined
+  proportion of the weights with lowest LAMP (layer-adaptive
+  magnitude-based pruning) score globally across the network. The LAMP
+  score is essentially a re-scaled magnitude.
 \item
-  \textbf{APoZ pruning} (neuron pruning) \citep{hu2016}: Pruning a
-  pre-defined proportion of neurons in layers, activated by the ReLU
-  activation function, based on the average proportion of zeros (APoZ).
+  \textbf{APoZ} (neuron pruning) \citep{hu2016}: Pruning a pre-defined
+  proportion of neurons in layers, activated by the ReLU activation
+  function, based on the average proportion of zeros (APoZ).
 \item
-  \textbf{L2 pruning} (neuron pruning):
+  \textbf{Correlation} (neuron pruning): Pruning based on the pair-wise
+  correlations between neurons layer-by-layer. A neuron is removed if
+  its correlation exceeds a pre-defined threshold, or if its correlation
+  is not significantly smaller than this pre-defined threshold.
 \item
   \textbf{Relief} (weight and neuron pruning) \citep{Dekhovich2024}:
+  Pruning a pre-defined proportion of the weights that, on average,
+  provide only a small contribution to the next layer.
 \end{itemize}
 
 The remainder of the paper is structured as follows: Section \ref{RWNN}
@@ -403,12 +411,12 @@ Estimating of the weights differs slightly dependent on the choice of
 \item
   \underline{$\boldsymbol{q = 1}$}:\newline  The optimisation problem in
   Eq. \eqref{eq:rsse} is equivalent to performing lasso-regression
-  \citep{SanLasso}, \citep{TibLasso}. Unlike ridge-regression
+  \citep[\citet{TibLasso}]{SanLasso}. Unlike ridge-regression
   (\(q = 2\)) it is not possible to find a closed form solution to the
   optimisation problem and, thereby, the lasso estimated output-weights,
-  \(\hat{\boldsymbol{\beta}}^{(lasso)}\). However, it has been shown by
-  \citep{CoordLasso}, that \(\hat{\boldsymbol{\beta}}^{(lasso)}\) can be
-  found using coordinate descent.
+  \(\hat{\boldsymbol{\beta}}^{(lasso)}\). However, it has been shown
+  that \(\hat{\boldsymbol{\beta}}^{(lasso)}\) can be found using
+  coordinate descent \citep{CoordLasso}.
 \item
   \underline{$\boldsymbol{q = 2}$}:\newline  The optimisation problem in
   Eq. \eqref{eq:rsse} is equivalent to performing ridge-regression on
@@ -437,9 +445,9 @@ the \(i\)'th neuron and the \(j\)'th neuron in the \(k\)'th layer for
 \end{equation} where \(\boldsymbol{1}_k\) is a vector of one's of
 dimension \(J^{k}\).
 
-Using deep FFNN's as starting point, when creating deep RWNN's two
-approaches can be taken to predicting the target: (1) use the output of
-just the last hidden-layer, or (2) concatenate the outputs of all \(K\)
+However, when extending RWNN's to multiple hidden layers, two approaches
+can be taken to predicting the target: (1) use the output of just the
+last hidden-layer, or (2) concatenate the outputs of all \(K\)
 hidden-layers. The graphical interpretation of the difference between
 the two approaches can be seen on the left and right-hand sides of
 Figure \ref{fig:deeprwnn}, respectively.
@@ -447,7 +455,7 @@ Figure \ref{fig:deeprwnn}, respectively.
 \begin{CodeChunk}
 \begin{figure}[ht!]
 
-{\centering \includegraphics[width=0.45\linewidth]{./Figures/deepRWNN} \includegraphics[width=0.45\linewidth]{./Figures/deepRWNNalt} 
+{\centering \includegraphics[width=0.49\linewidth]{./Figures/deepRWNN} \includegraphics[width=0.49\linewidth]{./Figures/deepRWNNalt} 
 
 }
 
@@ -490,20 +498,38 @@ third option).
 \hypertarget{sparse-rwnn}{%
 \subsection{Sparse RWNN}\label{sparse-rwnn}}
 
+While it has been shown that the theoretical properties of RWNNs are
+similar to FFNNs, due to the random nature of their construction, they
+typically require (a lot) more neurons to achieve similar results. That
+is, RWNNs tend to be more inefficient than FFNNs. Therefore, a common
+approach, when constructing RWNNs, is to create very large networks and
+then reduce them in size. This size reduction can occur either before,
+or after, the output parameters are trained. The \pkg{RWNN} package
+implements two types of reduction: pre-training using auto-encoders and
+network pruning.
+
 \hypertarget{pre-trained-using-an-auto-encoder}{%
 \subsubsection{Pre-trained using an
 auto-encoder}\label{pre-trained-using-an-auto-encoder}}
 
-\hypertarget{pruning-using-magnitude}{%
-\subsubsection{Pruning using magnitude}\label{pruning-using-magnitude}}
+\hypertarget{network-pruning}{%
+\subsubsection{Network pruning}\label{network-pruning}}
 
-\hypertarget{pruning-using-fisher-information}{%
-\subsubsection{Pruning using Fisher
-information}\label{pruning-using-fisher-information}}
-
-\hypertarget{pruning-using-mutual-information}{%
-\subsubsection{Pruning using mutual
-information}\label{pruning-using-mutual-information}}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Global magnitude}:
+\item
+  \textbf{Uniform magnitude}:
+\item
+  \textbf{LAMP}:
+\item
+  \textbf{APoZ}:
+\item
+  \textbf{Correlation}:
+\item
+  \textbf{Relief}:
+\end{itemize}
 
 \hypertarget{ensemble-methods}{%
 \subsection{Ensemble methods}\label{ensemble-methods}}

@@ -301,6 +301,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
     }
     
     # Checks for 'data'
+    keep_formula <- TRUE
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
@@ -317,7 +318,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
         
         formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
         formula <- as.formula(formula)
-        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response may have been renamed.")
+        keep_formula <- FALSE
     }
     
     # Re-capture feature names when '.' is used in formula interface
@@ -373,7 +374,7 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
     
     #
     mm <- rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, type = type, control = control)
-    mm$formula <- formula
+    mm$formula <- if (keep_formula) formula
     return(mm)
 }
 

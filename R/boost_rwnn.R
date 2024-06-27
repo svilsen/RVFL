@@ -109,6 +109,7 @@ boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
     }
     
     # Checks for 'data'
+    keep_formula <- TRUE
     if (is.null(data)) {
         data <- tryCatch(
             expr = {
@@ -125,7 +126,7 @@ boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
         
         formula <- paste(colnames(data)[1], "~", paste(colnames(data)[seq_along(colnames(data))[-1]], collapse = " + "))
         formula <- as.formula(formula)
-        warning("'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response have been renamed.")
+        keep_formula <- FALSE
     }
     
     # Checks for 'method'
@@ -189,6 +190,6 @@ boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
     
     #
     mm <- boost_rwnn_matrix(X, y, n_hidden = n_hidden, lambda = lambda, B = B, epsilon = epsilon, method = method, type = type, control = control)
-    mm$formula <- formula
+    mm$formula <- if (keep_formula) formula
     return(mm)
 }

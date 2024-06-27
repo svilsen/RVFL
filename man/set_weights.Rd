@@ -3,7 +3,7 @@
 \name{set_weights}
 \alias{set_weights}
 \alias{set_weights.ERWNN}
-\title{Set ensemble weights for an ERWNN-object}
+\title{Set ensemble weights of an ERWNN-object}
 \usage{
 set_weights(object, weights)
 
@@ -18,7 +18,7 @@ set_weights(object, weights)
 An \link{ERWNN-object}.
 }
 \description{
-Manually set ensemble weights for an \link{ERWNN-object}.
+Manually set ensemble weights of an \link{ERWNN-object}.
 }
 \examples{
 \dontrun{

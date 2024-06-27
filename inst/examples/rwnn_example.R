@@ -2,6 +2,11 @@
 n_hidden <- 50
 lambda <- 1
 
+y <- example_data[,1] |> as.matrix()
+x <- example_data[,-1] |> as.matrix()
+rwnn(y ~ x, n_hidden = n_hidden, lambda = lambda)
+
+
 # Regression
 m1 <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
 

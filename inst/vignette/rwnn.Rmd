@@ -43,24 +43,24 @@ Implementations of RWNNs already exist in \proglang{R} through the packages \pkg
 \pkg{RWNN} is a general purpose implementation of RWNNs in \proglang{R} [@R] focusing on both regression and classification problems. The \pkg{RWNN} package allows the user to create an RWNN of any depth, set the number of neurons and activation functions in each layer, choose the sampling distribution of the randomly assigned weights, and choose whether the output weights should be estimated by either Moore-Penrose inversion, $\ell_1$-regularisation, or $\ell_2$-regularisation. RWNN is implemented in C++ through \pkg{Rcpp} and \pkg{RcppArmadillo}; along with the standard RWNN implementation the following variants have also been included:
 
 -   **ELM** (extreme learning machine) [@Huang2006]: A simplified version of an RWNN without a link between the input and output layer (this is also the default behaviour of the RWNN implementation).
--   **deep RWNN** [@Henriquez2018], [@Shi2021]: An RWNN with multiple hidden layers, where the output of each hidden-layer is included as features in the model.
+-   **deep RWNN** [@Henriquez2018, [@Shi2021]: An RWNN with multiple hidden layers, where the output of each hidden-layer is included as features in the model.
 -   **sparse RWNN** [@Zhang2019]: Applies sparse auto-encoder ($\ell_1$ regularised) pre-training to reduce the number non-zero weights between the input and the hidden layer (the implementation generalises this concept to allow for both $\ell_1$ and $\ell_2$ regularisation).
 -   **ensemble deep RWNN** [@Shi2021]: An ensemble extension of deep RWNNs using the output of each hidden layer to create an ensemble of RWNNs, each hidden-layer being used to create a seperate prediction of the target.
 
 Furthermore, the \pkg{RWNN} package also includes general implementations of the following ensemble methods (using RWNNs as base learners):
 
--   **Stacking** [@Wolpert1992], [@Breiman1996a]: Stack multiple randomly generated RWNN's, deep RWNN's, or sparse RWNN's and estimate their contribution to a weighted ensemble using $k$-fold cross-validation.
--   **Bagging** [@Breiman1996b], [@Breiman2001], [@Xin2021]: Bootstrap aggregation of RWNN's, deep RWNN's, or sparse RWNN's creates a number of bootstrap samples, sampled with replacement from the training-set. Furthermore, as in random forest, instead of using all features when training each RWNN, a subset of the features are chosen at random.
--   **Boosting** [@Friedman2001]: The boosting implementation is based on residual boosting using RWNN's, deep RWNN's, or sparse RWNN's as the base learner. 
+-   **Stacking** [@Wolpert1992, @Breiman1996a]: Stack multiple randomly generated RWNN's, deep RWNN's, or sparse RWNN's and estimate their contribution to a weighted ensemble using $k$-fold cross-validation.
+-   **Bagging** [@Breiman1996b, @Breiman2001, @Xin2021]: Bootstrap aggregation of RWNN's, deep RWNN's, or sparse RWNN's creates a number of bootstrap samples, sampled with replacement from the training-set. Furthermore, as in random forest, instead of using all features when training each RWNN, a subset of the features are chosen at random.
+-   **Boosting** [@Friedman2001]: The boosting implementation is based on stochastic residual boosting using RWNN's, deep RWNN's, or sparse RWNN's as the base learner. 
 
-Lastly, in order to improve computational time and memory efficiency, the \pkg{RWNN} package includes the following methods for pruning the number of weights and neurons: 
+Lastly, in order to improve computation and memory efficiency, the \pkg{RWNN} package includes the following methods for pruning the number of weights and neurons:
 
-- **Global magnitude** (weight pruning) [@han2016], [@morcos2019]: Pruning a pre-defined proportion of the weights with lowest magnitude globally across the network. 
-- **Uniform magnitude** (weight pruning) [@han2016], [@morcos2019]: Pruning a pre-defined proportion of the weights with lowest magnitude layer-by-layer. 
-- **LAMP** (weight pruning) [@Lee2021]: 
-- **APoZ pruning** (neuron pruning) [@hu2016]: Pruning a pre-defined proportion of neurons in layers, activated by the ReLU activation function, based on the average proportion of zeros (APoZ).
-- **L2 pruning** (neuron pruning): 
-- **Relief** (weight and neuron pruning) [@Dekhovich2024]: 
+-   **Global magnitude** (weight pruning) [@han2016, @morcos2019]: Pruning a pre-defined proportion of the weights with lowest magnitude globally across the network.
+-   **Uniform magnitude** (weight pruning) [@han2016, @morcos2019]: Pruning a pre-defined proportion of the weights with lowest magnitude layer-by-layer.
+-   **LAMP** (weight pruning) [@Lee2021]: Pruning a pre-defined proportion of the weights with lowest LAMP (layer-adaptive magnitude-based pruning) score globally across the network. The LAMP score is essentially a re-scaled magnitude.
+-   **APoZ** (neuron pruning) [@hu2016]: Pruning a pre-defined proportion of neurons in layers, activated by the ReLU activation function, based on the average proportion of zeros (APoZ).
+-   **Correlation** (neuron pruning): Pruning based on the pair-wise correlations between neurons layer-by-layer. A neuron is removed if its correlation exceeds a pre-defined threshold, or if its correlation is not significantly smaller than this pre-defined threshold.
+-   **Relief** (weight and neuron pruning) [@Dekhovich2024]: Pruning a pre-defined proportion of the weights that, on average, provide only a small contribution to the next layer. 
 
 The remainder of the paper is structured as follows: Section \ref{RWNN} introduces the general idea of RWNNs, this is followed by the method of estimating the output weights, and an outline of each of the implemented RWNN variants. The utility of the \pkg{RWNN} package is shown in Section \ref{EX} applying different RWNN variants to a series of examples. Lastly, a conclusion is found in Section \ref{CON}.
 
@@ -74,24 +74,19 @@ knitr::include_graphics("./Figures/RWNN.pdf")
 
 ## RWNN {#rwnn}
 
-Given a sample of $N$ observations, $\mathcal D = \{(\boldsymbol x_n, y_n)\}_{n = 1}^N$, where $\boldsymbol x_n$ is $p$ dimensional vector of features and $y_n$ is the target, of observation $n$, the output of the $j$'th neuron in the hidden layer is: 
-\begin{equation}
+Given a sample of $N$ observations, $\mathcal D = \{(\boldsymbol x_n, y_n)\}_{n = 1}^N$, where $\boldsymbol x_n$ is $p$ dimensional vector of features and $y_n$ is the target, of observation $n$, the output of the $j$'th neuron in the hidden layer is: \begin{equation}
     h_{nj} = f\left(\sum_{i = 1}^p w_{ij} x_{ni} + w_{0}\right), \label{eq:hidden}
-\end{equation} 
-where $f$ is the activation function, $w_0$ is the bias, and $w_{ij}$ is the weight between the $i$'th feature and the $j$'th neuron. If the hidden-layer contains $J$ neurons, then the vector of features transformed by the hidden layer, denoted $\boldsymbol h_{n}$, can be simplified to: 
-\begin{equation} 
+\end{equation} where $f$ is the activation function, $w_0$ is the bias, and $w_{ij}$ is the weight between the $i$'th feature and the $j$'th neuron. If the hidden-layer contains $J$ neurons, then the vector of features transformed by the hidden layer, denoted $\boldsymbol h_{n}$, can be simplified to: \begin{equation} 
     \boldsymbol h_n = \boldsymbol f\left(W \boldsymbol{x}_n + w_0 \boldsymbol{1}_{J}\right), 
-\end{equation} 
-where $\boldsymbol{1}_{J}$ is a vector of one's of dimension $J$.
+\end{equation} where $\boldsymbol{1}_{J}$ is a vector of one's of dimension $J$.
 
-Assuming the activation in the output-layer is linear, then the expected response of the $n$'th observation is: 
-\begin{equation}
+Assuming the activation in the output-layer is linear, then the expected response of the $n$'th observation is: \begin{equation}
     \hat{y}_n = \boldsymbol d^T_n \boldsymbol \beta,
-\end{equation}
-where $\boldsymbol d_n$ is either the output of the hidden-layer (i.e.\ $\boldsymbol d_n = \boldsymbol h_n$), or the concatenation of input-layer and the output of the hidden-layer (i.e.\ $\boldsymbol d_n = [\boldsymbol h_n^T \; \boldsymbol x_n^T]^T$), dependent on whether the functional link is inactive or active, respectively. Furthermore, in the following, references to the the functional link will be avoided when possible, and the dimension of the features $\boldsymbol d_n$ will simply be denoted $l$.
+\end{equation} where $\boldsymbol d_n$ is either the output of the hidden-layer (i.e.\ $\boldsymbol d_n = \boldsymbol h_n$), or the concatenation of input-layer and the output of the hidden-layer (i.e.\ $\boldsymbol d_n = [\boldsymbol h_n^T \; \boldsymbol x_n^T]^T$), dependent on whether the functional link is inactive or active, respectively. Furthermore, in the following, references to the the functional link will be avoided when possible, and the dimension of the features $\boldsymbol d_n$ will simply be denoted $l$.
 
 The \pkg{RWNN} package allows the user to specify the number of neurons in the hidden-layer, and the activation function among those listed in Table \ref{tab:activation}.
 
+```{=tex}
 \begin{table}[ht!]
 \caption{\label{tab:activation}The name, specification, function, and range for each of the activation functions implemented in the \pkg{RWNN} package.}
 \centering
@@ -113,73 +108,61 @@ Squared RBF & \texttt{sqrbf} & $f(x) = \left\{\begin{array}{ll} 1 - \frac{x^2}{2
 \bottomrule
 \end{tabular}
 \end{table}
+```
 
 Thus, if the weights of the hidden-layer can be assumed to be known, then the expected response of an RWNN is identical to that of a linear model. However, before estimating the weights, it it is necessary to determine the weights of the hidden-layer.
 
 ### Sampling hidden-weights {#HST}
 
-In RWNN's, the standard approach to determining the weights between in input- and hidden-layer(s), is to sample the weights randomly from a uniform distribution limited to an appropriate interval for the activation function used in the hidden-layer. However, as shown by [@Wang2017], using complete random initialisation might not be the best approach when generating these weights, as it tends to require a large number of neurons in the hidden-layer for the RWNN to have generalisability. Therefore, they introduced two alternatives to the random initialisation: quasi-random numbers, and random orthogonal projections. The three methods have all been implemented in the \pkg{RWNN} package, and are outlined below: 
+In RWNN's, the standard approach to determining the weights between in input- and hidden-layer(s), is to sample the weights randomly from a uniform distribution limited to an appropriate interval for the activation function used in the hidden-layer. However, as shown by [@Wang2017], using complete random initialisation might not be the best approach when generating these weights, as it tends to require a large number of neurons in the hidden-layer for the RWNN to have generalisability. Therefore, they introduced two alternatives to the random initialisation: quasi-random numbers, and random orthogonal projections. The three methods have all been implemented in the \pkg{RWNN} package, and are outlined below:
 
--   **Random initialisation**: The weights between the input- and hidden-layer, $w_{ij}$, are sampled independently from the same distribution, $\mathcal D(\theta)$. The \pkg{RWNN} package is set-up to facilitate the use of any (including user defined) distribution to sample these weights. However, if nothing is specified, it defaults to a uniform distribution on the interval $[-1;1]$, i.e.\ $w_{ij}\sim\mathcal U([-1;1])$ for all $i$ and $j$. 
+-   **Random initialisation**: The weights between the input- and hidden-layer, $w_{ij}$, are sampled independently from the same distribution, $\mathcal D(\theta)$. The \pkg{RWNN} package is set-up to facilitate the use of any (including user defined) distribution to sample these weights. However, if nothing is specified, it defaults to a uniform distribution on the interval $[-1;1]$, i.e.\ $w_{ij}\sim\mathcal U([-1;1])$ for all $i$ and $j$.
 -   **Quasi-random initialisation**: Quasi-random numbers have the distinct advantage, when compared to *true* random numbers, that they will cover the domain of interest faster and more evenly. Thus, when using quasi-random numbers, the space can be more effectively explored, leading to a higher performance using less neurons in the hidden-layer. The \pkg{RWNN} package allows for the use of Halton and Sobol' sequences to generate quasi-random numbers by using the \proglang{R} package: \pkg{randtoolbox} [@randtoolbox]. If nothing is specified, it defaults to creating quasi-random numbers on the cube $[-1;1] \times [-1;1]$.
 -   **Random orthogonal initialisation** (default): The idea is similar to that of random initialisation, but instead of using the randomly initialized weights directly, it uses an orthonormal basis of the sampled weights. The method used in the \pkg{RWNN} package corresponds to Algorithm 1 of [@Wang2017].
 
 ### Estimating output-weights {#EST}
 
-Given a matrix of features, $D$, (i.e. a matrix where the $n$'th row contains $\boldsymbol d_n^T$) and a vector containing the targets, $\boldsymbol y$, the output-weights $\boldsymbol \beta$ can be found by minimising sum-of-squared errors (SSE): 
-\begin{equation}
+Given a matrix of features, $D$, (i.e. a matrix where the $n$'th row contains $\boldsymbol d_n^T$) and a vector containing the targets, $\boldsymbol y$, the output-weights $\boldsymbol \beta$ can be found by minimising sum-of-squared errors (SSE): \begin{equation}
     \hat{\boldsymbol{\beta}} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2\Big\}. \label{eq:ssq}
 \end{equation}
 
-In cases where $N > l$, the solution to this system of equations can be found by the normal equation, as: 
-\begin{equation}
+In cases where $N > l$, the solution to this system of equations can be found by the normal equation, as: \begin{equation}
     \hat{\boldsymbol{\beta}}^{(ols)} = (D^T D)^{-1}D^T\boldsymbol{y}. \label{eq:ols}
 \end{equation}
 
 However, when the number of columns of $D$ is bigger than the number of observations (i.e. $l >> N$), this optimisation problem becomes ill-posed. In such cases, the two most common approaches, to estimating the output-weights, are Moore-Penrose pseudoinverse and regularisation.
 
-Using Moore-Penrose pseudoinverse [@BjerhammarInv, @PenroseInv], $D^+$, the solution to the optimisation problem is given by:
-\begin{equation}
+Using Moore-Penrose pseudoinverse [@BjerhammarInv, @PenroseInv], $D^+$, the solution to the optimisation problem is given by: \begin{equation}
     \hat{\boldsymbol \beta}^{(pseudo)} = D^+ \boldsymbol y.
 \end{equation}
 
-Regularisation of the SSE, seen in Eq. \eqref{eq:ssq}, is achieved by penalising the size of the output-weights. This penalisation is usually performed using either the $\ell_1$ or $\ell_2$-norm, creating the following optimisation problem: 
-\begin{equation}
+Regularisation of the SSE, seen in Eq. \eqref{eq:ssq}, is achieved by penalising the size of the output-weights. This penalisation is usually performed using either the $\ell_1$ or $\ell_2$-norm, creating the following optimisation problem: \begin{equation}
     \hat{\boldsymbol{\beta}}^{(reg)} = \underset{\boldsymbol{\beta}}{\text{argmin}} \Big\{ || \boldsymbol{y} - D\boldsymbol{\beta}||_2^2  + \lambda||\boldsymbol{\beta}||_q^q \Big\}, \label{eq:rsse}
-\end{equation} 
-where $q \in \{1, 2\}$, and $\lambda$ is a penalisation constant. The penalisation constant should be chosen such that it minimises the out-of-sample error (using e.g. $k$-fold cross-validation during the training process).
+\end{equation} where $q \in \{1, 2\}$, and $\lambda$ is a penalisation constant. The penalisation constant should be chosen such that it minimises the out-of-sample error (using e.g. $k$-fold cross-validation during the training process).
 
-Estimating of the weights differs slightly dependent on the choice of $q$: 
+Estimating of the weights differs slightly dependent on the choice of $q$:
 
--   \underline{$\boldsymbol{q = 1}$}:\newline 
-The optimisation problem in Eq. \eqref{eq:rsse} is equivalent to performing lasso-regression [@SanLasso], [@TibLasso]. Unlike ridge-regression ($q = 2$) it is not possible to find a closed form solution to the optimisation problem and, thereby, the lasso estimated output-weights, $\hat{\boldsymbol{\beta}}^{(lasso)}$. However, it has been shown by [@CoordLasso], that $\hat{\boldsymbol{\beta}}^{(lasso)}$ can be found using coordinate descent.
+-   \underline{$\boldsymbol{q = 1}$}:\newline  The optimisation problem in Eq. \eqref{eq:rsse} is equivalent to performing lasso-regression [@SanLasso, @TibLasso]. Unlike ridge-regression ($q = 2$) it is not possible to find a closed form solution to the optimisation problem and, thereby, the lasso estimated output-weights, $\hat{\boldsymbol{\beta}}^{(lasso)}$. However, it has been shown that $\hat{\boldsymbol{\beta}}^{(lasso)}$ can be found using coordinate descent [@CoordLasso].
 
--   \underline{$\boldsymbol{q = 2}$}:\newline 
-The optimisation problem in Eq. \eqref{eq:rsse} is equivalent to performing ridge-regression on the concatenated features, instead of the input features, and the solution can be found as [@ridgeReg]: 
-\begin{equation}
+-   \underline{$\boldsymbol{q = 2}$}:\newline  The optimisation problem in Eq. \eqref{eq:rsse} is equivalent to performing ridge-regression on the concatenated features, instead of the input features, and the solution can be found as [@ridgeReg]: \begin{equation}
     \hat{\boldsymbol \beta}^{(ridge)} = \left(D^TD + \lambda I_{l}\right)^{-1}D^T\boldsymbol y,
-\end{equation} 
-where $I_{l}$ is the identity matrix of size $l$.
+    \end{equation} where $I_{l}$ is the identity matrix of size $l$.
 
 ## Deep RWNN {#deepRWNN}
 
-Extending FFNN's from a single hidden-layer to $K$ hidden-layers will barely change the governing equation of each neuron; assuming $h_{ni}^{(0)}$ is the $i$'th feature $x_{ni}$ and that the number of neurons in the $k$'th layer is $J^{(k)}$, then the output of the $j$'th neuron in the $k$'th layer for the $n$'th observation, is given by: 
-\begin{equation}
+Extending FFNN's from a single hidden-layer to $K$ hidden-layers will barely change the governing equation of each neuron; assuming $h_{ni}^{(0)}$ is the $i$'th feature $x_{ni}$ and that the number of neurons in the $k$'th layer is $J^{(k)}$, then the output of the $j$'th neuron in the $k$'th layer for the $n$'th observation, is given by: \begin{equation}
     h_{nj}^{(k)} = f^{(k)}\left(\sum_{i = 1}^{J^{(k - 1)}} w^{(k)}_{ij} h_{ni}^{(k - 1)} + w^{(k)}_{0}\right), \label{eq:hidden2} 
-\end{equation} 
-where $f^{(k)}$ is the activation function, $w^{(k)}_0$ is the bias, and $w^{(k)}_{ij}$ is the weight between the $i$'th neuron and the $j$'th neuron in the $k$'th layer for $k = 1, ..., K$. Using vector notation this is simplified to:
-\begin{equation}
+\end{equation} where $f^{(k)}$ is the activation function, $w^{(k)}_0$ is the bias, and $w^{(k)}_{ij}$ is the weight between the $i$'th neuron and the $j$'th neuron in the $k$'th layer for $k = 1, ..., K$. Using vector notation this is simplified to: \begin{equation}
     \boldsymbol h_n^{(k)} = \boldsymbol f^{(k)}\left(W^{(k)} \boldsymbol{h}^{(k)} + w^{(k)}_0 \boldsymbol{1}_{k}\right),
-\end{equation} 
-where $\boldsymbol{1}_k$ is a vector of one's of dimension $J^{k}$.
+\end{equation} where $\boldsymbol{1}_k$ is a vector of one's of dimension $J^{k}$.
 
-Using deep FFNN's as starting point, when creating deep RWNN's two approaches can be taken to predicting the target: (1) use the output of just the last hidden-layer, or (2) concatenate the outputs of all $K$ hidden-layers. The graphical interpretation of the difference between the two approaches can be seen on the left and right-hand sides of Figure \ref{fig:deeprwnn}, respectively.
+However, when extending RWNN's to multiple hidden layers, two approaches can be taken to predicting the target: (1) use the output of just the last hidden-layer, or (2) concatenate the outputs of all $K$ hidden-layers. The graphical interpretation of the difference between the two approaches can be seen on the left and right-hand sides of Figure \ref{fig:deeprwnn}, respectively.
 
-```{r deeprwnn, fig.show = "hold", fig.pos = "ht!", out.width = "45%", fig.align='center', include = TRUE, fig.cap=c("Graph representation of a deep random weight neural network (RWNN) with functional link between the input-layer, intermediate hidden-layers, and the output-layer."), echo = FALSE}
+```{r deeprwnn, fig.show = "hold", fig.pos = "ht!", out.width = "49%", fig.align='center', include = TRUE, fig.cap=c("Graph representation of a deep random weight neural network (RWNN) with functional link between the input-layer, intermediate hidden-layers, and the output-layer."), echo = FALSE}
 knitr::include_graphics(c("./Figures/deepRWNN.pdf", "./Figures/deepRWNNalt.pdf"))
 ```
 
-The two structures depicted in Figure \ref{fig:deeprwnn}, yields four options when constructing a deep RWNN: 
+The two structures depicted in Figure \ref{fig:deeprwnn}, yields four options when constructing a deep RWNN:
 
 -   $\boldsymbol{d}_n = \boldsymbol h_n^{(K)}$
 
@@ -189,7 +172,7 @@ The two structures depicted in Figure \ref{fig:deeprwnn}, yields four options wh
 
 -   $\boldsymbol{d}_n = [(\boldsymbol h_n^{(1)})^T \; (\boldsymbol h_n^{(2)})^T \; \cdots \; (\boldsymbol h_n^{(K)})^T \; \boldsymbol x_n^T]^T$
 
-Given a matrix $D$, with its $n$'th row corresponding to $\boldsymbol{d}_n$, it follows that estimating the output-weights of a deep RWNN is equivalent to that of the RWNN using only a single hidden-layer. 
+Given a matrix $D$, with its $n$'th row corresponding to $\boldsymbol{d}_n$, it follows that estimating the output-weights of a deep RWNN is equivalent to that of the RWNN using only a single hidden-layer.
 
 Like the estimation process, sampling the hidden weights is similar to that of RWNN's with a single hidden-layer. However, while the random and random orthogonal initialisation methods can be performed independently on a layer-by-layer basis, the quasi-random initialisation has to continue its quasi-random sequence layer-to-layer (i.e.\ the sequence is not reset between layers).
 
@@ -197,14 +180,19 @@ The \pkg{RWNN} package allows the user to specify the number of neurons and the 
 
 ## Sparse RWNN
 
+While it has been shown that the theoretical properties of RWNNs are similar to FFNNs, due to the random nature of their construction, they typically require (a lot) more neurons to achieve similar results. That is, RWNNs tend to be more inefficient than FFNNs. Therefore, a common approach, when constructing RWNNs, is to create very large networks and then reduce them in size. This size reduction can occur either before, or after, the output parameters are trained. The \pkg{RWNN} package implements two types of reduction: pre-training and network pruning.
 
-### Pre-trained using an auto-encoder
+### Pre-training
 
-### Pruning using magnitude
 
-### Pruning using Fisher information
 
-### Pruning using mutual information
+### Network pruning 
+-   **Global magnitude**: 
+-   **Uniform magnitude**: 
+-   **LAMP**: 
+-   **APoZ**:
+-   **Correlation**:
+-   **Relief**: 
 
 ## Ensemble methods
 

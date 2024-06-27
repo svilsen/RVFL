@@ -84,7 +84,6 @@ expect_error(rwnn(y ~ ., data = data, c("10", 10), lambda), "Not all elements of
 
 #
 expect_error(rwnn(z ~ e, data = NULL, n_hidden = n_hidden, lambda = 0.1), "'data' needs to be supplied when using 'formula'.")
-expect_warning(rwnn(y ~ X, n_hidden = n_hidden, lambda = 0.1), "'data' was supplied through the formula interface, not a 'data.frame', therefore, the columns of the feature matrix and the response may have been renamed.")
 
 #
 expect_warning(rwnn(I(round(y)) ~ ., data = data, n_hidden = n_hidden, lambda = 0.1), "The response consists of only integers, is this a classification problem?")

@@ -90,7 +90,7 @@ random_orthonormal <- function(w, nr_rows, X, W_hidden, n_hidden, activation, bi
 predict.RWNN <- function(object, ...) {
     dots <- list(...)
     
-    if (is.null(dots$newdata)) {
+    if (any(is.null(dots$newdata))) {
         if (is.null(object$data)) {
             stop("The RWNN-object does not contain any data. Use the 'newdata' argument, or re-create 'RWNN-object' setting 'include_data = TRUE' (default).")
         }
@@ -354,9 +354,9 @@ classify <- function(y, C, t = NULL, b = NULL) {
 }
 
 #### ----
-#' @title Set ensemble weights for an ERWNN-object
+#' @title Set ensemble weights of an ERWNN-object
 #' 
-#' @description Manually set ensemble weights for an \link{ERWNN-object}.
+#' @description Manually set ensemble weights of an \link{ERWNN-object}.
 #' 
 #' @param object An \link{ERWNN-object}.
 #' @param weights A vector of ensemble weights.
@@ -388,5 +388,48 @@ set_weights.ERWNN <- function(object, weights) {
     }
     
     object$weights <- weights
+    return(object)
+}
+
+#### ----
+#' @title Estimate ensemble weights of an ERWNN-object
+#' 
+#' @description Estimate ensemble weights of an \link{ERWNN-object}.
+#' 
+#' @param object An \link{ERWNN-object}.
+#' @param data_val A data.frame or tibble containing the validation-set.
+#' 
+#' @return An \link{ERWNN-object}.
+#' 
+#' @export
+estimate_weights <- function(object, data_val = NULL) {
+    UseMethod("estimate_weights")
+}
+
+#' @rdname estimate_weights
+#' @method estimate_weights ERWNN
+#' 
+#' @example inst/examples/ew_example.R
+#'
+#' @export
+estimate_weights.ERWNN <- function(object, data_val = NULL) {
+    if (is.null(data_val)) {
+        warning("The validation-set was not properly specified, therefore, the training-set is used for weight estimation.")
+        
+        X_val <- object$data$X
+        y_val <- object$data$y
+    }
+    else {
+        X_val <- data_val[, all.vars(mm$formula)[-1], drop = FALSE]
+        y_val <- data_val[, all.vars(mm$formula)[1], drop = FALSE]
+    }
+    
+    B <- length(object$models)
+    C <- predict(object, newdata = X_val, type = "all")
+    C <- do.call("cbind", C)
+
+    y <- y_val |> as.matrix()
+    
+    object$weights <- estimate_weights_stack(C = C, b = y, B = B)
     return(object)
 }
