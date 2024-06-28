@@ -14,16 +14,16 @@ Furthermore, the `RWNN` package also includes general implementations of the fol
 
 -   **Stacking**: Stack multiple randomly generated RWNNs, deep RWNNs, or sparse RWNNs and estimate their contribution to a weighted ensemble using $k$-fold cross-validation.
 -   **Bagging**: Bootstrap aggregation of RWNNs, deep RWNNs, or sparse RWNNs creates a number of bootstrap samples, sampled with replacement from the training-set. Furthermore, as in random forest, instead of using all features when training each RWNN, a subset of the features are chosen at random.
--   **Boosting**: The boosting implementation is based on residual boosting using RWNNs, deep RWNNs, or sparse RWNNs as the base learner. 
+-   **Boosting**: The boosting implementation is based on stochastic gradient boosting using RWNN's, deep RWNN's, or sparse RWNN's as the base learner. 
 
 Lastly, in order to improve computational time and memory efficiency, the `RWNN` package includes the following methods for pruning the number of weights and neurons: 
 
-- **Global magnitude** (weight pruning): Pruning a pre-defined proportion of the weights with lowest magnitude globally across the network. 
-- **Uniform magnitude** (weight pruning): Pruning a pre-defined proportion of the weights with lowest magnitude layer-by-layer. 
-- **LAMP** (weight pruning): Uses ``LAMP'' scores to prune a pre-defined proportion of weights.
-- **APoZ pruning** (neuron pruning): Pruning a pre-defined proportion of neurons in each layer, activated by the ReLU activation function, based on the average proportion of zeros (APoZ).
-- **L2 pruning** (neuron pruning): Pruning a pre-defined proportion of neurons in each layer based on the L2-norm of the neurons output.  
-- **Relief** (weight and neuron pruning): Uses ``relief'' scores to prune a pre-defined proportion of weights or neurons.
+-   **Global magnitude** (weight pruning): Pruning a pre-defined proportion of the weights with lowest magnitude globally across the network.
+-   **Uniform magnitude** (weight pruning): Pruning a pre-defined proportion of the weights with lowest magnitude layer-by-layer.
+-   **LAMP** (weight pruning): Pruning a pre-defined proportion of the weights with lowest LAMP (layer-adaptive magnitude-based pruning) score globally across the network. The LAMP score is essentially a re-scaled magnitude.
+-   **APoZ** (neuron pruning): Pruning a pre-defined proportion of neurons in layers, activated by the ReLU activation function, based on the average proportion of zeros (APoZ).
+-   **Correlation** (neuron pruning): Pruning based on the pair-wise correlations between neurons layer-by-layer. A neuron is removed if its correlation exceeds a pre-defined threshold, or if its correlation is not significantly smaller than this pre-defined threshold.
+-   **Relief** (weight and neuron pruning): Pruning a pre-defined proportion of the weights that, on average, provide only a small contribution to the next layer. 
 
 # Installation
 
@@ -41,7 +41,7 @@ devtools::install_github("svilsen/RWNN")
 ```
 
 # Usage
-In the following the data is randomly generated and split into training and validation sets. After which, three models are fitted: (1) #a simple RWNN, (2) a bagged RWNN with equal weighting, and (3) a bagged RWNN where the ensemble weights are optimised using the validation set.
+In the following the data is randomly generated and split into training and validation sets. After which a few models are fitted, reduced, and compared.
 
 ```r
 ##
