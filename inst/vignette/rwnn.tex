@@ -189,7 +189,7 @@ learners):
   a subset of the features are chosen at random.
 \item
   \textbf{Boosting} \citep{Friedman2001}: The boosting implementation is
-  based on stochastic residual boosting using RWNN's, deep RWNN's, or
+  based on stochastic gradient boosting using RWNN's, deep RWNN's, or
   sparse RWNN's as the base learner.
 \end{itemize}
 
@@ -499,18 +499,14 @@ third option).
 \subsection{Sparse RWNN}\label{sparse-rwnn}}
 
 While it has been shown that the theoretical properties of RWNNs are
-similar to FFNNs, due to the random nature of their construction, they
-typically require (a lot) more neurons to achieve similar results. That
-is, RWNNs tend to be more inefficient than FFNNs. Therefore, a common
-approach, when constructing RWNNs, is to create very large networks and
-then reduce them in size. This size reduction can occur either before,
-or after, the output parameters are trained. The \pkg{RWNN} package
-implements two types of reduction: pre-training using auto-encoders and
-network pruning.
+similar to FFNNs, due to the randomness involved in their construction,
+they typically more inefficient than FFNNs, i.e.~their tend to require
+more neurons to achieve similar results. In an effort to construct more
+efficient RWNNs, the \pkg{RWNN} package implements two types of size
+reduction: pre-training and network pruning.
 
-\hypertarget{pre-trained-using-an-auto-encoder}{%
-\subsubsection{Pre-trained using an
-auto-encoder}\label{pre-trained-using-an-auto-encoder}}
+\hypertarget{pre-training}{%
+\subsubsection{Pre-training}\label{pre-training}}
 
 \hypertarget{network-pruning}{%
 \subsubsection{Network pruning}\label{network-pruning}}

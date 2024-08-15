@@ -102,6 +102,74 @@ rmse <- function(m, data_val) {
 
 ```
 
+Hyper-parameters can be optimised by the `caret` package using their generic interface. The following is an example optimising the hyper-parameters of a boosted RWNN. 
+```r
+library("caret")
+
+lp_boostrwnn <- list(
+    type = "Regression",
+    library = "RWNN",
+    parameters = list(
+        parameter = c("n_hidden", "lambda1", "lambda2", "B", "epsilon"),
+        class = c("numeric", "numeric", "numeric", "numeric", "numeric"),
+        label = c("n_hidden", "lambda1", "lambda2", "B", "epsilon")
+    ),
+    grid = function(x, y, len = NULL, search = "grid") {
+        if (search == "grid") {
+            out <- expand.grid(
+                n_hidden = 10 * seq_len(len),
+                lambda1 = 10^seq(-1, -len), 
+                lambda2 = 10^seq(-1, -len),
+                B = round(10^seq(0, len - 1)),
+                epsilon = 10^seq(-1, -len)
+            )
+        } 
+        
+        return(out)
+    },
+    fit = function(x, y, wts, param, lev, last, weights, classProbs, ...) {
+        RWNN::boost_rwnn(
+            y ~ x, 
+            n_hidden = param$n_hidden,
+            lambda = c(param$lambda1, param$lambda2), 
+            B = param$B, 
+            epsilon = param$epsilon, 
+            method = "l1", 
+            type = "regression",
+            ...
+        )
+    },
+    predict = function(modelFit, newdata, preProc = NULL, submodels = NULL) {
+        predict(object = modelFit, newdata = newdata) 
+    }, 
+    prob = NULL, 
+    sort = NULL
+)
+
+in_train <- createDataPartition(example_data$y, p = .75, list = FALSE)
+data_train <- example_data[ in_train, ]
+data_test  <- example_data[-in_train, ]
+
+fit_control <- trainControl(
+    method = "cv",
+    number = 5,
+    allowParallel = TRUE,
+    verboseIter = TRUE
+)
+
+optimal_boost_rwnn <- train(
+    y ~ ., 
+    data = data_train, 
+    method = lp_boostrwnn, 
+    preProc = c("center", "scale"),
+    tuneLength = 3,
+    trControl = fit_control
+)
+
+
+plot(optimal_boost_rwnn)
+```
+
 ## License
 
 This project is licensed under the MIT License.

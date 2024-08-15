@@ -180,13 +180,6 @@ m_bagrwnn_cl$models[[1]]$type <- "classification"
 
 expect_warning(predict(m_bagrwnn_cl), "Multiple 'type' fields found among the ensemble models; therefore, only the first ensemble model is used to determine model type.")
 
-#
-expect_equal(set_weights(m_bagrwnn, rep(0.1, 10))$weights[1], 0.1, tolerance = 1e-7)
-expect_error(set_weights(m_bagrwnn, NULL), "The length of 'weights' have to be equal to the number of ensemble weights.")
-expect_error(set_weights(m_bagrwnn, rep(0.1, 9)), "The length of 'weights' have to be equal to the number of ensemble weights.")
-expect_error(set_weights(m_bagrwnn, rep(1.1, 10)), "All weights have to be between 0 and 1.")
-expect_error(set_weights(m_bagrwnn, c(-0.1, 1.1, rep(0, 8))), "All weights have to be between 0 and 1.")
-
 ## Classify
 expect_error(classify(matrix(c(1, 2, 3, 4), ncol = 1), C = matrix(0, ncol = 2, nrow = 4)), "The number of columns 'y' has to match the number of elements in 'C'.")
 

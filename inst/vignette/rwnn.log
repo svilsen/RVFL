@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.15)  14 JUN 2024 13:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.3.15)  1 JUL 2024 11:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1166,23 +1166,23 @@ Overfull \hbox (10.94998pt too wide) has occurred while \output is active
 
 [10])
 
-Package xcolor Warning: Incompatible color definition on input line 560.
+Package xcolor Warning: Incompatible color definition on input line 556.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 560--560
+Underfull \hbox (badness 10000) in paragraph at lines 556--556
 
  []
 
 LaTeX Font Info:    Font shape `T1/pzc/m/n' in size <13> not available
-(Font)              Font shape `T1/pzc/m/it' tried instead on input line 560.
+(Font)              Font shape `T1/pzc/m/it' tried instead on input line 556.
 
-Package xcolor Warning: Incompatible color definition on input line 560.
-
-
-Package xcolor Warning: Incompatible color definition on input line 560.
+Package xcolor Warning: Incompatible color definition on input line 556.
 
 
-Package xcolor Warning: Incompatible color definition on input line 560.
+Package xcolor Warning: Incompatible color definition on input line 556.
+
+
+Package xcolor Warning: Incompatible color definition on input line 556.
 
 
 Overfull \hbox (10.94998pt too wide) has occurred while \output is active
@@ -1191,11 +1191,11 @@ Overfull \hbox (10.94998pt too wide) has occurred while \output is active
 
 [11] (./rwnn.aux)
 Package rerunfilecheck Info: File `rwnn.out' has not changed.
-(rerunfilecheck)             Checksum: E345B0976C274C0FCCEBA9A859282680;2701.
+(rerunfilecheck)             Checksum: 085B7604FF8A14170333A2F0DC68B262;2566.
  ) 
 Here is how much of TeX's memory you used:
  23156 strings out of 478287
- 430125 string characters out of 5849289
+ 430032 string characters out of 5849289
  701611 words of memory out of 5000000
  40787 multiletter control sequences out of 15000+600000
  568894 words of font info for 84 fonts, out of 8000000 for 9000
@@ -1220,7 +1220,7 @@ nts/type1/public/lm/lmssbx10.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10
 .pfb></usr/share/texmf/fonts/type1/public/lm/lmsy6.pfb></usr/share/texmf/fonts/
 type1/public/lm/lmsy8.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></
 usr/share/texlive/texmf-dist/fonts/type1/urw/zapfchan/uzcmi8a.pfb>
-Output written on rwnn.pdf (11 pages, 494970 bytes).
+Output written on rwnn.pdf (11 pages, 494691 bytes).
 PDF statistics:
  538 PDF objects out of 1000 (max. 8388607)
  447 compressed objects within 5 object streams
