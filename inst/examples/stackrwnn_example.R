@@ -1,4 +1,4 @@
-n_hidden <- c(10, 2)
+n_hidden <- c(20, 15, 10, 5)
 lambda <- 0.01
 B <- 100
 

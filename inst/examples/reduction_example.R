@@ -1,7 +1,10 @@
-## RWNN
+## RWNN-object
+n_hidden <- c(10, 15)
+lambda <- 2
+
 \dontrun{
-m <- rwnn(y ~ ., data = example_data, n_hidden = c(10, 15), 
-          lambda = 2, control = list(lnorm = "l2"))
+m <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, 
+          lambda = lambda, control = list(lnorm = "l2"))
 
 m |> 
     reduce_network(method = "relief", p = 0.2, type = "neuron") |> 
@@ -26,10 +29,14 @@ m |>
     (\(x) x$Weights)()
 }
 
-## ERWNN (reduction is performed element-wise on each RWNN)
+## ERWNN-object (reduction is performed element-wise on each RWNN)
+n_hidden <- c(10, 15)
+lambda <- 2
+B <- 100
+
 \dontrun{
-m <- bag_rwnn(y ~ ., data = example_data, n_hidden = c(10, 15), 
-              lambda = 2, B = 100, control = list(lnorm = "l2"))
+m <- bag_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, 
+              lambda = lambda, B = B, control = list(lnorm = "l2"))
 
 m |> 
     reduce_network(method = "relief", p = 0.2, type = "neuron") |> 
