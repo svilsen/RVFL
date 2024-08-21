@@ -2,23 +2,41 @@
 % Please edit documentation in R/ae_rwnn.R
 \name{ae_rwnn}
 \alias{ae_rwnn}
-\alias{ae_rwnn.default}
+\alias{ae_rwnn.formula}
 \title{Auto-encoder pre-trained random weight neural networks}
 \usage{
-ae_rwnn(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
+ae_rwnn(
+  formula,
+  data = NULL,
+  n_hidden = c(),
+  lambda = NULL,
+  method = "l1",
+  type = NULL,
+  control = list()
+)
 
-\method{ae_rwnn}{default}(X, y, N_hidden = c(), lambda = NULL, method = "l1", control = list())
+\method{ae_rwnn}{formula}(
+  formula,
+  data = NULL,
+  n_hidden = c(),
+  lambda = NULL,
+  method = "l1",
+  type = NULL,
+  control = list()
+)
 }
 \arguments{
-\item{X}{A matrix of observed features used to train the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output-layer.}
 
-\item{y}{A vector of observed targets used to train the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output-layer.}
 
-\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+\item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden-layers (the length of the list is taken as the number of hidden-layers).}
 
-\item{lambda}{The penalisation constant used when training the output layer.}
+\item{lambda}{A vector of two penalisation constants used when encoding the hidden-weights and training the output-weights, respectively.}
 
-\item{method}{The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).}
+\item{method}{The penalisation type used for the auto-encoder (either \code{"l1"} or \code{"l2"}).}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }
@@ -29,25 +47,20 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 }
 \examples{
-N <- 2000
-p <- 5
-
-s <- seq(0, pi, length.out = N)
-X <- matrix(NA, ncol = p, nrow = N)
-X[, 1] <- sin(s)
-X[, 2] <- cos(s)
-X[, 3] <- s
-X[, 4] <- s^2
-X[, 5] <- s^3
-
-beta <- matrix(rnorm(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(N, 0, 1)
-
-N_hidden <- 10
+n_hidden <- c(20, 15, 10, 5)
+lambda <- c(2, 0.01)
 
 ## Using L1-norm in the auto-encoder (sparse solution)
-ae_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l1")
+\dontrun{
+m <- ae_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, method = "l1")
+}
 
-## Using L2-norm in the auto-encoder (non-sparse solution)
-ae_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2, method = "l2")
+## Using L2-norm in the auto-encoder (dense solution)
+\dontrun{
+m <- ae_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, method = "l2")
+}
+
+}
+\references{
+Zhang Y., Wu J., Cai Z., Du B., Yu P.S. (2019) "An unsupervised parameter learning model for RVFL neural network." \emph{Neural Networks}, 112, 85-97.
 }

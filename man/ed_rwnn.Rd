@@ -2,21 +2,41 @@
 % Please edit documentation in R/ed_rwnn.R
 \name{ed_rwnn}
 \alias{ed_rwnn}
-\alias{ed_rwnn.default}
+\alias{ed_rwnn.formula}
 \title{Ensemble deep random weight neural networks}
 \usage{
-ed_rwnn(X, y, N_hidden, lambda = 0, control = list())
+ed_rwnn(
+  formula,
+  data = NULL,
+  n_hidden,
+  lambda = 0,
+  method = NULL,
+  type = NULL,
+  control = list()
+)
 
-\method{ed_rwnn}{default}(X, y, N_hidden, lambda = 0, control = list())
+\method{ed_rwnn}{formula}(
+  formula,
+  data = NULL,
+  n_hidden,
+  lambda = 0,
+  method = NULL,
+  type = NULL,
+  control = list()
+)
 }
 \arguments{
-\item{X}{A matrix of observed features used to estimate the parameters of the output layer.}
+\item{formula}{A \link{formula} specifying features and targets used to estimate the parameters of the output layer.}
 
-\item{y}{A vector of observed targets used to estimate the parameters of the output layer.}
+\item{data}{A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.}
 
-\item{N_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
+\item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
+\item{lambda}{The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).}
+
+\item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.}
+
+\item{type}{A string indicating whether this is a regression or classification problem.}
 
 \item{control}{A list of additional arguments passed to the \link{control_rwnn} function.}
 }
@@ -27,20 +47,14 @@ An \link{ERWNN-object}.
 Use multiple layers to create deep ensemble random weight neural network models.
 }
 \examples{
-N <- 2000
-p <- 5
+n_hidden <- c(20, 15, 10, 5)
+lambda <- 0.01
 
-s <- seq(0, pi, length.out = N)
-X <- matrix(NA, ncol = p, nrow = N)
-X[, 1] <- sin(s)
-X[, 2] <- cos(s)
-X[, 3] <- s
-X[, 4] <- s^2
-X[, 5] <- s^3
-
-beta <- matrix(rnorm(p), ncol = 1) 
-y <- X \%*\% beta + rnorm(N, 0, 1)
-
-N_hidden <- rep(10, 15)
-ed_rwnn(X = X, y = y, N_hidden = N_hidden, lambda = 0.2)
+#
+\dontrun{
+m <- ed_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
+}
+}
+\references{
+Shi Q., Katuwal R., Suganthan P., Tanveer M. (2021) "Random vector functional link neural network based ensemble deep learning." \emph{Pattern Recognition}, 117, 107978.
 }

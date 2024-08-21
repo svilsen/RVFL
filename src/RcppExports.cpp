@@ -11,14 +11,40 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// importance_score
+arma::mat importance_score(const arma::mat& X, const arma::mat& W);
+RcppExport SEXP _RWNN_importance_score(SEXP XSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(importance_score(X, W));
+    return rcpp_result_gen;
+END_RCPP
+}
+// classify_cpp
+std::vector<std::string> classify_cpp(const arma::mat& y, const std::vector<std::string>& C, const double& t, const double& b);
+RcppExport SEXP _RWNN_classify_cpp(SEXP ySEXP, SEXP CSEXP, SEXP tSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const double& >::type t(tSEXP);
+    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(classify_cpp(y, C, t, b));
+    return rcpp_result_gen;
+END_RCPP
+}
 // estimate_output_weights
-Rcpp::List estimate_output_weights(const arma::mat& O, const arma::colvec& y, const std::string& lnorm, const double& lambda);
+Rcpp::List estimate_output_weights(const arma::mat& O, const arma::mat& y, const std::string& lnorm, const double& lambda);
 RcppExport SEXP _RWNN_estimate_output_weights(SEXP OSEXP, SEXP ySEXP, SEXP lnormSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type O(OSEXP);
-    Rcpp::traits::input_parameter< const arma::colvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const std::string& >::type lnorm(lnormSEXP);
     Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
     rcpp_result_gen = Rcpp::wrap(estimate_output_weights(O, y, lnorm, lambda));
@@ -41,6 +67,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_RWNN_importance_score", (DL_FUNC) &_RWNN_importance_score, 2},
+    {"_RWNN_classify_cpp", (DL_FUNC) &_RWNN_classify_cpp, 4},
     {"_RWNN_estimate_output_weights", (DL_FUNC) &_RWNN_estimate_output_weights, 4},
     {"_RWNN_rwnn_forward", (DL_FUNC) &_RWNN_rwnn_forward, 4},
     {NULL, NULL, 0}

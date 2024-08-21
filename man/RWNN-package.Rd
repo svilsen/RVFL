@@ -2,11 +2,13 @@
 % Please edit documentation in R/RWNN-package.R
 \docType{package}
 \name{RWNN-package}
+\alias{RWNN}
 \alias{RWNN-package}
 \title{RWNN: Random Weight Neural Networks}
 \description{
-Creation, estimation, and prediction of random weight neural networks (RWNN), including popular variants like extreme learning machines (ELM), sparse RWNN (spRWNN), and deep RWNN (dRWNN). It further allows for the creation of ensemble RWNNs like bagging RWNN (bagRWNN), boosting RWNN (boostRWNN), stacking RWNN (stackRWNN), and ensemble deep RWNN (edRWNN).
+Creation, estimation, and prediction of random weight neural networks (RWNN), including popular variants like extreme learning machines (ELM), sparse RWNN, and deep RWNN. It further allows for the creation of ensemble RWNNs like bagging RWNN, boosting RWNN, stacking RWNN, and ensemble deep RWNN (edRWNN).
 }
 \author{
 Søren B. Vilsen <svilsen@math.aau.dk>
 }
+\keyword{internal}

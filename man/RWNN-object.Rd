@@ -7,12 +7,14 @@
 An RWNN-object is a list containing the following:
 \describe{
     \item{\code{data}}{The original data used to estimate the weights.}
-    \item{\code{N_hidden}}{The vector of neurons in each layer.}
+    \item{\code{n_hidden}}{The vector of neurons in each layer.}
     \item{\code{activation}}{The vector of the activation functions used in each layer.}
+    \item{\code{lnorm}}{The norm used when estimating the output weights.}
     \item{\code{lambda}}{The penalisation constant used when estimating the output weights.}
-    \item{\code{Bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
-    \item{\code{Weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
-    \item{\code{Sigma}}{The standard deviation of the corresponding linear model.}
-    \item{\code{Combined}}{A \code{TRUE/FALSE} stating whether the direct links were made to the input.}
+    \item{\code{bias}}{The \code{TRUE/FALSE} bias vectors set by the control function for both hidden layers, and the output layer.}
+    \item{\code{weights}}{The weigths of the neural network, split into random (stored in hidden) and estimated (stored in output) weights.}
+    \item{\code{sigma}}{The standard deviation of the corresponding linear model.}
+    \item{\code{type}}{A string indicating the type of modelling problem.}
+    \item{\code{combined}}{A list of two \code{TRUE/FALSE} values stating whether the direct links were made to the input, and whether the output of each hidden layer was combined to make the prediction.}
 }
 }
