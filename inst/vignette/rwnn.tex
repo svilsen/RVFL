@@ -94,22 +94,21 @@ combat these problems, various simplifications of the feed forward
 neural network (FFNN) architecture have been proposed, including random
 weight neural networks (RWNNs). They were first introduced in the early
 1990's under the name random vector functional links (RVFL)
-\citep[\citet{Pao1994}]{Schmidt1992}, and a simplified version was
-re-discovered under the name extreme learning machines (ELM)
-\citep{Huang2006} in the mid 2000's. The general idea of RWNNs is to
-keep the randomly assigned weights of the network between the
-input-layer and the last hidden-layer fixed, and focus on estimating the
-weights between the last hidden-layer and the output-layer. In the case
-of regression, this simplification makes estimating the output weights
-of a RWNN equivalent to estimating the weights of a (regularised) linear
-model. Theoretically RWNNs show similar universal approximation
-properties as their FFNN counterparts, i.e.~as the number of neurons
-tends towards infinity the RWNN should be able to approximate any
-function arbitrarily well (placing only loose assumptions on the
-activation function). However, practically the number of neurons needed
-for this approximation to be acceptable may not be feasible for a
-particular application. Therefore, extensions of RWNNs have been
-proposed limiting the number of neurons in favour of deeper
+\citep{Schmidt1992, Pao1994}, and a simplified version was re-discovered
+under the name extreme learning machines (ELM) \citep{Huang2006} in the
+mid 2000's. The general idea of RWNNs is to keep the randomly assigned
+weights of the network between the input-layer and the last hidden-layer
+fixed, and focus on estimating the weights between the last hidden-layer
+and the output-layer. In the case of regression, this simplification
+makes estimating the output weights of a RWNN equivalent to estimating
+the weights of a (regularised) linear model. Theoretically RWNNs show
+similar universal approximation properties as their FFNN counterparts,
+i.e.~as the number of neurons tends towards infinity the RWNN should be
+able to approximate any function arbitrarily well (placing only loose
+assumptions on the activation function). However, practically the number
+of neurons needed for this approximation to be acceptable may not be
+feasible for a particular application. Therefore, extensions of RWNNs
+have been proposed limiting the number of neurons in favour of deeper
 architecture, as seen in deep RWNN \citep{Henriquez2018} and ensemble
 deep RWNN \citep{Shi2021}, or in favour of sparse unsupervised
 pre-training of the weights, like sparse RWNN \citep{Zhang2019}.
@@ -127,11 +126,11 @@ Furthermore, it allows for estimation of the output-weights using
 Moore-Penrose inversion, \(\ell_1\)-regularisation, and
 \(\ell_2\)-regularisation. The \pkg{elmNNRcpp} package is the successor
 to \pkg{elmNN} package \citep{elmNN} re-implemented in \proglang{C++}
-through \pkg{Rcpp} and \pkg{RcppArmadillo} \citep[\citet{RcppA}]{Rcpp}.
-The package is a standard implementation of the ELM architecture for
-both regression and classification. The package allows the user to
-specify the leakage of the implemented relu activation function, as well
-as the tolerance of the Moore-Penrose inversion used to estimate the
+through \pkg{Rcpp} and \pkg{RcppArmadillo} \citep{Rcpp, RcppA}. The
+package is a standard implementation of the ELM architecture for both
+regression and classification. The package allows the user to specify
+the leakage of the implemented ReLU activation function, as well as the
+tolerance of the Moore-Penrose inversion used to estimate the
 output-weights.
 
 \pkg{RWNN} is a general purpose implementation of RWNNs in \proglang{R}
@@ -153,9 +152,9 @@ been included:
   output layer (this is also the default behaviour of the RWNN
   implementation).
 \item
-  \textbf{deep RWNN} {[}\citet{Henriquez2018}, \citep{Shi2021}: An RWNN
-  with multiple hidden layers, where the output of each hidden-layer is
-  included as features in the model.
+  \textbf{deep RWNN} \citep{Henriquez2018}: An RWNN with multiple hidden
+  layers, where the output of each hidden-layer is included as features
+  in the model.
 \item
   \textbf{sparse RWNN} \citep{Zhang2019}: Applies sparse auto-encoder
   (\(\ell_1\) regularised) pre-training to reduce the number non-zero
@@ -176,17 +175,16 @@ learners):
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Stacking} \citep[\citet{Breiman1996a}]{Wolpert1992}: Stack
-  multiple randomly generated RWNN's, deep RWNN's, or sparse RWNN's and
-  estimate their contribution to a weighted ensemble using \(k\)-fold
+  \textbf{Stacking} \citep{Wolpert1992, Breiman1996a}: Stack multiple
+  randomly generated RWNN's, deep RWNN's, or sparse RWNN's and estimate
+  their contribution to a weighted ensemble using \(k\)-fold
   cross-validation.
 \item
-  \textbf{Bagging} \citep[\citet{Breiman2001},
-  \citet{Xin2021}]{Breiman1996b}: Bootstrap aggregation of RWNN's, deep
-  RWNN's, or sparse RWNN's creates a number of bootstrap samples,
-  sampled with replacement from the training-set. Furthermore, as in
-  random forest, instead of using all features when training each RWNN,
-  a subset of the features are chosen at random.
+  \textbf{Bagging} \citep{Breiman1996b, Breiman2001, Xin2021}: Bootstrap
+  aggregation of RWNN's, deep RWNN's, or sparse RWNN's creates a number
+  of bootstrap samples, sampled with replacement from the training-set.
+  Furthermore, as in random forest, instead of using all features when
+  training each RWNN, a subset of the features are chosen at random.
 \item
   \textbf{Boosting} \citep{Friedman2001}: The boosting implementation is
   based on stochastic gradient boosting using RWNN's, deep RWNN's, or
@@ -201,12 +199,12 @@ of weights and neurons:
 \tightlist
 \item
   \textbf{Global magnitude} (weight pruning)
-  \citep[\citet{morcos2019}]{han2016}: Pruning a pre-defined proportion
-  of the weights with lowest magnitude globally across the network.
+  \citep{han2016, morcos2019}: Pruning a pre-defined proportion of the
+  weights with lowest magnitude globally across the network.
 \item
   \textbf{Uniform magnitude} (weight pruning)
-  \citep[\citet{morcos2019}]{han2016}: Pruning a pre-defined proportion
-  of the weights with lowest magnitude layer-by-layer.
+  \citep{han2016, morcos2019}: Pruning a pre-defined proportion of the
+  weights with lowest magnitude layer-by-layer.
 \item
   \textbf{LAMP} (weight pruning) \citep{Lee2021}: Pruning a pre-defined
   proportion of the weights with lowest LAMP (layer-adaptive

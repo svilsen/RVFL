@@ -9,13 +9,19 @@
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param lambda The penalisation constant used when training the output layers of each RWNN.
+#' @param lambda The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).
 #' @param B The number of bootstrap samples.
 #' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{ERWNN-object}.
+#' 
+#' @references Breiman L. (1996) "Bagging Predictors." \emph{Machine Learning}, 24, 123-140.
+#' 
+#' Breiman L. (2001) "Random Forests." \emph{Machine Learning}, 45, 5-32.
+#' 
+#' Sui X, He S, Vilsen SB, Teodorescu R, Stroe DI (2021) "Fast and Robust Estimation of Lithium-ion Batteries State of Health Using Ensemble Learning." \emph{In 2021 IEEE Energy Conversion Congress and Exposition (ECCE)}, 1-8.
 #' 
 #' @export
 bag_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, method = NULL, type = NULL, control = list()) {

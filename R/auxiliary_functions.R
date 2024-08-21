@@ -35,16 +35,16 @@ strip_terms <- function(formula) {
 #### ----
 orthonormal <- function(M) {
     # 
-    svdM <- svd(M)
-    U <- svdM$u
-    S <- svdM$d
+    SVD <- svd(M)
+    U <- SVD$u
+    S <- SVD$d
     
     #
-    tol <- max(dim(M)) * max(S) * .Machine$double.eps
-    R <- sum(S > tol)
+    tolerance <- max(dim(M)) * max(S) * (.Machine$double.eps)
+    R <- sum(S > tolerance)
     
     #
-    X <- U[, 1:R, drop = FALSE]
+    X <- U[, seq_len(R), drop = FALSE]
     return(X)
 }
 
@@ -57,7 +57,7 @@ random_orthonormal <- function(w, nr_rows, X, W_hidden, n_hidden, activation, bi
             Z <- X
         }
         else {
-            Z <- rwnn_forward(X, W_hidden[seq_len(w - 1)], activation, bias_hidden)
+            Z <- rwnn_forward(X, W_hidden[seq_len(w - 1)], activation[seq_len(w - 1)], bias_hidden[seq_len(w - 1)])
             Z <- matrix(Z[[length(Z)]], ncol = n_hidden[w - 1])
         }
         
@@ -65,8 +65,8 @@ random_orthonormal <- function(w, nr_rows, X, W_hidden, n_hidden, activation, bi
             Z <- cbind(1, Z)
         }
         
-        pca <- princomp(Z)
-        L <- unname(t(pca$loadings[, seq_len(n_hidden[w]), drop = FALSE]))
+        pca <- prcomp(Z)
+        L <- unname(t(pca$rotation[, seq_len(n_hidden[w]), drop = FALSE]))
         W <- W %*% L
     }
     
@@ -173,22 +173,22 @@ predict.RWNN <- function(object, ...) {
 #'   \item{\code{newdata}}{Expects a \link{matrix} or \link{data.frame} with the same features (columns) as in the original data.}
 #'   \item{\code{type}}{A string taking the following values:
 #'      \describe{
-#'          \item{\code{"mean"}}{Returns the average prediction across all ensemble models.}
+#'          \item{\code{"mean" (default)}}{Returns the average prediction across all ensemble models.}
 #'          \item{\code{"std"}}{Returns the standard deviation of the predictions across all ensemble models.}
 #'          \item{\code{"all"}}{Returns all predictions for each ensemble models.}
 #'      }
 #'   }
 #'   \item{\code{class}}{A string taking the following values:
 #'      \describe{
-#'          \item{\code{"classify"}}{Returns the predicted class of ensemble. If used together with \code{type = "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type = "all"}, every ensemble is classified and returned.}
-#'          \item{\code{"voting"}}{Returns the predicted class of ensemble by classifying each ensemble and using majority voting to make the final prediction, i.e. the \code{type} argument is overruled.}
+#'          \item{\code{"classify"}}{Returns the predicted class of the ensemble. If used together with \code{type = "mean"}, the average prediction across the ensemble models are used to create the classification. However, if used with \code{type = "all"}, every ensemble is classified and returned.}
+#'          \item{\code{"voting"}}{Returns the predicted class of the ensemble by classifying each ensemble and using majority voting to make the final prediction. NB: the \code{type} argument is overruled.}
 #'      }
 #'   }
 #' }
 #' 
 #' Furthermore, if '\code{class}' is set to either \code{"classify"} or \code{"voting"}, additional arguments '\code{t}' and '\code{b}' can be passed to the \link{classify}-function.
 #' 
-#' NB: if the ensemble is created using the \link{boost_rwnn}-function, then \code{type} should be set to \code{"mean"}.
+#' NB: if the ensemble is created using the \link{boost_rwnn}-function, then \code{type} should always be set to \code{"mean"}.
 #' 
 #' @return An list, matrix, or vector of predicted values depended on the arguments '\code{method}', '\code{type}', and '\code{class}'. 
 #' 
@@ -326,8 +326,8 @@ predict.ERWNN <- function(object, ...) {
 #' 
 #' @param y A matrix of predicted classes.
 #' @param C A vector of class names corresponding to the columns of \code{y}.
-#' @param t The decision threshold which the predictions have to exceed (default is '0'). 
-#' @param b A buffer which the largest prediction has to exceed when compared to the second largest prediction (default is '0').
+#' @param t The decision threshold which the predictions have to exceed (defaults to '0'). 
+#' @param b A buffer which the largest prediction has to exceed when compared to the second largest prediction (defaults to '0').
 #' 
 #' @return A vector of class predictions.
 #' 

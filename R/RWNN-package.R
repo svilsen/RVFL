@@ -15,7 +15,7 @@
 #' 
 #' @importFrom methods formalArgs is
 #' 
-#' @importFrom randtoolbox halton sobol
+#' @importFrom randtoolbox torus halton sobol
 #' 
 #' @useDynLib RWNN
 #' 

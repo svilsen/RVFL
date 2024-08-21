@@ -43,33 +43,37 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network.
 }
 \details{
-The deep RWNN is handled by increasing the number of elements in the \code{n_hidden} vector.
+A deep RWNN is constructed by increasing the number of elements in the vector \code{n_hidden}. Furthermore, if \code{type} is null, then the function tries to deduce it from class of target.
 }
 \examples{
 ## Models with a single hidden layer
 n_hidden <- 50
-lambda <- 1
-
-y <- example_data[,1] |> as.matrix()
-x <- example_data[,-1] |> as.matrix()
-rwnn(y ~ x, n_hidden = n_hidden, lambda = lambda)
-
+lambda <- 0.01
 
 # Regression
-m1 <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
+m <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
 
 # Classification
-m2 <- rwnn(I(y > median(y)) ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
+m <- rwnn(I(y > median(y)) ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
 
 ## Model with multiple hidden layers
 n_hidden <- c(20, 15, 10, 5)
 lambda <- 0.01
 
 # Combining outputs from all hidden layers (default)
-m3 <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
+m <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
 
 # Using only the output of the last hidden layer
-m4 <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
-           lambda = lambda, control = list(combine_hidden = FALSE))
+m <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
+          lambda = lambda, control = list(combine_hidden = FALSE))
 
+}
+\references{
+Schmidt W., Kraaijveld M., Duin R. (1992) "Feedforward neural networks with random weights." \emph{In Proceedings., 11th IAPR International Conference on Pattern Recognition. Vol.II. Conference B: Pattern Recognition Methodology and Systems}, 1–4.
+
+Pao Y., Park G., Sobajic D. (1992) "Learning and generalization characteristics of random vector Functional-link net." \emph{Neurocomputing}, 6, 163–180.
+
+Huang G.B., Zhu Q.Y., Siew C.K. (2006) "Extreme learning machine: Theory and applications." \emph{Neurocomputing}, 70(1), 489–501.
+
+Henríquez P.A., Ruz G.A. (2018) "Twitter Sentiment Classification Based on Deep Random Vector Functional Link." \emph{In 2018 International Joint Conference on Neural Networks (IJCNN)}, 1–6.
 }

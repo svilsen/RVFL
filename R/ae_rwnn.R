@@ -9,12 +9,14 @@
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output-layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output-layer.
 #' @param n_hidden A vector of integers designating the number of neurons in each of the hidden-layers (the length of the list is taken as the number of hidden-layers).
-#' @param lambda A vector of two penalisation constants used when training the hidden-weights and the output-weights, respectively.
-#' @param method The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).
+#' @param lambda A vector of two penalisation constants used when encoding the hidden-weights and training the output-weights, respectively.
+#' @param method The penalisation type used for the auto-encoder (either \code{"l1"} or \code{"l2"}).
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{RWNN-object}.
+#' 
+#' @references Zhang Y., Wu J., Cai Z., Du B., Yu P.S. (2019) "An unsupervised parameter learning model for RVFL neural network." \emph{Neural Networks}, 112, 85-97.
 #' 
 #' @export
 ae_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, method = "l1", type = NULL, control = list()) {
@@ -86,6 +88,13 @@ ae_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, method = "l1", t
             }
             else if (rng_function %in% c("s", "sobo", "sobol")) {
                 random_weights <- (rng_pars$max - rng_pars$min) * sobol(nr_rows, n_hidden[w], init = w == 1) + rng_pars$min
+            }
+            else if (rng_function %in% c("tor", "torus")) {
+                random_weights <- (rng_pars$max - rng_pars$min) * torus(nr_rows, n_hidden[w], init = w == 1, start = 0) + rng_pars$min
+            }
+            else {
+                rng_pars$n <- n_hidden[w] * nr_rows
+                random_weights <- matrix(do.call(rng_function, rng_pars), ncol = n_hidden[w]) 
             }
         } else {
             rng_pars$n <- n_hidden[w] * nr_rows

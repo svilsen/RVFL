@@ -32,7 +32,7 @@ ed_rwnn(
 
 \item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
+\item{lambda}{The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).}
 
 \item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.}
 
@@ -47,8 +47,14 @@ An \link{ERWNN-object}.
 Use multiple layers to create deep ensemble random weight neural network models.
 }
 \examples{
-n_hidden <- rep(10, 15)
+n_hidden <- c(20, 15, 10, 5)
+lambda <- 0.01
+
+#
 \dontrun{
-m <- ed_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = 0.2)
+m <- ed_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
 }
+}
+\references{
+Shi Q., Katuwal R., Suganthan P., Tanveer M. (2021) "Random vector functional link neural network based ensemble deep learning." \emph{Pattern Recognition}, 117, 107978.
 }

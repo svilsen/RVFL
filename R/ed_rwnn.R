@@ -9,12 +9,14 @@
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param lambda The penalisation constant used when training the output layers of each RWNN.
+#' @param lambda The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).
 #' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{ERWNN-object}.
+#' 
+#' @references Shi Q., Katuwal R., Suganthan P., Tanveer M. (2021) "Random vector functional link neural network based ensemble deep learning." \emph{Pattern Recognition}, 117, 107978.
 #' 
 #' @export
 ed_rwnn <- function(formula, data = NULL, n_hidden, lambda = 0, method = NULL, type = NULL, control = list()) {

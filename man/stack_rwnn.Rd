@@ -38,13 +38,13 @@ stack_rwnn(
 
 \item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{lambda}{The penalisation constant used when training the output layers of each RWNN}
+\item{lambda}{The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).}
 
 \item{B}{The number of models in the stack.}
 
 \item{optimise}{TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)?}
 
-\item{folds}{The number of folds used to train the RWNN models.}
+\item{folds}{The number of folds used when optimising the stacking weights (see \code{optimise} argument).}
 
 \item{method}{The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.}
 
@@ -59,7 +59,7 @@ An \link{ERWNN-object}.
 Use stacking to create ensemble random weight neural networks.
 }
 \examples{
-n_hidden <- c(10, 2)
+n_hidden <- c(20, 15, 10, 5)
 lambda <- 0.01
 B <- 100
 
@@ -75,4 +75,9 @@ m <- stack_rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
                 lambda = lambda, B = B, optimise = TRUE)
 }
 
+}
+\references{
+Wolpert D. (1992) "Stacked generalization." \emph{Neural Networks}, 5, 241-259.
+
+Breiman L. (1996) "Stacked regressions." \emph{Machine Learning}, 24, 49-64.
 }

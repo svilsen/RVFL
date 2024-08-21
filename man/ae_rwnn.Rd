@@ -32,9 +32,9 @@ ae_rwnn(
 
 \item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden-layers (the length of the list is taken as the number of hidden-layers).}
 
-\item{lambda}{A vector of two penalisation constants used when training the hidden-weights and the output-weights, respectively.}
+\item{lambda}{A vector of two penalisation constants used when encoding the hidden-weights and training the output-weights, respectively.}
 
-\item{method}{The penalisation type used in the auto-encoder (either \code{"l1"} or \code{"l2"}).}
+\item{method}{The penalisation type used for the auto-encoder (either \code{"l1"} or \code{"l2"}).}
 
 \item{type}{A string indicating whether this is a regression or classification problem.}
 
@@ -47,8 +47,8 @@ An \link{RWNN-object}.
 Set-up and estimate weights of a random weight neural network using an auto-encoder for unsupervised pre-training of the hidden weights.
 }
 \examples{
-n_hidden <- c(10, 10)
-lambda <- c(2, 0.2)
+n_hidden <- c(20, 15, 10, 5)
+lambda <- c(2, 0.01)
 
 ## Using L1-norm in the auto-encoder (sparse solution)
 \dontrun{
@@ -59,4 +59,8 @@ m <- ae_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, m
 \dontrun{
 m <- ae_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, method = "l2")
 }
+
+}
+\references{
+Zhang Y., Wu J., Cai Z., Du B., Yu P.S. (2019) "An unsupervised parameter learning model for RVFL neural network." \emph{Neural Networks}, 112, 85-97.
 }

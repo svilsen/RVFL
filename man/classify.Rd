@@ -11,9 +11,9 @@ classify(y, C, t = NULL, b = NULL)
 
 \item{C}{A vector of class names corresponding to the columns of \code{y}.}
 
-\item{t}{The decision threshold which the predictions have to exceed (default is '0').}
+\item{t}{The decision threshold which the predictions have to exceed (defaults to '0').}
 
-\item{b}{A buffer which the largest prediction has to exceed when compared to the second largest prediction (default is '0').}
+\item{b}{A buffer which the largest prediction has to exceed when compared to the second largest prediction (defaults to '0').}
 }
 \value{
 A vector of class predictions.

@@ -27,7 +27,7 @@ Lastly, in order to improve computational time and memory efficiency, the `RWNN`
 
 # Installation
 
-The `RWNN`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, `quadprog`, and `randtoolbox`. The package is not available on CRAN, therfore, devtools is needed to install the package from github. 
+The `RWNN`-package depends on `R` (>= 4.1), `Rcpp` (>= 1.0.4.6), `RcppArmadillo`, `quadprog`, and `randtoolbox`. The package is not available on CRAN, therefore, `devtools` is needed to install the package from github. 
 
 From R, run the following commands:  
 ```r
@@ -146,9 +146,9 @@ lp_boostrwnn <- list(
     sort = NULL
 )
 
-in_train <- createDataPartition(example_data$y, p = .75, list = FALSE)
-data_train <- example_data[ in_train, ]
-data_test  <- example_data[-in_train, ]
+tr <- sample(nrow(example_data), round(0.6 * nrow(example_data)))
+example_train <- example_data[tr,]
+example_val <- example_data[-tr,]
 
 fit_control <- trainControl(
     method = "cv",
@@ -159,13 +159,12 @@ fit_control <- trainControl(
 
 optimal_boost_rwnn <- train(
     y ~ ., 
-    data = data_train, 
+    data = example_train, 
     method = lp_boostrwnn, 
     preProc = c("center", "scale"),
     tuneLength = 3,
     trControl = fit_control
 )
-
 
 plot(optimal_boost_rwnn)
 ```

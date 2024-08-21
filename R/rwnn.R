@@ -7,15 +7,15 @@
 #' @description A function used to create a control-object for the \link{rwnn} function.
 #' 
 #' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param n_features The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function. 
+#' @param n_features The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is not recommended outside of that function. 
 #' @param lnorm A string indicating the type of regularisation used when estimating the weights in the output layer, \code{"l1"} or \code{"l2"} (default).
-#' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.
+#' @param bias_hidden A vector of TRUE/FALSE values. The vector should have length 1, or be equal to the number of hidden layers.
 #' @param bias_output TRUE/FALSE: Should a bias be added to the output layer?
-#' @param activation A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.
+#' @param activation A vector of strings corresponding to activation functions (see details). The vector should have length 1, or be equal to the number of hidden layers.
 #' @param combine_input TRUE/FALSE: Should the input be included to predict the output?
 #' @param combine_hidden TRUE/FALSE: Should all hidden layers be combined to predict the output?
-#' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.
-#' @param include_estimate TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.
+#' @param include_data TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but using '\code{FALSE}' is more memory efficient in \link{ERWNN-object}'s.
+#' @param include_estimate TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but using '\code{FALSE}'is more memory efficient in \link{ERWNN-object}'s.
 #' @param rng A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{runif}). 
 #' @param rng_pars A list of parameters passed to the \code{rng} function (defaults to \code{list(min = -1, max = 1)}).   
 #' 
@@ -26,7 +26,7 @@
 #'     \item{\code{"sigmoid"}}{\deqn{f(x) = \frac{1}{1 + \exp(-x)}}}
 #'     \item{\code{"tanh"}}{\deqn{f(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}}}
 #'     \item{\code{"relu"}}{\deqn{f(x) = \max\{0, x\}}}
-#'     \item{\code{"silu"}}{\deqn{f(x) = \frac{x}{1 + \exp(-x)}}}
+#'     \item{\code{"silu"} (default)}{\deqn{f(x) = \frac{x}{1 + \exp(-x)}}}
 #'     \item{\code{"softplus"}}{\deqn{f(x) = \ln(1 + \exp(x))}}
 #'     \item{\code{"softsign"}}{\deqn{f(x) = \frac{x}{1 + |x|}}}
 #'     \item{\code{"sqnl"}}{\deqn{f(x) = -1\text{, if }x < -2\text{, }f(x) = x + \frac{x^2}{4}\text{, if }-2 \le x < 0\text{, }f(x) = x - \frac{x^2}{4}\text{, if }0 \le x \le 2\text{, and } f(x) = 2\text{, if }x > 2}}
@@ -34,7 +34,12 @@
 #'     \item{\code{"sqrbf"}}{\deqn{f(x) = 1 - \frac{x^2}{2}\text{, if }|x| \le 1\text{, }f(x) = \frac{(2 - |x|)^2}{2}\text{, if }1 < |x| < 2\text{, and }f(x) = 0\text{, if }|x| \ge 2}}
 #' }
 #' 
+#' The '\code{rng}' argument can also be set to \code{"orthogonal"}, \code{"torus"}, \code{"halton"}, or \code{"sobol"} for added stability. The \code{"torus"}, \code{"halton"}, and \code{"sobol"} methods relay on the \link{torus}, \link{halton}, and \link{sobol} function from the \link{randtoolbox}-package. NB: this is not recommended when creating ensembles. 
+#' 
 #' @return A list of control variables.
+#' 
+#' @references Wang W., Liu X. (2017) "The selection of input weights of extreme learning machine: A sample structure preserving point of view." \emph{Neurocomputing}, 261, 28-36.
+#' 
 #' @export
 control_rwnn <- function(n_hidden = NULL, n_features = NULL, lnorm = NULL,
                          bias_hidden = TRUE, bias_output = TRUE, activation = NULL, 
@@ -114,11 +119,12 @@ control_rwnn <- function(n_hidden = NULL, n_features = NULL, lnorm = NULL,
     #
     if (is.character(rng)) {
         rng <- tolower(rng)
-        if (!(rng %in% c("o", "orto", "orthogonal", "h", "halt", "halton", "s", "sobo", "sobol"))) {
-            stop(paste0("The method '", rng, "' is not implemented."))
+        if (rng %in% c("o", "orto", "orthogonal", "h", "halt", "halton", "s", "sobo", "sobol", "tor", "torus")) {
+            rng_arg <- c("min", "max")
         }
-        
-        rng_arg <- c("min", "max")
+        else {
+            rng_arg <- formalArgs(rng)[-which(formalArgs(rng) == "n")]
+        }
     }
     else {
         rng_arg <- formalArgs(rng)[-which(formalArgs(rng) == "n")]
@@ -151,15 +157,24 @@ control_rwnn <- function(n_hidden = NULL, n_features = NULL, lnorm = NULL,
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
-#' @details The deep RWNN is handled by increasing the number of elements in the \code{n_hidden} vector.
+#' @details A deep RWNN is constructed by increasing the number of elements in the vector \code{n_hidden}. Furthermore, if \code{type} is null, then the function tries to deduce it from class of target.
 #' 
 #' @return An \link{RWNN-object}.
+#' 
+#' @references Schmidt W., Kraaijveld M., Duin R. (1992) "Feedforward neural networks with random weights." \emph{In Proceedings., 11th IAPR International Conference on Pattern Recognition. Vol.II. Conference B: Pattern Recognition Methodology and Systems}, 1–4.
+#' 
+#' Pao Y., Park G., Sobajic D. (1992) "Learning and generalization characteristics of random vector Functional-link net." \emph{Neurocomputing}, 6, 163–180.
+#' 
+#' Huang G.B., Zhu Q.Y., Siew C.K. (2006) "Extreme learning machine: Theory and applications." \emph{Neurocomputing}, 70(1), 489–501.
+#' 
+#' Henríquez P.A., Ruz G.A. (2018) "Twitter Sentiment Classification Based on Deep Random Vector Functional Link." \emph{In 2018 International Joint Conference on Neural Networks (IJCNN)}, 1–6.
 #' 
 #' @export
 rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
     UseMethod("rwnn")
 }
 
+#
 rwnn_matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control = list()) {
     ## Creating control object 
     control$n_hidden <- n_hidden
@@ -220,10 +235,17 @@ rwnn_matrix <- function(X, y, n_hidden = c(), lambda = 0, type = NULL, control =
                 random_weights <- (rng_pars$max - rng_pars$min) * random_orthonormal(w, nr_rows, X, W_hidden, n_hidden, activation, bias_hidden) + rng_pars$min
             }
             else if (rng_function %in% c("h", "halt", "halton")) {
-                random_weights <- (rng_pars$max - rng_pars$min) * halton(nr_rows, n_hidden[w], init = w == 1) + rng_pars$min
+                random_weights <- (rng_pars$max - rng_pars$min) * halton(nr_rows, n_hidden[w], init = w == 1, start = 0) + rng_pars$min
             }
             else if (rng_function %in% c("s", "sobo", "sobol")) {
-                random_weights <- (rng_pars$max - rng_pars$min) * sobol(nr_rows, n_hidden[w], init = w == 1) + rng_pars$min
+                random_weights <- (rng_pars$max - rng_pars$min) * sobol(nr_rows, n_hidden[w], init = w == 1, start = 0) + rng_pars$min
+            }
+            else if (rng_function %in% c("tor", "torus")) {
+                random_weights <- (rng_pars$max - rng_pars$min) * torus(nr_rows, n_hidden[w], init = w == 1, start = 0) + rng_pars$min
+            }
+            else {
+                rng_pars$n <- n_hidden[w] * nr_rows
+                random_weights <- matrix(do.call(rng_function, rng_pars), ncol = n_hidden[w]) 
             }
         }
         else {

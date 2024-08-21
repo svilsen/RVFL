@@ -22,23 +22,23 @@ control_rwnn(
 \arguments{
 \item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{n_features}{The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is recommended that is not be used outside of that function.}
+\item{n_features}{The number of randomly chosen features in the RWNN model. Note: This is meant for use in \link{bag_rwnn}, and it is not recommended outside of that function.}
 
 \item{lnorm}{A string indicating the type of regularisation used when estimating the weights in the output layer, \code{"l1"} or \code{"l2"} (default).}
 
-\item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or the length should be equal to the number of hidden layers.}
+\item{bias_hidden}{A vector of TRUE/FALSE values. The vector should have length 1, or be equal to the number of hidden layers.}
 
 \item{bias_output}{TRUE/FALSE: Should a bias be added to the output layer?}
 
-\item{activation}{A vector of strings corresponding to activation functions (see details for possible choices). The vector should have length 1, or the length should be equal to the number of hidden layers.}
+\item{activation}{A vector of strings corresponding to activation functions (see details). The vector should have length 1, or be equal to the number of hidden layers.}
 
 \item{combine_input}{TRUE/FALSE: Should the input be included to predict the output?}
 
 \item{combine_hidden}{TRUE/FALSE: Should all hidden layers be combined to predict the output?}
 
-\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.}
+\item{include_data}{TRUE/FALSE: Should the original data be included in the returned object? Note: this should almost always be set to '\code{TRUE}', but using '\code{FALSE}' is more memory efficient in \link{ERWNN-object}'s.}
 
-\item{include_estimate}{TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but is more memory efficient in \link{ERWNN-object}'s.}
+\item{include_estimate}{TRUE/FALSE: Should the \code{rwnn}-function estimate the output parameters? Note: this should almost always be set to '\code{TRUE}', but using '\code{FALSE}'is more memory efficient in \link{ERWNN-object}'s.}
 
 \item{rng}{A string indicating the sampling distribution used for generating the weights of the hidden layer (defaults to \code{runif}).}
 
@@ -58,11 +58,16 @@ The possible activation functions supplied to '\code{activation}' are:
     \item{\code{"sigmoid"}}{\deqn{f(x) = \frac{1}{1 + \exp(-x)}}}
     \item{\code{"tanh"}}{\deqn{f(x) = \frac{\exp(x) - \exp(-x)}{\exp(x) + \exp(-x)}}}
     \item{\code{"relu"}}{\deqn{f(x) = \max\{0, x\}}}
-    \item{\code{"silu"}}{\deqn{f(x) = \frac{x}{1 + \exp(-x)}}}
+    \item{\code{"silu"} (default)}{\deqn{f(x) = \frac{x}{1 + \exp(-x)}}}
     \item{\code{"softplus"}}{\deqn{f(x) = \ln(1 + \exp(x))}}
     \item{\code{"softsign"}}{\deqn{f(x) = \frac{x}{1 + |x|}}}
     \item{\code{"sqnl"}}{\deqn{f(x) = -1\text{, if }x < -2\text{, }f(x) = x + \frac{x^2}{4}\text{, if }-2 \le x < 0\text{, }f(x) = x - \frac{x^2}{4}\text{, if }0 \le x \le 2\text{, and } f(x) = 2\text{, if }x > 2}}
     \item{\code{"gaussian"}}{\deqn{f(x) = \exp(-x^2)}}
     \item{\code{"sqrbf"}}{\deqn{f(x) = 1 - \frac{x^2}{2}\text{, if }|x| \le 1\text{, }f(x) = \frac{(2 - |x|)^2}{2}\text{, if }1 < |x| < 2\text{, and }f(x) = 0\text{, if }|x| \ge 2}}
 }
+
+The '\code{rng}' argument can also be set to \code{"orthogonal"}, \code{"torus"}, \code{"halton"}, or \code{"sobol"} for added stability. The \code{"torus"}, \code{"halton"}, and \code{"sobol"} methods relay on the \link{torus}, \link{halton}, and \link{sobol} function from the \link{randtoolbox}-package. NB: this is not recommended when creating ensembles.
+}
+\references{
+Wang W., Liu X. (2017) "The selection of input weights of extreme learning machine: A sample structure preserving point of view." \emph{Neurocomputing}, 261, 28-36.
 }

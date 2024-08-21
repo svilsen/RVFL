@@ -36,7 +36,7 @@ boost_rwnn(
 
 \item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
+\item{lambda}{The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).}
 
 \item{B}{The number of levels used in the boosting tree.}
 
@@ -56,12 +56,16 @@ Use gradient boosting to create ensemble random weight neural network models.
 }
 \examples{
 n_hidden <- 10
+
 B <- 100
 epsilon <- 0.1
-lambda <- 0.1
+lambda <- 0.01
 
 \dontrun{
 m <- boost_rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
                 lambda = lambda, B = B, epsilon = epsilon)
 }
+}
+\references{
+Friedman J.H. (2001) "Greedy function approximation: A gradrient boosting machine." \emph{The Annals of Statistics}, 29, 1189-1232.
 }

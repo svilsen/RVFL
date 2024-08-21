@@ -40,15 +40,19 @@ estimate_weights_stack <- function(C, b, B) {
 #' @param formula A \link{formula} specifying features and targets used to estimate the parameters of the output layer. 
 #' @param data A data-set (either a \link{data.frame} or a \link[tibble]{tibble}) used to estimate the parameters of the output layer.
 #' @param n_hidden A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).
-#' @param lambda The penalisation constant used when training the output layers of each RWNN
+#' @param lambda The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).
 #' @param B The number of models in the stack.
 #' @param optimise TRUE/FALSE: Should the stacking weights be optimised (or should the stack just predict the average)? 
-#' @param folds The number of folds used to train the RWNN models. 
+#' @param folds The number of folds used when optimising the stacking weights (see \code{optimise} argument). 
 #' @param method The penalisation type passed to \link{ae_rwnn}. Set to \code{NULL} (default), \code{"l1"}, or \code{"l2"}. If \code{NULL}, \link{rwnn} is used as the base learner.
 #' @param type A string indicating whether this is a regression or classification problem. 
 #' @param control A list of additional arguments passed to the \link{control_rwnn} function.
 #' 
 #' @return An \link{ERWNN-object}.
+#' 
+#' @references Wolpert D. (1992) "Stacked generalization." \emph{Neural Networks}, 5, 241-259.
+#' 
+#' Breiman L. (1996) "Stacked regressions." \emph{Machine Learning}, 24, 49-64.
 #' 
 #' @export
 stack_rwnn <- function(formula, data = NULL, n_hidden = c(), lambda = NULL, B = 100, optimise = FALSE, folds = 10, method = NULL, type = NULL, control = list()) {

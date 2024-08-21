@@ -34,7 +34,7 @@ bag_rwnn(
 
 \item{n_hidden}{A vector of integers designating the number of neurons in each of the hidden layers (the length of the list is taken as the number of hidden layers).}
 
-\item{lambda}{The penalisation constant used when training the output layers of each RWNN.}
+\item{lambda}{The penalisation constant(s) passed to either \link{rwnn} or \link{ae_rwnn} (see \code{method} argument).}
 
 \item{B}{The number of bootstrap samples.}
 
@@ -52,17 +52,18 @@ Use bootstrap aggregation to reduce the variance of random weight neural network
 }
 \examples{
 n_hidden <- 50
+
 B <- 100
 lambda <- 0.01
 
-# Regression
 \dontrun{
 m <- bag_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = B)
 }
-
-# Classification
-\dontrun{
-m <- bag_rwnn(I(y > 15) ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda, B = B)
 }
+\references{
+Breiman L. (1996) "Bagging Predictors." \emph{Machine Learning}, 24, 123-140.
 
+Breiman L. (2001) "Random Forests." \emph{Machine Learning}, 45, 5-32.
+
+Sui X, He S, Vilsen SB, Teodorescu R, Stroe DI (2021) "Fast and Robust Estimation of Lithium-ion Batteries State of Health Using Ensemble Learning." \emph{In 2021 IEEE Energy Conversion Congress and Exposition (ECCE)}, 1-8.
 }
