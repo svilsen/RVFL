@@ -1,7 +1,6 @@
 #include "RcppArmadillo.h"
 
 //[[Rcpp::depends(RcppArmadillo)]]
-//[[Rcpp::plugins(cpp11)]]
 
 arma::mat matrix_sign(const arma::mat & M) {
     arma::mat S = M;

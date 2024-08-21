@@ -1,10 +1,9 @@
 #ifndef rwnn_forward
 #define rwnn_forward
 
-#include "RcppArmadillo.h"
+#include <RcppArmadillo.h>
 
 //[[Rcpp::depends(RcppArmadillo)]]
-//[[Rcpp::plugins(cpp11)]]
 
 std::vector<arma::mat> rwnn_forward(
         arma::mat X, 

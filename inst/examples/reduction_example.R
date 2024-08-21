@@ -48,8 +48,10 @@ m |>
 m <- stack_rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
                 lambda = lambda, B = B, optimise = TRUE)
 
-length(m$weights) # Number of models in stack
-length(m$weights[m$weights > .Machine$double.eps]) # Number of models in stack with weights > .Machine$double.eps
+# Number of models in stack
+length(m$weights)
+# Number of models in stack with weights > .Machine$double.eps
+length(m$weights[m$weights > .Machine$double.eps]) 
 
 m |> 
     reduce_network(method = "stack", tolerance = 1e-8) |> 

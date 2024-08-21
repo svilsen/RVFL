@@ -121,7 +121,7 @@ expect_error(do.call("control_rwnn", list(n_hidden = n_hidden, activation = c("s
 expect_error(do.call("control_rwnn", list(n_hidden = n_hidden, activation = c("sii"))), "Invalid activation function detected in 'activation' vector. The implemented activation functions are: 'sigmoid', 'tanh', 'relu', 'silu', 'softplus', 'softsign', 'sqnl', 'gaussian', 'sqrbf', 'bentidentity', and 'identity'.")
 
 #
-expect_error(do.call("control_rwnn", list(n_hidden = n_hidden, rng = "a")), "The method 'a' is not implemented.")
+expect_error(do.call("control_rwnn", list(n_hidden = n_hidden, rng = "a")), "object 'a' of mode 'function' was not found")
 expect_error(do.call("control_rwnn", list(n_hidden = n_hidden, rng_pars = list())), "The following arguments were not found in 'rng_pars' list: min, max")
 expect_error(do.call("control_rwnn", list(n_hidden = n_hidden, rng_pars = list(min = -1))), "The following arguments were not found in 'rng_pars' list: max")
 

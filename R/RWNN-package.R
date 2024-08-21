@@ -7,7 +7,7 @@
 #' 
 #' @importFrom Rcpp evalCpp
 #' 
-#' @importFrom stats coef cor predict runif sd rnorm pnorm dnorm quantile terms model.matrix model.response model.frame as.formula delete.response princomp
+#' @importFrom stats coef cor predict runif sd rnorm pnorm dnorm quantile terms model.matrix model.response model.frame as.formula delete.response prcomp
 #' 
 #' @importFrom quadprog solve.QP
 #' 

@@ -1,7 +1,6 @@
 #include "RcppArmadillo.h"
 
 //[[Rcpp::depends(RcppArmadillo)]]
-//[[Rcpp::plugins(cpp11)]]
 
 double rho(const arma::mat & O, const arma::colvec & y, const arma::colvec & beta, const int & j) {
     arma::colvec beta_j = beta;
