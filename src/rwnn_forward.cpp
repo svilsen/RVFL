@@ -31,7 +31,7 @@ std::vector<arma::mat> rwnn_forward(arma::mat X,
     
     arma::colvec b(N, arma::fill::ones);
     if (bias[0]) {
-        X = join_horiz(b, X);
+        X = arma::join_horiz(b, X);
     }
     
     std::vector<arma::mat> H(M); 
@@ -40,7 +40,7 @@ std::vector<arma::mat> rwnn_forward(arma::mat X,
         arma::mat H_m = H[m - 1];
         
         if (bias[m]) {
-            H_m = join_horiz(b, H_m);
+            H_m = arma::join_horiz(b, H_m);
         }
         
         H_m = H_m * W[m];
