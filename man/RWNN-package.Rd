@@ -9,6 +9,9 @@
 Creation, estimation, and prediction of random weight neural networks (RWNN), including popular variants like extreme learning machines (ELM), sparse RWNN, and deep RWNN. It further allows for the creation of ensemble RWNNs like bagging RWNN, boosting RWNN, stacking RWNN, and ensemble deep RWNN (edRWNN).
 }
 \author{
+\strong{Maintainer}: Søren B. Vilsen \email{svilsen@math.aau.dk}
+
+
 Søren B. Vilsen <svilsen@math.aau.dk>
 }
 \keyword{internal}

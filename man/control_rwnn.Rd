@@ -66,7 +66,7 @@ The possible activation functions supplied to '\code{activation}' are:
     \item{\code{"sqrbf"}}{\deqn{f(x) = 1 - \frac{x^2}{2}\text{, if }|x| \le 1\text{, }f(x) = \frac{(2 - |x|)^2}{2}\text{, if }1 < |x| < 2\text{, and }f(x) = 0\text{, if }|x| \ge 2}}
 }
 
-The '\code{rng}' argument can also be set to \code{"orthogonal"}, \code{"torus"}, \code{"halton"}, or \code{"sobol"} for added stability. The \code{"torus"}, \code{"halton"}, and \code{"sobol"} methods relay on the \link{torus}, \link{halton}, and \link{sobol} function from the \link{randtoolbox}-package. NB: this is not recommended when creating ensembles.
+The '\code{rng}' argument can also be set to \code{"orthogonal"}, \code{"torus"}, \code{"halton"}, or \code{"sobol"} for added stability. The \code{"torus"}, \code{"halton"}, and \code{"sobol"} methods relay on the \link[randtoolbox]{torus}, \link[randtoolbox]{halton}, and \link[randtoolbox]{sobol} functions. NB: this is not recommended when creating ensembles.
 }
 \references{
 Wang W., Liu X. (2017) "The selection of input weights of extreme learning machine: A sample structure preserving point of view." \emph{Neurocomputing}, 261, 28-36.
