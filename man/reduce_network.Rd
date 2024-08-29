@@ -78,7 +78,6 @@ NB: features and target are passed using the names \code{X} and \code{y}, respec
 n_hidden <- c(10, 15)
 lambda <- 2
 
-\dontrun{
 m <- rwnn(y ~ ., data = example_data, n_hidden = n_hidden, 
           lambda = lambda, control = list(lnorm = "l2"))
 
@@ -103,14 +102,13 @@ m |>
     reduce_network(method = "relief", p = 0.4, type = "weight") |> 
     reduce_network(method = "output") |> 
     (\(x) x$weights)()
-}
 
 ## ERWNN-object (reduction is performed element-wise on each RWNN)
 n_hidden <- c(10, 15)
 lambda <- 2
 B <- 100
 
-\dontrun{
+\donttest{
 m <- bag_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, 
               lambda = lambda, B = B, control = list(lnorm = "l2"))
 
@@ -120,7 +118,7 @@ m |>
     reduce_network(method = "output")
 }
 
-\dontrun{
+\donttest{
 m <- stack_rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
                 lambda = lambda, B = B, optimise = TRUE)
 

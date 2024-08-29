@@ -51,9 +51,7 @@ n_hidden <- c(20, 15, 10, 5)
 lambda <- 0.01
 
 #
-\dontrun{
 m <- ed_rwnn(y ~ ., data = example_data, n_hidden = n_hidden, lambda = lambda)
-}
 }
 \references{
 Shi Q., Katuwal R., Suganthan P., Tanveer M. (2021) "Random vector functional link neural network based ensemble deep learning." \emph{Pattern Recognition}, 117, 107978.

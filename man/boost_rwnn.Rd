@@ -61,10 +61,8 @@ B <- 100
 epsilon <- 0.1
 lambda <- 0.01
 
-\dontrun{
 m <- boost_rwnn(y ~ ., data = example_data, n_hidden = n_hidden,
                 lambda = lambda, B = B, epsilon = epsilon)
-}
 }
 \references{
 Friedman J.H. (2001) "Greedy function approximation: A gradrient boosting machine." \emph{The Annals of Statistics}, 29, 1189-1232.
