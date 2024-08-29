@@ -8,7 +8,7 @@ Along with a standard RWNN implementation, a number of popular variations have a
 -   **ELM** (extreme learning machine): A simplified version of an RWNN without a link between the input and output layer (this is also the default behaviour of the RWNN implementation).
 -   **deep RWNN**: An RWNN with multiple hidden layers, where the output of each hidden-layer is included as features in the model.
 -   **sparse RWNN**: Applies sparse auto-encoder ($\ell_1$ regularised) pre-training to reduce the number non-zero weights between the input and the hidden layer (the implementation generalises this concept to allow for both $\ell_1$ and $\ell_2$ regularisation).
--   **ensemble deep RWNN**: An ensemble extension of deep RWNNs using the output of each hidden layer to create an ensemble of RWNNs, each hidden-layer being used to create a seperate prediction of the target.
+-   **ensemble deep RWNN**: An ensemble extension of deep RWNNs using the output of each hidden layer to create an ensemble of RWNNs, each hidden-layer being used to create a separate prediction of the target.
 
 Furthermore, the `RWNN` package also includes general implementations of the following ensemble methods (using RWNNs as base learners):
 
