@@ -377,6 +377,7 @@ reduce_network_correlation <- function(object, type, rho, X) {
         ##
         C_w <- cor(H_w, method = type)
         C_w <- upper.tri(C_w) * C_w
+        C_w <- abs(C_w)
         
         remove_cols_w <- which(apply(C_w >= rho, 2, any))
         
@@ -461,11 +462,20 @@ reduce_network_correlation_ft <- function(object, type, rho, alpha, X) {
         R_w <- 0.5 * (log(1 + rho) - log(1 - rho))
         
         ## 
-        T_w <- (Z_w - R_w) * sqrt(N - 3)
-        P_w <- upper.tri(T_w) * pnorm(T_w, 0, 1)
+        T_w <- (abs(Z_w) - R_w) * sqrt(N - 3)
+        P_w <- upper.tri(T_w) * pnorm(T_w, 0, 1, lower.tail = FALSE)
         
         ## 
-        remove_cols_w <- which(!apply(P_w < alpha, 2, all))
+        N_w <- 0.5 * ncol(P_w) * (ncol(P_w) - 1)
+        O_w <- P_w[order(P_w)][-seq_len(length(P_w) - N_w)]
+        B_w <- alpha * seq_len(N_w) / N_w
+        
+        A_w <- B_w[which(O_w > B_w)[1]]
+        if (length(A_w) < 1) {
+            A_w <- 1.0
+        }
+        
+        remove_cols_w <- which(apply(upper.tri(P_w) * (P_w < A_w), 2, any))
         
         ##
         if (length(remove_cols_w) > 0) {

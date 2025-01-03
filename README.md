@@ -67,7 +67,7 @@ m_sprwnn <- ae_rwnn(y ~ ., data = example_train, n_hidden = n_hidden, lambda = c
 
 # Reducing RWNN
 m_rwnn_p <- m_rwnn |> 
-    reduce_network(method = "correlation", rho = 0.9) |> 
+    reduce_network(method = "correlationtest", rho = 0.9, alpha = 0.05) |> 
     reduce_network(method = "lamp", p = 0.2) |> 
     reduce_network(method = "output")
 
