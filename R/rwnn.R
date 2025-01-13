@@ -384,7 +384,6 @@ rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = 0, type 
         attr(y, "contrasts") <- NULL
         
         y <- 2 * y - 1
-        
         colnames(y) <- paste(y_names, sep = "")
     } 
     else if (tolower(type) %in% c("r", "reg", "regression")) {

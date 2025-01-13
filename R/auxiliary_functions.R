@@ -326,13 +326,13 @@ predict.ERWNN <- function(object, ...) {
 #' 
 #' @param y A matrix of predicted classes.
 #' @param C A vector of class names corresponding to the columns of \code{y}.
-#' @param t The decision threshold which the predictions have to exceed (defaults to '0'). 
-#' @param b A buffer which the largest prediction has to exceed when compared to the second largest prediction (defaults to '0').
+#' @param t The decision threshold which the predictions have to exceed (defaults to '0.0'). 
+#' @param b A buffer which the largest prediction has to exceed when compared to the second largest prediction (defaults to '0.0').
 #' 
 #' @return A vector of class predictions.
 #' 
 #' @export 
-classify <- function(y, C, t = NULL, b = NULL) {
+classify <- function(y, C, t = 0.0, b = 0.0) {
     #
     if (dim(y)[2] != length(C)) {
         stop("The number of columns 'y' has to match the number of elements in 'C'.")

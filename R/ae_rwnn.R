@@ -267,11 +267,12 @@ ae_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NULL,
         attr(y, "contrasts") <- NULL
         
         y <- 2 * y - 1
-        
         colnames(y) <- paste(y_names, sep = "")
-    } else if (tolower(type) %in% c("r", "reg", "regression")) {
+    } 
+    else if (tolower(type) %in% c("r", "reg", "regression")) {
         type <- "regression"
-    } else {
+    } 
+    else {
         stop("'type' has not been correctly specified, it needs to be set to either 'regression' or 'classification'.")
     }
     

@@ -180,7 +180,6 @@ boost_rwnn.formula <- function(formula, data = NULL, n_hidden = c(), lambda = NU
         attr(y, "contrasts") <- NULL
         
         y <- 2 * y - 1
-        
         colnames(y) <- paste(y_names, sep = "")
     } 
     else if (tolower(type) %in% c("r", "reg", "regression")) {
