@@ -42,7 +42,12 @@ bag_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, method
     }
     
     if (is.null(control$n_features)) {
-        control$n_features <- ceiling(dim(X)[2] / 3)
+        if (type == "classification") {
+            control$n_features <- ceiling(dim(X)[2] / 3)
+        }
+        else {
+            control$n_features <- ceiling(sqrt(dim(X)[2]))
+        }
     }
     
     ##
