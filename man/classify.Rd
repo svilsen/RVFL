@@ -4,16 +4,16 @@
 \alias{classify}
 \title{Classifier}
 \usage{
-classify(y, C, t = NULL, b = NULL)
+classify(y, C, t = 0, b = 0)
 }
 \arguments{
 \item{y}{A matrix of predicted classes.}
 
 \item{C}{A vector of class names corresponding to the columns of \code{y}.}
 
-\item{t}{The decision threshold which the predictions have to exceed (defaults to '0').}
+\item{t}{The decision threshold which the predictions have to exceed (defaults to '0.0').}
 
-\item{b}{A buffer which the largest prediction has to exceed when compared to the second largest prediction (defaults to '0').}
+\item{b}{A buffer which the largest prediction has to exceed when compared to the second largest prediction (defaults to '0.0').}
 }
 \value{
 A vector of class predictions.

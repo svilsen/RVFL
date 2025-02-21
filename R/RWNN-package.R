@@ -62,6 +62,6 @@ NULL
 #' 
 #' @description A data-set of 2000 observations were sampled independently according to the function: 
 #' \deqn{y_n = \dfrac{1}{1 + \exp(-x_n^T\beta + \varepsilon_n)},}
-#' where \eqn{x_n^T} is a vector containing an intercept and five input features, \eqn{\beta} is a vector containing the parameters, \eqn{(-1\;2\;1\;2\;0.5\;3)^T}, and \eqn{\varepsilon_n} is normally distributed noise with mean 0 and variance 0.1. Furthermore, the five features were generated as \eqn{x_1 \sim \mathcal Unif(-5, 5)}, \eqn{x_2 \sim \mathcal Unif(0, 2)}, \eqn{x_3 \sim \mathcal N(2, 4)}, \eqn{x_4 \sim \mathcal Gamma(2, 4)}, and \eqn{x_5 \sim \mathcal Beta(10, 4)}, respectively.
+#' where \eqn{x_n^T} is a vector containing an intercept and five input features, \eqn{\beta} is a vector containing the parameters, \eqn{(-1,\;2,\;1,\;2,\;0.5,\;3)^T}, and \eqn{\varepsilon_n} is normally distributed noise with mean 0 and variance 0.1. Furthermore, the five features were generated as \eqn{x_1 \sim \mathcal Unif(-5, 5)}, \eqn{x_2 \sim \mathcal Unif(0, 2)}, \eqn{x_3 \sim \mathcal N(2, 4)}, \eqn{x_4 \sim \mathcal Gamma(2, 4)}, and \eqn{x_5 \sim \mathcal Beta(10, 4)}, respectively.
 #' 
 "example_data"

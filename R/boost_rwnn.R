@@ -31,6 +31,10 @@ boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, epsi
         control$include_data <- FALSE
     }
     
+    if (is.null(control[["boost_schedule"]])) {
+        control$boost_schedule <- TRUE
+    }
+    
     dc <- data_checks(y, X)
     
     if (is.null(B) | !is.numeric(B)) {
@@ -56,13 +60,21 @@ boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, epsi
     }
     
     ##
+    if (control$boost_schedule) {
+        w <- epsilon / sqrt(seq(1, B))
+    }
+    else {
+        w <- epsilon * rep(1, B)
+    }
+    
+    ##
     N <- nrow(X)
     y_b <- y
     objects <- vector("list", B)
     for (b in seq_len(B)) {
         # Update residual
         if (b > 1) {
-            y_b <- y_b - epsilon * predict(objects[[b - 1]], newdata = X)
+            y_b <- y_b - w[b] * predict(objects[[b - 1]], newdata = X)
         }
         
         # Stochastic boosting
@@ -86,7 +98,7 @@ boost_rwnn_matrix <- function(X, y, n_hidden = c(), lambda = NULL, B = 100, epsi
         formula = NULL,
         data = list(X = X, y = y, C = ifelse(type == "regression", NA, colnames(y))), 
         models = objects, 
-        weights = rep(epsilon, B), 
+        weights = w, 
         method = "boosting"
     )  
     
